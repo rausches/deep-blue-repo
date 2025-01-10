@@ -1,4 +1,5 @@
 ![Deep Blue Logo](Milestones/Milestone-1/Marketing%20Materials/Logo.png)
+<img src="Milestones/Milestone-1/Marketing%20Materials/Logo.png" alt="Deep Blue Logo" width="300">
 
 # **Deep Blue**
 ## *Every Move Counts. Deep Blue Delivers*
