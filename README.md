@@ -1,4 +1,4 @@
-![Deep Blue Logo](milestones/milestone-1/marketing-materials/Logo.png)
+![Deep Blue Logo](milestones/milestone-1/marketing%20materials/Logo.png)
 
 # **Deep Blue**
 ## *Every Move Counts. Deep Blue Delivers*
