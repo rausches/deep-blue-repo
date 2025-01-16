@@ -6,7 +6,7 @@ Inspired by the legendary supercomputer, Deep Blue, our team embodies the spirit
 This project will serve as our senior capstone and demonstrate our capabilities in programming, web app development, and design. 
 
 ### About Us
-Our team consists of 4 contributors: 
+Our team consists of 4 contributors:  
 [Andrea Belen Jacho Betun](doc/team-resumes/Andrea-Belen-Jacho-Betun.pdf)  
 [Lexy Ramos](doc/team-resumes/Lexy-Ramos.pdf)  
 [Sagan Rauscher](doc/team-resumes/Sagan-Rauscher.pdf)  
