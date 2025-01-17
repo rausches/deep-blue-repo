@@ -5,11 +5,15 @@ Inspired by the legendary supercomputer, Deep Blue, our team embodies the spirit
 
 This project will serve as our senior capstone and demonstrate our capabilities in programming, web app development, and design. 
 
-### Vision Statement
+### Vision Statement 
 
 The "UX Checkmate" web application helps developers, website owners, and designers enhance the accessibility and user experience of their webpages. By analyzing websites
 for compliance with accessibility standards and UX principles, the app provides tailored,context-sensitive suggestions and visual mockups for improvement. Its goal is to ensure 
 websites are accessible to all users, including those with disabilities, while meeting ADA requirements for equal access to information and services.
+
+### Mindmap
+# <img src="doc/images/Ux_Accessibility_Checker.jpg" alt="mindmap image">
+
 
 ### About Us
 Our team consists of 4 contributors:  
