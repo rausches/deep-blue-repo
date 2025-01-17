@@ -11,8 +11,6 @@ The "UX Checkmate" web application helps developers, website owners, and designe
 for compliance with accessibility standards and UX principles, the app provides tailored,context-sensitive suggestions and visual mockups for improvement. Its goal is to ensure 
 websites are accessible to all users, including those with disabilities, while meeting ADA requirements for equal access to information and services.
 
-
-
 ### About Us
 Our team consists of 4 contributors:  
 [Andrea Belen Jacho Betun](doc/team-resumes/Andrea-Belen-Jacho-Betun.pdf)  
