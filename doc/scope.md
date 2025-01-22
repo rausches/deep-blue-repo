@@ -1,6 +1,6 @@
-# **Initial Scope for UX Checkmate**
+# Initial Scope for UX Checkmate
 
-## **Needs and Features**
+## Needs and Features
 - **Entering Website URL**:  
   - Ability to enter a website URL for analysis.  
   - Submit button that opens a modal displaying recommended changes or account login.  
@@ -31,7 +31,7 @@
 
 ---
 
-## **What the Application Will Do for Users**  
+## What the Application Will Do for Users  
 - Analyze a user’s website and provide a mockup and categorized list of changes.  
 - Help users maintain an organized list of UX improvements needed for their websites.  
 - Provide insights on improving site usability and accessibility.  
@@ -39,18 +39,18 @@
 
 ---
 
-## **Problems the Application Will Solve**
+## Problems the Application Will Solve
 - **Accessibility and UX Optimization**:  
   - Many websites fail to meet modern accessibility and usability standards.  
-  - *Solution*: Provide a clear list of improvements based on accessibility guidelines and UX practices.  
+  - **Solution**: Provide a clear list of improvements based on accessibility guidelines and UX practices.  
 
 - **Tracking Improvement Progress**:  
   - Users need an easy way to keep track of website improvement progress.  
-  - *Solution*: Provide a list to track and mark items as complete.    
+  - **Solution**: Provide a list to track and mark items as complete.    
 
 ---
 
-## **User Needs**
+## User Needs
 - Tools to ensure websites meet accessibility standards.  
 - A simple and intuitive interface for analyzing and understanding website issues.  
 - Access to previous UX recommendation reports.  
@@ -59,7 +59,7 @@
 
 ---
 
-## **System Needs**
+## System Needs
 - **Database**:  
   - Cloud-based database for storage of user accounts, reports, and feedback.  
 
