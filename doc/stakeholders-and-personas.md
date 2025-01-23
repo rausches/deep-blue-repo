@@ -1,30 +1,30 @@
 # Stakeholders
-
-### **Web Developers** (Internal stakeholder)
+## Web Developers (Internal stakeholder)
 **Role:** They will use the tool to identify technical issues on the site related to accessibility standards and UX principles. They would implement the changes suggested by the application.
 
 **Importance:** Developers are important because they implement the solutions provided by the tool. Their ability to apply the recommendation given by the app ensures the website’s actual technical compliance with accessibility standards.
 
-### UX/UI Designers (Internal stakeholder)
+## UX/UI Designers (Internal stakeholder)
 **Role:** They will identify design-related issues that impact accessibility and usability. They would then adjust the visual design, navigation, and interaction elements to improve the user experience.
 
 **Importance:** Designers play a crucial role in the aesthetic and functional aspect of a website. Their involvement ensures that the suggested improvements not only meet accessibility standards but also provide a positive user experience.
 
-### **Website Owners** (Internal stakeholder)
+## Website Owners (Internal stakeholder)
 **Role:** They would utilize the application to check their websites for accessibility and UX compliance.
 
 **Importance:** The app will help them to ensure legal compliance by avoiding lawsuits and improving user satisfaction. Additionally, their role is critical because they are ultimately responsible for ensuring their websites meet accessibility standards and provide a good user experience. This app will help them avoid legal risks related to ADA requirements and improve user engagement by ensuring their sites are accessible to everyone, including those with disabilities.
 
-### End Users (External stakeholder)
+## End Users (External stakeholder)
 **Role:** End users are the ultimate beneficiaries of the improved accessibility and user experience. They include individuals with disabilities, elderly users, and others who face challenges in using websites.
 
 **Importance:** Their experience is at the heart of the tool’s purpose. By improving website accessibility and UX, the tool ensures that a diverse range of users can navigate and interact with websites effectively and comfortably.
 
 # Personas (Future Users)
 
-<img src="./assets/stakeholders/Sarah_Kim_persona_1.png" style="width:200px; height:200px;" alt="Generated image by chatGPT, portrait of Sarah Kim, a web developer persona 1"/>
 
-### Persona 1: Sarah Kim
+<img src="./assets/stakeholders/Sarah_Kim_persona_1.png" style="width:300px; height:auto;" alt="Generated image by chatGPT, portrait of Sarah Kim, a web developer persona 1"/>
+
+### **Persona 1: Sarah Kim**
 - **Age:** 35
 - **Hometown:** Seattle, Washington
 - **Job:** Web Developer (Front-End Design Specialist)
@@ -35,10 +35,11 @@
 
 **Challenge:** Sarah wants to ensure that her websites are compliant with ADA standards but struggles with keeping up with the latest accessibility regulations.
 
+<br>
 
-<img src="./assets/stakeholders/Priya_Desai_persona_2.png" style="width:200px; height:200px;" alt="Generated image by chatGPT, portrait of Priya Desai, an UX designer persona 2"/>
+<img src="./assets/stakeholders/Priya_Desai_persona_2.png" style="width:300px; height:auto;" alt="Generated image by chatGPT, portrait of Priya Desai, an UX designer persona 2"/>
 
-### Persona 2: Priya Desai
+### **Persona 2: Priya Desai**
 - **Age:** 28
 - **Hometown:** New York City, New York
 - **Job:** UX/UI Designer (Freelancer)
@@ -49,9 +50,11 @@
 
 **Challenge:** Priya is constantly balancing the creative aspects of design with functional, ADA-compliant features and needs tools that help streamline this process.
 
-<img src="./assets/stakeholders/Michael_Johnson_persona_3.png" style="width:200px; height:200px;" alt="Generated image by chatGPT, portrait of David Martinez, a website owner persona 3"/>
+<br>
 
-### Persona 3: David Martinez
+<img src="./assets/stakeholders/Michael_Johnson_persona_3.png" style="width:300px; height:auto;" alt="Generated image by chatGPT, portrait of David Martinez, a website owner persona 3"/>
+
+### **Persona 3: David Martinez**
 - **Age:** 52
 - **Hometown:** Los Angeles, California
 - **Job:** Administrative Assistant at a Marketing Firm
