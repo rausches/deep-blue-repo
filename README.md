@@ -8,9 +8,8 @@ This project will serve as our senior capstone and demonstrate our capabilities 
 
 ### Vision Statement 
 
-The "UX Checkmate" web application helps developers, website owners, and designers enhance the accessibility and user experience of their webpages. By analyzing websites
-for compliance with accessibility standards and UX principles, the app provides tailored,context-sensitive suggestions and visual mockups for improvement. Its goal is to ensure 
-websites are accessible to all users, including those with disabilities, while meeting ADA requirements for equal access to information and services.
+Our vision is to create an inclusive digital culture where everyone—whether a developer, business owner, or designer—can contribute to making websites accessible, inclusive, and equitable. With 'UX Checkmate,' we make it easy for anyone to improve their websites by simply inserting a web link. Our tool helps identify areas for accessibility enhancement, offering actionable suggestions and visual mockups to guide improvements. As technology continues to advance, we aim to bridge the gap for those without technical experience, ensuring that every user, regardless of their abilities, can navigate and engage with the web seamlessly. By fostering collaboration and inclusion, we strive to make the digital world accessible to all, building a future where no one is left behind.
+
 
 ### 1/19/2024 Update
 
