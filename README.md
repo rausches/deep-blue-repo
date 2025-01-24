@@ -1,4 +1,4 @@
-# <img src="doc/images/logo.png" alt="Deep Blue Logo" width="50"> Deep Blue
+# <img src="doc\assets\branding\logo.png" alt="Deep Blue Logo" width="50"> Deep Blue
 ## Every Move Counts. Deep Blue Delivers
 ### About Us
 
@@ -14,8 +14,13 @@ websites are accessible to all users, including those with disabilities, while m
 
 ### 1/19/2024 Update
 
-- Added [Mindmap](doc\images\Ux_Accessibility_Checker.jpg) and [System Architecture](doc\images\architecture.svg) to [doc/images](doc/images)
-- Added [Scope](doc\scope.md) to [doc](doc)
+- Added [Mindmap](doc/images/Ux_Accessibility_Checker.jpg) and [System Architecture](doc/images/architecture.svg) to [doc/images](doc/images)
+- Added [Scope](doc/scope.md) to [doc](doc)
 
+### 1/26/2024 Update
 
-
+- Renamed doc/images to doc/assets
+- Created [Branding](doc/assets/branding), [Documentation](doc/assets/documentation), [QR](doc/assets/qr), and [Stakeholders](doc/assets/stakeholders) folders to [doc/assets](doc/assets)
+- Added [Stakeholders](doc/stakeholders-and-personas.md) to [doc](doc)
+- Renamed [Mindmap](doc/assets/documentation/mindmap.jpg) file
+- Replaced [System Architecture](doc/assets/documentation) file
