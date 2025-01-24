@@ -22,7 +22,7 @@
 # Personas (Future Users)
 
 
-<img src="./assets/stakeholders/Sarah_Kim_persona_1.png" style="width:300px; height:auto;" alt="Generated image by chatGPT, portrait of Sarah Kim, a web developer persona 1"/>
+<img src="./assets/stakeholders/Sarah-Kim-persona-1.png" style="width:300px; height:auto;" alt="Generated image by chatGPT, portrait of Sarah Kim, a web developer persona 1"/>
 
 ### **Persona 1: Sarah Kim**
 - **Age:** 35
@@ -37,7 +37,7 @@
 
 <br>
 
-<img src="./assets/stakeholders/Priya_Desai_persona_2.png" style="width:300px; height:auto;" alt="Generated image by chatGPT, portrait of Priya Desai, an UX designer persona 2"/>
+<img src="./assets/stakeholders/Priya-Desai-persona-2.png" style="width:300px; height:auto;" alt="Generated image by chatGPT, portrait of Priya Desai, an UX designer persona 2"/>
 
 ### **Persona 2: Priya Desai**
 - **Age:** 28
@@ -52,7 +52,7 @@
 
 <br>
 
-<img src="./assets/stakeholders/Michael_Johnson_persona_3.png" style="width:300px; height:auto;" alt="Generated image by chatGPT, portrait of David Martinez, a website owner persona 3"/>
+<img src="./assets/stakeholders/Michael-Johnson-persona-3.png" style="width:300px; height:auto;" alt="Generated image by chatGPT, portrait of David Martinez, a website owner persona 3"/>
 
 ### **Persona 3: David Martinez**
 - **Age:** 52
