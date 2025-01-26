@@ -23,3 +23,5 @@ Our vision is to create an inclusive digital culture where everyone—whether a 
 - Added [Stakeholders](doc/stakeholders-and-personas.md) to [doc](doc)
 - Renamed [Mindmap](doc/assets/documentation/mindmap.jpg) file
 - Replaced [System Architecture](doc/assets/documentation) file
+- Updated Vision Statement
+- Refined [Scope](doc/scope.md)
