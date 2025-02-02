@@ -16,7 +16,7 @@ This project will use regular javascript.
 ## Git Branches
 Branch names will be decided on collectively as a group during the final stand up prior to the following sprint. Names shall be lowercase following “feature/”, concatenated with a “-” if more than one word.
 ## Database Syntax
-[See Here](doc/assets/dbsyntax.png)
+[See Here](assets/dbsyntax.png)
 ## Loading of related entities
 This project will use lazy loading of related entities. 
 	
