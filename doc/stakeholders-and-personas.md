@@ -19,6 +19,27 @@
 
 **Importance:** Their experience is at the heart of the tool’s purpose. By improving website accessibility and UX, the tool ensures that a diverse range of users can navigate and interact with websites effectively and comfortably.
 
+## Us (Development Team)
+**Role:** We are responsible for designing, developing, and maintaining the tool. Our role includes gathering user requirements, implementing features, testing functionality, and iterating based on feedback.
+
+
+**Importance:** As the creators of the tool, we ensure its effectiveness, usability, and alignment with accessibility standards. Our work directly impacts the success of the tool and its adoption by stakeholders.
+
+## Advisor (Internal Stakeholder – Project Mentor)
+**Role:** The advisor provides guidance and expertise on accessibility compliance, UX best practices, and technical development strategies. They provide feedback, evaluate progress, and help troubleshoot challenges.
+
+**Importance:** Their role is crucial in shaping the project’s direction and ensuring the final product is well-structured, functional, and innovative. They also facilitate learning and skill development for the team.
+
+## Instructure (Internal Stakeholder – Academic Mentor)
+**Role:** The instructor oversees the project’s development, ensuring it meets academic requirements and industry standards.
+
+**Importance:** Their guidance ensures that the project follows a structured development process while meeting academic expectations.
+
+## Sponsor (External Stakeholder – Funding and Support)
+**Role:** The sponsor provides financial or resource-based support for the project. They may fund development, testing, or marketing efforts.
+
+**Importance:** Their contributions help sustain the project, allowing it to reach a broader audience. Their investment ensures that the tool can be fully developed and maintained, making it more effective and impactful.
+
 # Personas (Future Users)
 
 

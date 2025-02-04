@@ -30,3 +30,8 @@ Our vision is to create an inclusive digital culture where everyone—whether a 
 - Added [Use Case Model](doc/assets/modeling/use-case-model.png) to [modeling](doc/assets/modeling)
 - Added [UI Models](doc/assets/modeling/ui-mockups/) to [modeling](doc/assets/modeling)
 - Added [Requirements](doc/requirements.md) to [doc](doc)
+
+### 2/3/2025 Update
+- Added [up](doc/assets/db-scripts/up.sql) and [down](doc/assets/db-scripts/down.sql) scripts to [db-scripts](doc/assets/db-scripts)
+- Added sprint 1 user stories to [User Stories](doc/user-stories) folder
+- Added [architectural-decisions](doc/architectural-decisions.md) to [doc](doc)
