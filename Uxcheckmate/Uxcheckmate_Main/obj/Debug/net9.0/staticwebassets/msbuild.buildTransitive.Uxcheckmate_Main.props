@@ -1,0 +1,3 @@
+﻿<Project>
+  <Import Project="../buildMultiTargeting/Uxcheckmate_Main.props" />
+</Project>
