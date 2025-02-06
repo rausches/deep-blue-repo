@@ -11,6 +11,8 @@ public class Program
 
         var app = builder.Build();
 
+        app.UseStatusCodePagesWithReExecute("/Home/ErrorPage");
+
         // Configure the HTTP request pipeline.
         if (!app.Environment.IsDevelopment())
         {

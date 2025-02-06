@@ -30,6 +30,12 @@ public class HomeController : Controller
     }
 
     [HttpGet]
+    public IActionResult ErrorPage()
+    {
+        return View();
+    }
+
+    [HttpGet]
     public IActionResult Disclosure()
     {
         return View();
