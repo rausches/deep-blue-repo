@@ -13,10 +13,26 @@ public class HomeController : Controller
         _logger = logger;
     }
 
+    [HttpGet]
     public IActionResult Index()
     {
         return View();
     }
+
+    [HttpPost]
+    public IActionResult Index(ReportUrl urlLink)
+    {
+        // need to send a confimation message that url has been received
+        if (string.IsNullOrEmpty(urlLink.Url))
+        {
+            ViewBag.Message = "Url has not been received";
+            return View("Index");
+        }
+
+        ViewBag.Message = "Url has been received";
+        return View("Index");
+    }
+
 
     public IActionResult Privacy()
     {
