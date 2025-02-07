@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Uxcheckmate_Main")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+2c446e1c02f8d21f643e02485cd66b69d1cef3d3")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+2a21cce08ce1ea912f1db4fbb5e259540cfdb283")]
 [assembly: System.Reflection.AssemblyProductAttribute("Uxcheckmate_Main")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Uxcheckmate_Main")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
