@@ -7,6 +7,15 @@ function validateURL() {
 
     var confirmationMessage = document.getElementById('confirmationMessage');
 
+    if (urlInput === "") {
+        confirmationMessage.innerHTML = `
+        <div class='alert alert-danger'>
+            <h5><strong>Empty URL!</strong></h5>
+            <p>Please enter a URL before submitting.</p>
+        </div>`;
+        return false;
+    }
+
     if (urlRegex.test(urlInput)) {
         confirmationMessage.innerHTML = "<div class='alert alert-success'>Your URL has been successfully submitted!</div>";
         return true;
