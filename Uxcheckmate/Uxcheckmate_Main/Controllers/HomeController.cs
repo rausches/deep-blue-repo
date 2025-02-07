@@ -32,7 +32,7 @@ public class HomeController : Controller
     [HttpGet]
     public IActionResult ErrorPage()
     {
-        return View();
+        return View("ErrorPage");
     }
 
     [HttpGet]
