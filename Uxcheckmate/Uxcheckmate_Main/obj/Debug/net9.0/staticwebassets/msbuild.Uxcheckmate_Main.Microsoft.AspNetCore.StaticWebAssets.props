@@ -48,8 +48,8 @@
       <RelatedAsset></RelatedAsset>
       <AssetTraitName></AssetTraitName>
       <AssetTraitValue></AssetTraitValue>
-      <Fingerprint>1jxumsjrmg</Fingerprint>
-      <Integrity>PbuYLikbfgcUpk/k8LdJ4NO9ID/8ItkYZ9s34rfo8rw=</Integrity>
+      <Fingerprint>21eej2mvkp</Fingerprint>
+      <Integrity>emYsfBPbXj3w4Ei8721kK7qivDvLhz4/4/E/efonDAQ=</Integrity>
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
       <OriginalItemSpec>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\js\handleUserUrl.js'))</OriginalItemSpec>
@@ -1134,23 +1134,23 @@
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
       <OriginalItemSpec>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\lib\jquery\LICENSE.txt'))</OriginalItemSpec>
     </StaticWebAsset>
-    <StaticWebAsset Include="$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\Uxcheckmate_Main.66z6qaqpic.bundle.scp.css'))">
+    <StaticWebAsset Include="$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\Uxcheckmate_Main.7fns6pclcb.bundle.scp.css'))">
       <SourceType>Package</SourceType>
       <SourceId>Uxcheckmate_Main</SourceId>
       <ContentRoot>$(MSBuildThisFileDirectory)..\staticwebassets\</ContentRoot>
       <BasePath>_content/Uxcheckmate_Main</BasePath>
-      <RelativePath>Uxcheckmate_Main.66z6qaqpic.bundle.scp.css</RelativePath>
+      <RelativePath>Uxcheckmate_Main.7fns6pclcb.bundle.scp.css</RelativePath>
       <AssetKind>All</AssetKind>
       <AssetMode>Reference</AssetMode>
       <AssetRole>Primary</AssetRole>
       <RelatedAsset></RelatedAsset>
       <AssetTraitName>ScopedCss</AssetTraitName>
       <AssetTraitValue>ProjectBundle</AssetTraitValue>
-      <Fingerprint>66z6qaqpic</Fingerprint>
-      <Integrity>cmYoRiUm7pqfRWuAOz00/ycTKZRU3YNKSxJcVU6Ihms=</Integrity>
+      <Fingerprint>7fns6pclcb</Fingerprint>
+      <Integrity>ky9Q0oAP3TM+vkUwAgCMJwrjC/3/1eAr9BzV6H1QJcA=</Integrity>
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
-      <OriginalItemSpec>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\Uxcheckmate_Main.66z6qaqpic.bundle.scp.css'))</OriginalItemSpec>
+      <OriginalItemSpec>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\staticwebassets\Uxcheckmate_Main.7fns6pclcb.bundle.scp.css'))</OriginalItemSpec>
     </StaticWebAsset>
   </ItemGroup>
 </Project>

@@ -351,6 +351,7 @@ C:\Users\belen\OneDrive\Desktop\deep_blue_group_project\deep-blue-repo\Uxcheckma
 C:\Users\belen\OneDrive\Desktop\deep_blue_group_project\deep-blue-repo\Uxcheckmate\Uxcheckmate_Main\obj\Debug\net9.0\scopedcss\projectbundle\Uxcheckmate_Main.bundle.scp.css
 C:\Users\belen\OneDrive\Desktop\deep_blue_group_project\deep-blue-repo\Uxcheckmate\Uxcheckmate_Main\obj\Debug\net9.0\compressed\ydiix9vael-b9sayid5wm.gz
 C:\Users\belen\OneDrive\Desktop\deep_blue_group_project\deep-blue-repo\Uxcheckmate\Uxcheckmate_Main\obj\Debug\net9.0\compressed\np1mhahrig-61n19gt1b8.gz
+C:\Users\belen\OneDrive\Desktop\deep_blue_group_project\deep-blue-repo\Uxcheckmate\Uxcheckmate_Main\obj\Debug\net9.0\compressed\ccwhmjy9fa-21eej2mvkp.gz
 C:\Users\belen\OneDrive\Desktop\deep_blue_group_project\deep-blue-repo\Uxcheckmate\Uxcheckmate_Main\obj\Debug\net9.0\compressed\onronii8mp-t1cqhe9u97.gz
 C:\Users\belen\OneDrive\Desktop\deep_blue_group_project\deep-blue-repo\Uxcheckmate\Uxcheckmate_Main\obj\Debug\net9.0\compressed\srzr8h8nk5-c2jlpeoesf.gz
 C:\Users\belen\OneDrive\Desktop\deep_blue_group_project\deep-blue-repo\Uxcheckmate\Uxcheckmate_Main\obj\Debug\net9.0\compressed\g5dpglqbzx-sejl45xvog.gz
@@ -410,8 +411,8 @@ C:\Users\belen\OneDrive\Desktop\deep_blue_group_project\deep-blue-repo\Uxcheckma
 C:\Users\belen\OneDrive\Desktop\deep_blue_group_project\deep-blue-repo\Uxcheckmate\Uxcheckmate_Main\obj\Debug\net9.0\compressed\g6ygu311k1-9vr69e8ynj.gz
 C:\Users\belen\OneDrive\Desktop\deep_blue_group_project\deep-blue-repo\Uxcheckmate\Uxcheckmate_Main\obj\Debug\net9.0\compressed\0vv7ka18zg-87fc7y1x7t.gz
 C:\Users\belen\OneDrive\Desktop\deep_blue_group_project\deep-blue-repo\Uxcheckmate\Uxcheckmate_Main\obj\Debug\net9.0\compressed\9j88y8f8dk-mlv21k5csn.gz
-C:\Users\belen\OneDrive\Desktop\deep_blue_group_project\deep-blue-repo\Uxcheckmate\Uxcheckmate_Main\obj\Debug\net9.0\compressed\hcg2fnvyyh-66z6qaqpic.gz
-C:\Users\belen\OneDrive\Desktop\deep_blue_group_project\deep-blue-repo\Uxcheckmate\Uxcheckmate_Main\obj\Debug\net9.0\compressed\7b8e4oltr6-66z6qaqpic.gz
+C:\Users\belen\OneDrive\Desktop\deep_blue_group_project\deep-blue-repo\Uxcheckmate\Uxcheckmate_Main\obj\Debug\net9.0\compressed\hcg2fnvyyh-7fns6pclcb.gz
+C:\Users\belen\OneDrive\Desktop\deep_blue_group_project\deep-blue-repo\Uxcheckmate\Uxcheckmate_Main\obj\Debug\net9.0\compressed\7b8e4oltr6-7fns6pclcb.gz
 C:\Users\belen\OneDrive\Desktop\deep_blue_group_project\deep-blue-repo\Uxcheckmate\Uxcheckmate_Main\obj\Debug\net9.0\staticwebassets.build.json
 C:\Users\belen\OneDrive\Desktop\deep_blue_group_project\deep-blue-repo\Uxcheckmate\Uxcheckmate_Main\obj\Debug\net9.0\staticwebassets.development.json
 C:\Users\belen\OneDrive\Desktop\deep_blue_group_project\deep-blue-repo\Uxcheckmate\Uxcheckmate_Main\obj\Debug\net9.0\staticwebassets.build.endpoints.json
@@ -427,4 +428,3 @@ C:\Users\belen\OneDrive\Desktop\deep_blue_group_project\deep-blue-repo\Uxcheckma
 C:\Users\belen\OneDrive\Desktop\deep_blue_group_project\deep-blue-repo\Uxcheckmate\Uxcheckmate_Main\obj\Debug\net9.0\Uxcheckmate_Main.pdb
 C:\Users\belen\OneDrive\Desktop\deep_blue_group_project\deep-blue-repo\Uxcheckmate\Uxcheckmate_Main\obj\Debug\net9.0\Uxcheckmate_Main.genruntimeconfig.cache
 C:\Users\belen\OneDrive\Desktop\deep_blue_group_project\deep-blue-repo\Uxcheckmate\Uxcheckmate_Main\obj\Debug\net9.0\ref\Uxcheckmate_Main.dll
-C:\Users\belen\OneDrive\Desktop\deep_blue_group_project\deep-blue-repo\Uxcheckmate\Uxcheckmate_Main\obj\Debug\net9.0\compressed\ccwhmjy9fa-1jxumsjrmg.gz

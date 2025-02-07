@@ -22,10 +22,9 @@ public class HomeController : Controller
     [HttpPost]
     public IActionResult Index(ReportUrl urlLink)
     {
-        // need to send a confimation message that url has been received
-        if (string.IsNullOrEmpty(urlLink.Url))
+        if (!ModelState.IsValid)
         {
-            ViewBag.Message = "Url has not been received";
+            ViewBag.Message = "Url has not been received: " + ModelState.Values.First().Errors.First().ErrorMessage;
             return View("Index");
         }
 

@@ -15,7 +15,6 @@ function validateURL() {
         </div>`;
         return false;
     }
-
     if (urlRegex.test(urlInput)) {
         confirmationMessage.innerHTML = "<div class='alert alert-success'>Your URL has been successfully submitted!</div>";
         return true;

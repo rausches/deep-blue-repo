@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Nunit_Tests")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+b5b60943adb63801bae0dec13f17b66971fef454")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+1ee6cd1602132d4c4f860ef7bd58f0da52e71252")]
 [assembly: System.Reflection.AssemblyProductAttribute("Nunit_Tests")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Nunit_Tests")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
