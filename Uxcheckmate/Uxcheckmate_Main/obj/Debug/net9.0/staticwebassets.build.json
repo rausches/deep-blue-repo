@@ -1,6 +1,6 @@
 {
   "Version": 1,
-  "Hash": "tcHTzDAAjwnZ5JuGKRxkHvw8fhLAWpah0dDkwhzT/I0=",
+  "Hash": "HXwSCEJ67CE6eBGUrmono9RvZcdSZmFo9oGDbFLVCJQ=",
   "Source": "Uxcheckmate_Main",
   "BasePath": "_content/Uxcheckmate_Main",
   "Mode": "Default",
@@ -458,12 +458,12 @@
       "OriginalItemSpec": "C:\\Users\\belen\\OneDrive\\Desktop\\deep_blue_group_project\\deep-blue-repo\\Uxcheckmate\\Uxcheckmate_Main\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap.css.map"
     },
     {
-      "Identity": "C:\\Users\\belen\\OneDrive\\Desktop\\deep_blue_group_project\\deep-blue-repo\\Uxcheckmate\\Uxcheckmate_Main\\obj\\Debug\\net9.0\\compressed\\ccwhmjy9fa-21eej2mvkp.gz",
+      "Identity": "C:\\Users\\belen\\OneDrive\\Desktop\\deep_blue_group_project\\deep-blue-repo\\Uxcheckmate\\Uxcheckmate_Main\\obj\\Debug\\net9.0\\compressed\\ccwhmjy9fa-z9eqcbripf.gz",
       "SourceId": "Uxcheckmate_Main",
       "SourceType": "Discovered",
       "ContentRoot": "C:\\Users\\belen\\OneDrive\\Desktop\\deep_blue_group_project\\deep-blue-repo\\Uxcheckmate\\Uxcheckmate_Main\\obj\\Debug\\net9.0\\compressed\\",
       "BasePath": "_content/Uxcheckmate_Main",
-      "RelativePath": "js/handleUserUrl#[.{fingerprint=21eej2mvkp}]?.js.gz",
+      "RelativePath": "js/handleUserUrl#[.{fingerprint=z9eqcbripf}]?.js.gz",
       "AssetKind": "All",
       "AssetMode": "All",
       "AssetRole": "Alternative",
@@ -472,8 +472,8 @@
       "RelatedAsset": "C:\\Users\\belen\\OneDrive\\Desktop\\deep_blue_group_project\\deep-blue-repo\\Uxcheckmate\\Uxcheckmate_Main\\wwwroot\\js\\handleUserUrl.js",
       "AssetTraitName": "Content-Encoding",
       "AssetTraitValue": "gzip",
-      "Fingerprint": "4st4ihyteo",
-      "Integrity": "xAUByaXeIBdccBqzXyYgidyIoAhWPRZu2GW8pgf+Dvs=",
+      "Fingerprint": "ayo3sytd65",
+      "Integrity": "7upNcgXPPaWNx3xQJ4kIkQlfRleQJEsVLyXYXwQNwA0=",
       "CopyToOutputDirectory": "Never",
       "CopyToPublishDirectory": "PreserveNewest",
       "OriginalItemSpec": "C:\\Users\\belen\\OneDrive\\Desktop\\deep_blue_group_project\\deep-blue-repo\\Uxcheckmate\\Uxcheckmate_Main\\wwwroot\\js\\handleUserUrl.js"
@@ -1459,8 +1459,8 @@
       "RelatedAsset": "",
       "AssetTraitName": "",
       "AssetTraitValue": "",
-      "Fingerprint": "21eej2mvkp",
-      "Integrity": "emYsfBPbXj3w4Ei8721kK7qivDvLhz4/4/E/efonDAQ=",
+      "Fingerprint": "z9eqcbripf",
+      "Integrity": "x5Kno9ElT49f8e8fWLCEcyg/kqCAbiC7euuYg5enmuA=",
       "CopyToOutputDirectory": "Never",
       "CopyToPublishDirectory": "PreserveNewest",
       "OriginalItemSpec": "wwwroot\\js\\handleUserUrl.js"
@@ -3324,13 +3324,13 @@
       ]
     },
     {
-      "Route": "js/handleUserUrl.21eej2mvkp.js",
-      "AssetFile": "C:\\Users\\belen\\OneDrive\\Desktop\\deep_blue_group_project\\deep-blue-repo\\Uxcheckmate\\Uxcheckmate_Main\\obj\\Debug\\net9.0\\compressed\\ccwhmjy9fa-21eej2mvkp.gz",
+      "Route": "js/handleUserUrl.js",
+      "AssetFile": "C:\\Users\\belen\\OneDrive\\Desktop\\deep_blue_group_project\\deep-blue-repo\\Uxcheckmate\\Uxcheckmate_Main\\obj\\Debug\\net9.0\\compressed\\ccwhmjy9fa-z9eqcbripf.gz",
       "Selectors": [
         {
           "Name": "Content-Encoding",
           "Value": "gzip",
-          "Quality": "0.001689189189"
+          "Quality": "0.001164144354"
         }
       ],
       "ResponseHeaders": [
@@ -3340,19 +3340,19 @@
         },
         {
           "Name": "Content-Length",
-          "Value": "591"
+          "Value": "858"
         },
         {
           "Name": "ETag",
-          "Value": "\"xAUByaXeIBdccBqzXyYgidyIoAhWPRZu2GW8pgf+Dvs=\""
+          "Value": "\"7upNcgXPPaWNx3xQJ4kIkQlfRleQJEsVLyXYXwQNwA0=\""
         },
         {
           "Name": "Last-Modified",
-          "Value": "Fri, 07 Feb 2025 07:01:06 GMT"
+          "Value": "Fri, 07 Feb 2025 21:03:55 GMT"
         },
         {
           "Name": "Cache-Control",
-          "Value": "max-age=31536000, immutable"
+          "Value": "no-cache"
         },
         {
           "Name": "Content-Encoding",
@@ -3368,26 +3368,18 @@
         },
         {
           "Name": "ETag",
-          "Value": "W/\"emYsfBPbXj3w4Ei8721kK7qivDvLhz4/4/E/efonDAQ=\""
+          "Value": "W/\"x5Kno9ElT49f8e8fWLCEcyg/kqCAbiC7euuYg5enmuA=\""
         }
       ],
       "EndpointProperties": [
         {
-          "Name": "fingerprint",
-          "Value": "21eej2mvkp"
-        },
-        {
-          "Name": "label",
-          "Value": "js/handleUserUrl.js"
-        },
-        {
           "Name": "integrity",
-          "Value": "sha256-emYsfBPbXj3w4Ei8721kK7qivDvLhz4/4/E/efonDAQ="
+          "Value": "sha256-x5Kno9ElT49f8e8fWLCEcyg/kqCAbiC7euuYg5enmuA="
         }
       ]
     },
     {
-      "Route": "js/handleUserUrl.21eej2mvkp.js",
+      "Route": "js/handleUserUrl.js",
       "AssetFile": "C:\\Users\\belen\\OneDrive\\Desktop\\deep_blue_group_project\\deep-blue-repo\\Uxcheckmate\\Uxcheckmate_Main\\wwwroot\\js\\handleUserUrl.js",
       "Selectors": [],
       "ResponseHeaders": [
@@ -3397,7 +3389,7 @@
         },
         {
           "Name": "Content-Length",
-          "Value": "1399"
+          "Value": "2066"
         },
         {
           "Name": "Content-Type",
@@ -3405,11 +3397,156 @@
         },
         {
           "Name": "ETag",
-          "Value": "\"emYsfBPbXj3w4Ei8721kK7qivDvLhz4/4/E/efonDAQ=\""
+          "Value": "\"x5Kno9ElT49f8e8fWLCEcyg/kqCAbiC7euuYg5enmuA=\""
         },
         {
           "Name": "Last-Modified",
-          "Value": "Fri, 07 Feb 2025 07:01:06 GMT"
+          "Value": "Fri, 07 Feb 2025 21:03:55 GMT"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "no-cache"
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "integrity",
+          "Value": "sha256-x5Kno9ElT49f8e8fWLCEcyg/kqCAbiC7euuYg5enmuA="
+        }
+      ]
+    },
+    {
+      "Route": "js/handleUserUrl.js.gz",
+      "AssetFile": "C:\\Users\\belen\\OneDrive\\Desktop\\deep_blue_group_project\\deep-blue-repo\\Uxcheckmate\\Uxcheckmate_Main\\obj\\Debug\\net9.0\\compressed\\ccwhmjy9fa-z9eqcbripf.gz",
+      "Selectors": [],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "858"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "text/javascript"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"7upNcgXPPaWNx3xQJ4kIkQlfRleQJEsVLyXYXwQNwA0=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Fri, 07 Feb 2025 21:03:55 GMT"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "no-cache"
+        },
+        {
+          "Name": "Content-Encoding",
+          "Value": "gzip"
+        },
+        {
+          "Name": "Vary",
+          "Value": "Content-Encoding"
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "integrity",
+          "Value": "sha256-7upNcgXPPaWNx3xQJ4kIkQlfRleQJEsVLyXYXwQNwA0="
+        }
+      ]
+    },
+    {
+      "Route": "js/handleUserUrl.z9eqcbripf.js",
+      "AssetFile": "C:\\Users\\belen\\OneDrive\\Desktop\\deep_blue_group_project\\deep-blue-repo\\Uxcheckmate\\Uxcheckmate_Main\\obj\\Debug\\net9.0\\compressed\\ccwhmjy9fa-z9eqcbripf.gz",
+      "Selectors": [
+        {
+          "Name": "Content-Encoding",
+          "Value": "gzip",
+          "Quality": "0.001164144354"
+        }
+      ],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "858"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"7upNcgXPPaWNx3xQJ4kIkQlfRleQJEsVLyXYXwQNwA0=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Fri, 07 Feb 2025 21:03:55 GMT"
+        },
+        {
+          "Name": "Cache-Control",
+          "Value": "max-age=31536000, immutable"
+        },
+        {
+          "Name": "Content-Encoding",
+          "Value": "gzip"
+        },
+        {
+          "Name": "Vary",
+          "Value": "Content-Encoding"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "text/javascript"
+        },
+        {
+          "Name": "ETag",
+          "Value": "W/\"x5Kno9ElT49f8e8fWLCEcyg/kqCAbiC7euuYg5enmuA=\""
+        }
+      ],
+      "EndpointProperties": [
+        {
+          "Name": "fingerprint",
+          "Value": "z9eqcbripf"
+        },
+        {
+          "Name": "label",
+          "Value": "js/handleUserUrl.js"
+        },
+        {
+          "Name": "integrity",
+          "Value": "sha256-x5Kno9ElT49f8e8fWLCEcyg/kqCAbiC7euuYg5enmuA="
+        }
+      ]
+    },
+    {
+      "Route": "js/handleUserUrl.z9eqcbripf.js",
+      "AssetFile": "C:\\Users\\belen\\OneDrive\\Desktop\\deep_blue_group_project\\deep-blue-repo\\Uxcheckmate\\Uxcheckmate_Main\\wwwroot\\js\\handleUserUrl.js",
+      "Selectors": [],
+      "ResponseHeaders": [
+        {
+          "Name": "Accept-Ranges",
+          "Value": "bytes"
+        },
+        {
+          "Name": "Content-Length",
+          "Value": "2066"
+        },
+        {
+          "Name": "Content-Type",
+          "Value": "text/javascript"
+        },
+        {
+          "Name": "ETag",
+          "Value": "\"x5Kno9ElT49f8e8fWLCEcyg/kqCAbiC7euuYg5enmuA=\""
+        },
+        {
+          "Name": "Last-Modified",
+          "Value": "Fri, 07 Feb 2025 21:03:55 GMT"
         },
         {
           "Name": "Cache-Control",
@@ -3419,7 +3556,7 @@
       "EndpointProperties": [
         {
           "Name": "fingerprint",
-          "Value": "21eej2mvkp"
+          "Value": "z9eqcbripf"
         },
         {
           "Name": "label",
@@ -3427,13 +3564,13 @@
         },
         {
           "Name": "integrity",
-          "Value": "sha256-emYsfBPbXj3w4Ei8721kK7qivDvLhz4/4/E/efonDAQ="
+          "Value": "sha256-x5Kno9ElT49f8e8fWLCEcyg/kqCAbiC7euuYg5enmuA="
         }
       ]
     },
     {
-      "Route": "js/handleUserUrl.21eej2mvkp.js.gz",
-      "AssetFile": "C:\\Users\\belen\\OneDrive\\Desktop\\deep_blue_group_project\\deep-blue-repo\\Uxcheckmate\\Uxcheckmate_Main\\obj\\Debug\\net9.0\\compressed\\ccwhmjy9fa-21eej2mvkp.gz",
+      "Route": "js/handleUserUrl.z9eqcbripf.js.gz",
+      "AssetFile": "C:\\Users\\belen\\OneDrive\\Desktop\\deep_blue_group_project\\deep-blue-repo\\Uxcheckmate\\Uxcheckmate_Main\\obj\\Debug\\net9.0\\compressed\\ccwhmjy9fa-z9eqcbripf.gz",
       "Selectors": [],
       "ResponseHeaders": [
         {
@@ -3442,7 +3579,7 @@
         },
         {
           "Name": "Content-Length",
-          "Value": "591"
+          "Value": "858"
         },
         {
           "Name": "Content-Type",
@@ -3450,11 +3587,11 @@
         },
         {
           "Name": "ETag",
-          "Value": "\"xAUByaXeIBdccBqzXyYgidyIoAhWPRZu2GW8pgf+Dvs=\""
+          "Value": "\"7upNcgXPPaWNx3xQJ4kIkQlfRleQJEsVLyXYXwQNwA0=\""
         },
         {
           "Name": "Last-Modified",
-          "Value": "Fri, 07 Feb 2025 07:01:06 GMT"
+          "Value": "Fri, 07 Feb 2025 21:03:55 GMT"
         },
         {
           "Name": "Cache-Control",
@@ -3472,7 +3609,7 @@
       "EndpointProperties": [
         {
           "Name": "fingerprint",
-          "Value": "21eej2mvkp"
+          "Value": "z9eqcbripf"
         },
         {
           "Name": "label",
@@ -3480,144 +3617,7 @@
         },
         {
           "Name": "integrity",
-          "Value": "sha256-xAUByaXeIBdccBqzXyYgidyIoAhWPRZu2GW8pgf+Dvs="
-        }
-      ]
-    },
-    {
-      "Route": "js/handleUserUrl.js",
-      "AssetFile": "C:\\Users\\belen\\OneDrive\\Desktop\\deep_blue_group_project\\deep-blue-repo\\Uxcheckmate\\Uxcheckmate_Main\\obj\\Debug\\net9.0\\compressed\\ccwhmjy9fa-21eej2mvkp.gz",
-      "Selectors": [
-        {
-          "Name": "Content-Encoding",
-          "Value": "gzip",
-          "Quality": "0.001689189189"
-        }
-      ],
-      "ResponseHeaders": [
-        {
-          "Name": "Accept-Ranges",
-          "Value": "bytes"
-        },
-        {
-          "Name": "Content-Length",
-          "Value": "591"
-        },
-        {
-          "Name": "ETag",
-          "Value": "\"xAUByaXeIBdccBqzXyYgidyIoAhWPRZu2GW8pgf+Dvs=\""
-        },
-        {
-          "Name": "Last-Modified",
-          "Value": "Fri, 07 Feb 2025 07:01:06 GMT"
-        },
-        {
-          "Name": "Cache-Control",
-          "Value": "no-cache"
-        },
-        {
-          "Name": "Content-Encoding",
-          "Value": "gzip"
-        },
-        {
-          "Name": "Vary",
-          "Value": "Content-Encoding"
-        },
-        {
-          "Name": "Content-Type",
-          "Value": "text/javascript"
-        },
-        {
-          "Name": "ETag",
-          "Value": "W/\"emYsfBPbXj3w4Ei8721kK7qivDvLhz4/4/E/efonDAQ=\""
-        }
-      ],
-      "EndpointProperties": [
-        {
-          "Name": "integrity",
-          "Value": "sha256-emYsfBPbXj3w4Ei8721kK7qivDvLhz4/4/E/efonDAQ="
-        }
-      ]
-    },
-    {
-      "Route": "js/handleUserUrl.js",
-      "AssetFile": "C:\\Users\\belen\\OneDrive\\Desktop\\deep_blue_group_project\\deep-blue-repo\\Uxcheckmate\\Uxcheckmate_Main\\wwwroot\\js\\handleUserUrl.js",
-      "Selectors": [],
-      "ResponseHeaders": [
-        {
-          "Name": "Accept-Ranges",
-          "Value": "bytes"
-        },
-        {
-          "Name": "Content-Length",
-          "Value": "1399"
-        },
-        {
-          "Name": "Content-Type",
-          "Value": "text/javascript"
-        },
-        {
-          "Name": "ETag",
-          "Value": "\"emYsfBPbXj3w4Ei8721kK7qivDvLhz4/4/E/efonDAQ=\""
-        },
-        {
-          "Name": "Last-Modified",
-          "Value": "Fri, 07 Feb 2025 07:01:06 GMT"
-        },
-        {
-          "Name": "Cache-Control",
-          "Value": "no-cache"
-        }
-      ],
-      "EndpointProperties": [
-        {
-          "Name": "integrity",
-          "Value": "sha256-emYsfBPbXj3w4Ei8721kK7qivDvLhz4/4/E/efonDAQ="
-        }
-      ]
-    },
-    {
-      "Route": "js/handleUserUrl.js.gz",
-      "AssetFile": "C:\\Users\\belen\\OneDrive\\Desktop\\deep_blue_group_project\\deep-blue-repo\\Uxcheckmate\\Uxcheckmate_Main\\obj\\Debug\\net9.0\\compressed\\ccwhmjy9fa-21eej2mvkp.gz",
-      "Selectors": [],
-      "ResponseHeaders": [
-        {
-          "Name": "Accept-Ranges",
-          "Value": "bytes"
-        },
-        {
-          "Name": "Content-Length",
-          "Value": "591"
-        },
-        {
-          "Name": "Content-Type",
-          "Value": "text/javascript"
-        },
-        {
-          "Name": "ETag",
-          "Value": "\"xAUByaXeIBdccBqzXyYgidyIoAhWPRZu2GW8pgf+Dvs=\""
-        },
-        {
-          "Name": "Last-Modified",
-          "Value": "Fri, 07 Feb 2025 07:01:06 GMT"
-        },
-        {
-          "Name": "Cache-Control",
-          "Value": "no-cache"
-        },
-        {
-          "Name": "Content-Encoding",
-          "Value": "gzip"
-        },
-        {
-          "Name": "Vary",
-          "Value": "Content-Encoding"
-        }
-      ],
-      "EndpointProperties": [
-        {
-          "Name": "integrity",
-          "Value": "sha256-xAUByaXeIBdccBqzXyYgidyIoAhWPRZu2GW8pgf+Dvs="
+          "Value": "sha256-7upNcgXPPaWNx3xQJ4kIkQlfRleQJEsVLyXYXwQNwA0="
         }
       ]
     },

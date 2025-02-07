@@ -1,10 +1,15 @@
 ﻿// JavaScript file to handle user input URL
 
-function validateURL() {
+// Function to validate the URL format
+function validateURL(urlInput) {
+    var urlRegex = /^(https?:\/\/)?([\w-]+\.)+[\w-]+(\/[\w-]*)*$/;
+    return urlRegex.test(urlInput);
+}
+
+// Function to handle user input URL
+function handleUserUrl() {
     event.preventDefault();
     var urlInput = document.getElementById('urlInput').value;
-    var urlRegex = /^(https?:\/\/)?([\w-]+\.)+[\w-]+(\/[\w-]*)*$/;
-
     var confirmationMessage = document.getElementById('confirmationMessage');
 
     if (urlInput === "") {
@@ -15,7 +20,7 @@ function validateURL() {
         </div>`;
         return false;
     }
-    if (urlRegex.test(urlInput)) {
+    if (validateURL(urlInput)) {
         confirmationMessage.innerHTML = "<div class='alert alert-success'>Your URL has been successfully submitted!</div>";
         return true;
     } else {
@@ -30,3 +35,15 @@ function validateURL() {
         return false;
     }
 }
+
+
+// Event listener to handle the form submission. Moved event listener inside a Window.onload function to avoid errors in Jest tests.
+// This is because Jest does not have a window or document object.
+if (typeof window !== 'undefined') {
+    window.onload = function () {
+        document.getElementById('urlForm').addEventListener('submit', handleUserUrl);
+    };
+}
+
+// Export the functions to be used in other files (Jest_Tests/handleUserUrl.test.js)
+module.exports = { validateURL, handleUserUrl };
