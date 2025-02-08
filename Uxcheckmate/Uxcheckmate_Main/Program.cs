@@ -1,3 +1,8 @@
+using Uxcheckmate_Main.DAL.Abstract;
+using Uxcheckmate_Main.DAL.Concrete;
+using Uxcheckmate_Main.Models;
+using Microsoft.EntityFrameworkCore;
+
 namespace Uxcheckmate_Main;
 
 public class Program
@@ -8,6 +13,12 @@ public class Program
 
         // Add services to the container.
         builder.Services.AddControllersWithViews();
+
+        builder.Services.AddDbContext<UxCheckmateDbContext>(
+                options => options
+                .UseLazyLoadingProxies()    
+                .UseSqlServer(
+                    builder.Configuration.GetConnectionString("DBConnection")));
 
         var app = builder.Build();
 
