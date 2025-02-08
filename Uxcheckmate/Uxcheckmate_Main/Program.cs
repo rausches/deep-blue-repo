@@ -14,12 +14,11 @@ public class Program
         // Add services to the container.
         builder.Services.AddControllersWithViews();
 
-        builder.Services.AddDbContext<UXCheckmateDbContext>(
+        builder.Services.AddDbContext<UxCheckmateDbContext>(
                 options => options
                 .UseLazyLoadingProxies()    
                 .UseSqlServer(
                     builder.Configuration.GetConnectionString("DBConnection")));
-        builder.Services.AddScoped<DbContext,UXcheckmateDbContext>();
 
         var app = builder.Build();
 
