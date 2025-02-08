@@ -1,10 +1,10 @@
 # Architectural Decisions
 ## Folder Structure
-> Uxcheckmate/   
-    |-Uxcheckmate_Main/   
-    |-Nunit_Tests/   
-    |-BDD_Tests/   
-    |-Jest_Tests/   
+> ux-checkmate/   
+    |-ux-checkmate/   
+    |-nunit-tests/   
+    |-specflow-tests/   
+    |-jest-tests/   
 ### Naming Conventions
 File names will be decided on by consensus of all developers before the start of a sprint. Controllers, models, and views will use PascalCase. Js files kebab-case, and lowercase for config files. 
 ## .Net SDK version
