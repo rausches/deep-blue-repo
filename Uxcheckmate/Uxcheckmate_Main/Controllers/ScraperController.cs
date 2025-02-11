@@ -2,8 +2,9 @@ using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Uxcheckmate_Main.Services;
+using System.Collections.Generic;
 
-namespace Scraper.Controllers
+namespace Uxcheckmate_Main.Controllers
 {
     [ApiController]
     [Route("scraper")]
@@ -26,8 +27,15 @@ namespace Scraper.Controllers
 
             try
             {
-                var jsonData = await _scraperService.ScrapeAsync(url);
-                return Ok(jsonData);
+                var extractedData = await _scraperService.ScrapeAsync(url); // ✅ Ensure this is a Dictionary<string, object>
+
+                return Ok(new
+                {
+                    Url = url,
+                    Headings = extractedData.TryGetValue("headings", out var headings) ? headings : 0,
+                    Images = extractedData.TryGetValue("images", out var images) ? images : 0,
+                    Links = extractedData.TryGetValue("links", out var links) ? links : 0
+                });
             }
             catch (Exception ex)
             {
