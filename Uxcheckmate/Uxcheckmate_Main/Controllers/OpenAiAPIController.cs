@@ -21,4 +21,5 @@ public class OpenAiApiController : Controller
         string result = await _OpenAiService.GetChatResponse("Hello, how are you?");
         return Content(result, "application/json");
     }
+
 }

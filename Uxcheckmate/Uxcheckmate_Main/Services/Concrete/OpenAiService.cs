@@ -46,5 +46,32 @@ namespace Uxcheckmate_Main.Services
             // Return the AI-generated response
             return responseString;
         }
+    
+
+        public async Task<string> AnalyzeUx(string url)
+        {
+            // Scrape the webpage
+            WebScraperService scraper = new WebScraperService(_httpClient);
+            string pageContent = await scraper.ScrapeAsync(url);
+
+            var prompt = $"Analyze the UX of the following webpage and provide recommendations for improvements based on accessibility, usability, and best design practices:\n\n{pageContent}";
+
+            var request = new
+            {
+                model = "gpt-4",
+                messages = new[]
+                {
+                    new { role = "system", content = "You are a UX expert analyzing websites for accessibility, usability, and design flaws." },
+                    new { role = "user", content = prompt }
+                },
+                max_tokens = 200 
+            };
+
+            var requestContent = new StringContent(JsonSerializer.Serialize(request), Encoding.UTF8, "application/json");
+            var response = await _httpClient.PostAsync("https://api.openai.com/v1/chat/completions", requestContent);
+            var responseString = await response.Content.ReadAsStringAsync();
+
+            return responseString;
+        }
     }
 }
