@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading.Tasks;
 using HtmlAgilityPack;
-using Newtonsoft.Json;
 
 namespace Uxcheckmate_Main.Services
 {
@@ -20,10 +19,9 @@ namespace Uxcheckmate_Main.Services
         {
             try
             {
-                var response = await _httpClient.GetStringAsync(url);
-                return response;
+                return await _httpClient.GetStringAsync(url);
             }
-            catch (Exception ex)
+            catch (HttpRequestException ex)
             {
                 throw new Exception($"Error fetching HTML content: {ex.Message}");
             }
@@ -36,21 +34,20 @@ namespace Uxcheckmate_Main.Services
 
             var headings = doc.DocumentNode.SelectNodes("//h2") ?? new HtmlNodeCollection(null);
             var images = doc.DocumentNode.SelectNodes("//img") ?? new HtmlNodeCollection(null);
+            var links = doc.DocumentNode.SelectNodes("//a") ?? new HtmlNodeCollection(null);
 
-            var result = new Dictionary<string, object>
+            return new Dictionary<string, object>
             {
                 { "headings", headings.Count },
-                { "images", images.Count }
+                { "images", images.Count },
+                { "links", links.Count }
             };
-
-            return result;
         }
 
-        public async Task<string> ScrapeAsync(string url)
+        public async Task<Dictionary<string, object>> ScrapeAsync(string url)
         {
             var htmlContent = await FetchHtmlAsync(url);
-            var extractedData = ExtractHtmlElements(htmlContent);
-            return JsonConvert.SerializeObject(extractedData, Formatting.Indented);
+            return ExtractHtmlElements(htmlContent);
         }
     }
 }
