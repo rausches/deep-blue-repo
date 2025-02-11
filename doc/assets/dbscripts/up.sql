@@ -1,6 +1,6 @@
-DROP DATABASE IF EXISTS uxcheckmate;
-CREATE DATABASE uxcheckmate;
-USE uxcheckmate;
+DROP DATABASE IF EXISTS UxCheckmate;
+CREATE DATABASE UxCheckmate;
+USE UxCheckmate;
 
 CREATE TABLE [Roles] 
 (
