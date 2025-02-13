@@ -8,6 +8,8 @@ Nunit_Tests/obj/
 #wwwroot/
 #node_modules/
 appsettings*.json
+appsettings.Developement.json
+appsettings.json
 bin/Debug/net9.0/Azure.Core.dll
 bin/Debug/net9.0/Azure.Identity.dll
 bin/Debug/net9.0/*.dll

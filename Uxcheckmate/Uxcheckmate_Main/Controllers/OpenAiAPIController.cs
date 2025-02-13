@@ -18,17 +18,12 @@ public class OpenAiApiController : Controller
     [HttpGet("analyze")]
     public async Task<IActionResult> AnalyzeUx([FromQuery] string url)
     {
-        // Check if the URL parameter is missing or empty
         if (string.IsNullOrEmpty(url))
         {
-            // Return a 400 Bad Request response if the URL is not provided
-            return BadRequest("URL is required.");
+            return BadRequest(new { error = "URL is required." });
         }
 
-        // Call the OpenAI service to analyze the UX of the provided webpage
-        string result = await _OpenAiService.AnalyzeUx(url);
-
-        // Return the AI-generated UX recommendations as a JSON response
-        return Content(result, "application/json");
+        var result = await _OpenAiService.AnalyzeUx(url);
+        return Ok(result);
     }
 }

@@ -17,9 +17,8 @@ namespace Uxcheckmate_Main.Services
             _logger = logger; 
         }
 
-        public async Task<string> AnalyzeUx(string url)
+        public async Task<UxResult> AnalyzeUx(string url)
         {
-            // Initialize the WebScraperService to extract content from the given URL
             WebScraperService scraper = new WebScraperService(_httpClient);
 
             // Scrape the webpage content asynchronously
@@ -43,7 +42,7 @@ namespace Uxcheckmate_Main.Services
                 max_tokens = 200
             };
 
-            // Convert the request object into a JSON payload with appropriate encoding
+            // Convert the request object into a JSON payload
             var requestContent = new StringContent(JsonSerializer.Serialize(request), Encoding.UTF8, "application/json");
 
             // Send the request to OpenAI's chat completion API endpoint
