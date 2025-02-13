@@ -4,6 +4,11 @@
         "Default": "Information",
         "Microsoft.AspNetCore": "Warning"
       }
+    },
+
+    "AllowedHosts": "*",
+    "ConnectionStrings": {
+      "DBConnection": "Server=tcp:deep-blue-server.database.windows.net,1433;Initial Catalog=UxCheckmate;Persist Security Info=False;User ID=CloudSA22a664c4;Password=D33p!dB1ue;MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;"
     }
   }
   
