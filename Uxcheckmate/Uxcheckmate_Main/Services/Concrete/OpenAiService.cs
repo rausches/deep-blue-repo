@@ -73,9 +73,8 @@ namespace Uxcheckmate_Main.Services
 
             return sections;
         }
-
-        // helper method to format dictionary data into a readable string
-        private string FormatScrapedData(Dictionary<string, object> scrapedData)
+        // Extract sections from AI output
+        private Dictionary<string, string> ExtractSections(string aiResponse)
         {
             var sections = new Dictionary<string, string>();
             var regex = new System.Text.RegularExpressions.Regex(@"### (.*?)\n(.*?)(?=###|$)", System.Text.RegularExpressions.RegexOptions.Singleline);
@@ -89,6 +88,29 @@ namespace Uxcheckmate_Main.Services
             }
 
             return sections;
+        }
+
+        // helper method to format dictionary data into a readable string
+        private string FormatScrapedData(Dictionary<string, object> scrapedData)
+        {
+            var sb = new StringBuilder();
+
+            sb.AppendLine("### UX Data Extracted from Web Page ###");
+            sb.AppendLine($"- Headings Count: {scrapedData["headings"]}");
+            sb.AppendLine($"- Images Count: {scrapedData["images"]}");
+            sb.AppendLine($"- Links Count: {scrapedData["links"]}");
+
+            // Get fonts used
+            var fonts = (List<string>)scrapedData["fonts"];
+            sb.AppendLine($"- Fonts Used: {string.Join(", ", fonts)}");
+            sb.AppendLine($"- Total Unique Fonts: {fonts.Count}");
+
+            // Get text content
+            string textContent = (string)scrapedData["text_content"];
+            sb.AppendLine("\n### Extracted Page Text ###");
+            sb.AppendLine(textContent.Length > 500 ? textContent.Substring(0, 500) + "..." : textContent); // Limit to 500 characters
+
+            return sb.ToString();
         }
     }
 }
