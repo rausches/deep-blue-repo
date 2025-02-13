@@ -77,14 +77,18 @@ namespace Uxcheckmate_Main.Services
         // helper method to format dictionary data into a readable string
         private string FormatScrapedData(Dictionary<string, object> scrapedData)
         {
-            var sb = new StringBuilder();
+            var sections = new Dictionary<string, string>();
+            var regex = new System.Text.RegularExpressions.Regex(@"### (.*?)\n(.*?)(?=###|$)", System.Text.RegularExpressions.RegexOptions.Singleline);
+            
+            var matches = regex.Matches(aiResponse);
+            foreach (System.Text.RegularExpressions.Match match in matches)
+            {
+                string sectionTitle = match.Groups[1].Value.Trim();
+                string sectionContent = match.Groups[2].Value.Trim();
+                sections[sectionTitle] = sectionContent;
+            }
 
-            sb.AppendLine("### UX Data Extracted from Web Page ###");
-            sb.AppendLine($"- Headings Count: {scrapedData["headings"]}");
-            sb.AppendLine($"- Images Count: {scrapedData["images"]}");
-            sb.AppendLine($"- Links Count: {scrapedData["links"]}");
-
-            return sb.ToString();
+            return sections;
         }
     }
 }
