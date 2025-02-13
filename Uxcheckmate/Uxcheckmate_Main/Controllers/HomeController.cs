@@ -20,16 +20,15 @@ public class HomeController : Controller
     }
 
     [HttpPost]
-    public IActionResult Index(ReportUrl urlLink)
+    public IActionResult Index(ReportUrl model)
     {
         if (!ModelState.IsValid)
         {
-            ViewBag.Message = "Url has not been received: " + ModelState.Values.First().Errors.First().ErrorMessage;
-            return View("Index");
+            return View(model);
         }
 
         ViewBag.Message = "Url has been received";
-        return View("Index");
+        return View(model);
     }
 
 
