@@ -17,15 +17,14 @@ namespace Uxcheckmate_Main.Services
             _logger = logger; 
         }
 
-        public async Task<Dictionary<string, string>> AnalyzeUx(string url)
+        public async Task<UxResult> AnalyzeUx(string url)
         {
-            // Initialize the WebScraperService to extract content from the given URL
             WebScraperService scraper = new WebScraperService(_httpClient);
 
             // Scrape the webpage content asynchronously
             Dictionary<string, object> scrapedData = await scraper.ScrapeAsync(url);
 
-            // Convert the dictionary into a readable text format for AI analysis
+            // Convert scraped data into a readable format for AI analysis
             string pageContent = FormatScrapedData(scrapedData);
 
             var prompt = @$"Analyze the UX of the following webpage in structured sections:
@@ -59,7 +58,7 @@ namespace Uxcheckmate_Main.Services
                 max_tokens = 500
             };
 
-            // Convert the request object into a JSON payload with appropriate encoding
+            // Convert the request object into a JSON payload
             var requestContent = new StringContent(JsonSerializer.Serialize(request), Encoding.UTF8, "application/json");
 
             // Send the request to OpenAI's chat completion API endpoint
@@ -68,39 +67,33 @@ namespace Uxcheckmate_Main.Services
             // Read the API response content as a string
             var responseString = await response.Content.ReadAsStringAsync();
 
-            // Split AI response into sections
+            // Extract AI response into structured sections
             var sections = ExtractSections(responseString);
 
-            return sections;
+            // Convert AI response into `UxResult` format
+            UxResult uxResult = ConvertToUxResult(sections);
+
+            return uxResult;
         }
 
-        // Extracts structured sections from AI-generated text output
-        private Dictionary<string, string> ExtractSections(string aiResponse)
+        private UxResult ConvertToUxResult(Dictionary<string, string> sections)
         {
-            // Create a dictionary to store extracted sections
-            var sections = new Dictionary<string, string>();
+            var uxResult = new UxResult();
 
-            // Regular expression pattern to find sections marked with "### SectionTitle"
-            var regex = new System.Text.RegularExpressions.Regex(@"### (.*?)\n(.*?)(?=###|$)", System.Text.RegularExpressions.RegexOptions.Singleline);
-            
-            // Find all matches in the AI response
-            var matches = regex.Matches(aiResponse);
-
-            // Iterate through each matched section
-            foreach (System.Text.RegularExpressions.Match match in matches)
+            foreach (var section in sections)
             {
-                // Extract the section title (e.g., "Fonts", "Text Structure", "Usability Issues")
-                string sectionTitle = match.Groups[1].Value.Trim();
+                // Create a new UxIssue for each AI-generated category
+                var issue = new UxIssue
+                {
+                    Category = section.Key, 
+                    Message = section.Value, 
+                    Selector = "" // 
+                };
 
-                // Extract the section content (text under the heading)
-                string sectionContent = match.Groups[2].Value.Trim();
-
-                // Store the extracted section in the dictionary
-                sections[sectionTitle] = sectionContent;
+                uxResult.Issues.Add(issue);
             }
 
-            // Return the structured dictionary containing all sections
-            return sections;
+            return uxResult;
         }
 
         // Helper method to format the extracted webpage data into a readable text string
