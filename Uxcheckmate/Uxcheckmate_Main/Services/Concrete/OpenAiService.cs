@@ -76,6 +76,34 @@ namespace Uxcheckmate_Main.Services
             return uxResult;
         }
 
+        // Extracts structured sections from AI-generated text output
+        private Dictionary<string, string> ExtractSections(string aiResponse)
+        {
+            // Create a dictionary to store extracted sections
+            var sections = new Dictionary<string, string>();
+
+            // Regular expression pattern to find sections marked with "### SectionTitle"
+            var regex = new System.Text.RegularExpressions.Regex(@"### (.*?)\n(.*?)(?=###|$)", System.Text.RegularExpressions.RegexOptions.Singleline);
+            
+            // Find all matches in the AI response
+            var matches = regex.Matches(aiResponse);
+
+            // Iterate through each matched section
+            foreach (System.Text.RegularExpressions.Match match in matches)
+            {
+                // Extract the section title
+                string sectionTitle = match.Groups[1].Value.Trim();
+
+                // Extract the section content
+                string sectionContent = match.Groups[2].Value.Trim();
+
+                // Store the extracted section in the dictionary
+                sections[sectionTitle] = sectionContent;
+            }
+
+            // Return the structured dictionary containing all sections
+            return sections;
+        }
         private UxResult ConvertToUxResult(Dictionary<string, string> sections)
         {
             var uxResult = new UxResult();

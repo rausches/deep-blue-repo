@@ -23,7 +23,7 @@ public class OpenAiApiController : Controller
             return BadRequest(new { error = "URL is required." });
         }
 
-        var result = await _openAiService.AnalyzeUx(url);
+        var result = await _OpenAiService.AnalyzeUx(url);
         return Ok(result);
     }
 }

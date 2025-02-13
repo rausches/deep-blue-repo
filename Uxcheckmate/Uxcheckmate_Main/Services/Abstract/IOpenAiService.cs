@@ -5,6 +5,6 @@ namespace Uxcheckmate_Main.Services
     public interface IOpenAiService
 
     { 
-        public Task<Dictionary<string, string>> AnalyzeUx(string url);
+        public Task<UxResult> AnalyzeUx(string url);
     }
 }
