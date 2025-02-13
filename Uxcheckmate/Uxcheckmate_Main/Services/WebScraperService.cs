@@ -52,12 +52,15 @@ namespace Uxcheckmate_Main.Services
                     fontsUsed.Add(match.Groups[1].Value.Trim());
                 }
             }
-            
+
             return new Dictionary<string, object>
             {
                 { "headings", headings.Count },
+                { "paragraphs", paragraphs.Count },
                 { "images", images.Count },
-                { "links", links.Count }
+                { "links", links.Count },
+                { "text_content", string.Join("\n", paragraphs.Select(p => p.InnerText.Trim()).Where(text => !string.IsNullOrEmpty(text))) },
+                { "fonts", fontsUsed.ToList() }
             };
         }
 
