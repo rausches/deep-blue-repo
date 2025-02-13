@@ -17,7 +17,7 @@ namespace Uxcheckmate_Main.Services
             _logger = logger; 
         }
 
-        public async Task<string> AnalyzeUx(string url)
+        public async Task<Dictionary<string, string>> AnalyzeUx(string url)
         {
             // Initialize the WebScraperService to extract content from the given URL
             WebScraperService scraper = new WebScraperService(_httpClient);
@@ -28,8 +28,24 @@ namespace Uxcheckmate_Main.Services
             // Convert the dictionary into a readable text format for AI analysis
             string pageContent = FormatScrapedData(scrapedData);
 
-            // Create the prompt for AI analysis
-            var prompt = $"Analyze the UX of the following webpage and provide recommendations for improvements based on accessibility, usability, and best design practices:\n\n{pageContent}";
+            var prompt = @$"Analyze the UX of the following webpage in structured sections:
+
+            ### Fonts
+            - How many unique fonts are used? Is this too many?
+            - Is the typography consistent?
+
+            ### Text Structure
+            - Are there large blocks of text that need better separation?
+            - Are headings used correctly for readability?
+
+            ### Usability Issues
+            - Are there too many links or images?
+            - Are buttons, navigation, and layout elements easy to use?
+
+            If no issues are found in a category, return 'No significant issues found' under that section.
+
+            Webpage Data:
+            {pageContent}";
 
             // Payload Request
             var request = new
@@ -40,7 +56,7 @@ namespace Uxcheckmate_Main.Services
                     new { role = "system", content = "You are a UX expert analyzing websites for accessibility, usability, and design flaws." },
                     new { role = "user", content = prompt }
                 },
-                max_tokens = 200
+                max_tokens = 500
             };
 
             // Convert the request object into a JSON payload with appropriate encoding
@@ -52,7 +68,10 @@ namespace Uxcheckmate_Main.Services
             // Read the API response content as a string
             var responseString = await response.Content.ReadAsStringAsync();
 
-            return responseString;
+            // Split AI response into sections
+            var sections = ExtractSections(responseString);
+
+            return sections;
         }
 
         // helper method to format dictionary data into a readable string
