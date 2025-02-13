@@ -17,60 +17,41 @@ namespace Uxcheckmate_Main.Services
             _logger = logger; 
         }
 
-        // Sends a message to the OpenAI API and retrieves the AI-generated response.
-        // param: The user's input message to be sent to OpenAI.
-        // returns: A string containing the AI-generated response from OpenAI.
-        public async Task<string> GetChatResponse(string message)
+        public async Task<string> AnalyzeUx(string url)
         {
-            // Create the request payload for OpenAI API
+            // Initialize the WebScraperService to extract content from the given URL
+            WebScraperService scraper = new WebScraperService(_httpClient);
+            
+            // Scrape the webpage content asynchronously
+            string pageContent = await scraper.ScrapeAsync(url);
+
+            // Prompt
+            var prompt = $"Analyze the UX of the following webpage and provide recommendations for improvements based on accessibility, usability, and best design practices:\n\n{pageContent}";
+            // Possible Prompts: Analyze the design of the following webpage and make recommendations for improvement in regards to fonts on the page: \n\n{pageContent}
+            // Possible Prompts: Analyze the ux design of the following webpage and provide recommendations for improvement in regards to chunks of text on a page: \n\n{pageContent}
+            
+            // Payload Request
             var request = new
             {
-                model = "gpt-4", // Specify the AI model to use (ensure you have access to GPT-4)
+                model = "gpt-4", // AI Model
                 messages = new[]
                 {
-                    new { role = "system", content = "You are a helpful assistant." }, // System role defines assistant behavior
-                    new { role = "user", content = message } // User's message input
+                    new { role = "system", content = "You are a UX expert analyzing websites for accessibility, usability, and design flaws." },
+                    new { role = "user", content = prompt } // User input containing the UX analysis request
                 },
-                max_tokens = 50 // Limit the response length to 50 tokens
+                max_tokens = 200 // Limit the response length to 200 tokens
             };
 
-            // Serialize the request payload to JSON format
+            // Convert the request object into a JSON payload with appropriate encoding
             var requestContent = new StringContent(JsonSerializer.Serialize(request), Encoding.UTF8, "application/json");
 
-            // Send an HTTP POST request to OpenAI's API endpoint
+            // Send the request to OpenAI's chat completion API endpoint
             var response = await _httpClient.PostAsync("https://api.openai.com/v1/chat/completions", requestContent);
 
             // Read the API response content as a string
             var responseString = await response.Content.ReadAsStringAsync();
 
-            // Return the AI-generated response
-            return responseString;
-        }
-    
-
-        public async Task<string> AnalyzeUx(string url)
-        {
-            // Scrape the webpage
-            WebScraperService scraper = new WebScraperService(_httpClient);
-            string pageContent = await scraper.ScrapeAsync(url);
-
-            var prompt = $"Analyze the UX of the following webpage and provide recommendations for improvements based on accessibility, usability, and best design practices:\n\n{pageContent}";
-
-            var request = new
-            {
-                model = "gpt-4",
-                messages = new[]
-                {
-                    new { role = "system", content = "You are a UX expert analyzing websites for accessibility, usability, and design flaws." },
-                    new { role = "user", content = prompt }
-                },
-                max_tokens = 200 
-            };
-
-            var requestContent = new StringContent(JsonSerializer.Serialize(request), Encoding.UTF8, "application/json");
-            var response = await _httpClient.PostAsync("https://api.openai.com/v1/chat/completions", requestContent);
-            var responseString = await response.Content.ReadAsStringAsync();
-
+            // Return the AI-generated UX recommendations
             return responseString;
         }
     }
