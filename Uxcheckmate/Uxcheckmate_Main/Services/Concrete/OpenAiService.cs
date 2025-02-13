@@ -73,43 +73,61 @@ namespace Uxcheckmate_Main.Services
 
             return sections;
         }
-        // Extract sections from AI output
+
+        // Extracts structured sections from AI-generated text output
         private Dictionary<string, string> ExtractSections(string aiResponse)
         {
+            // Create a dictionary to store extracted sections
             var sections = new Dictionary<string, string>();
+
+            // Regular expression pattern to find sections marked with "### SectionTitle"
             var regex = new System.Text.RegularExpressions.Regex(@"### (.*?)\n(.*?)(?=###|$)", System.Text.RegularExpressions.RegexOptions.Singleline);
             
+            // Find all matches in the AI response
             var matches = regex.Matches(aiResponse);
+
+            // Iterate through each matched section
             foreach (System.Text.RegularExpressions.Match match in matches)
             {
+                // Extract the section title (e.g., "Fonts", "Text Structure", "Usability Issues")
                 string sectionTitle = match.Groups[1].Value.Trim();
+
+                // Extract the section content (text under the heading)
                 string sectionContent = match.Groups[2].Value.Trim();
+
+                // Store the extracted section in the dictionary
                 sections[sectionTitle] = sectionContent;
             }
 
+            // Return the structured dictionary containing all sections
             return sections;
         }
 
-        // helper method to format dictionary data into a readable string
+        // Helper method to format the extracted webpage data into a readable text string
         private string FormatScrapedData(Dictionary<string, object> scrapedData)
         {
             var sb = new StringBuilder();
 
             sb.AppendLine("### UX Data Extracted from Web Page ###");
+
+            // Add extracted numeric data (headings, images, and links count)
             sb.AppendLine($"- Headings Count: {scrapedData["headings"]}");
             sb.AppendLine($"- Images Count: {scrapedData["images"]}");
             sb.AppendLine($"- Links Count: {scrapedData["links"]}");
 
-            // Get fonts used
+            // Extract and format font usage data
             var fonts = (List<string>)scrapedData["fonts"];
-            sb.AppendLine($"- Fonts Used: {string.Join(", ", fonts)}");
-            sb.AppendLine($"- Total Unique Fonts: {fonts.Count}");
+            sb.AppendLine($"- Fonts Used: {string.Join(", ", fonts)}"); // List all detected fonts
+            sb.AppendLine($"- Total Unique Fonts: {fonts.Count}"); // Show the number of unique fonts used
 
-            // Get text content
+            // Extract and format webpage text content
             string textContent = (string)scrapedData["text_content"];
             sb.AppendLine("\n### Extracted Page Text ###");
-            sb.AppendLine(textContent.Length > 500 ? textContent.Substring(0, 500) + "..." : textContent); // Limit to 500 characters
 
+            // Limit displayed text content to 500 characters to avoid excessive output
+            sb.AppendLine(textContent.Length > 500 ? textContent.Substring(0, 500) + "..." : textContent);
+
+            // Return the formatted UX data string
             return sb.ToString();
         }
     }
