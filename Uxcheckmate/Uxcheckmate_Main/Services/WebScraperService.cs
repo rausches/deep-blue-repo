@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
 using HtmlAgilityPack;
@@ -32,7 +33,8 @@ namespace Uxcheckmate_Main.Services
             var doc = new HtmlDocument();
             doc.LoadHtml(htmlContent);
 
-            var headings = doc.DocumentNode.SelectNodes("//h2") ?? new HtmlNodeCollection(null);
+            var headings = doc.DocumentNode.SelectNodes("//h1 | //h2 | //h3 | //h4 | //h5 | //h6") ?? new HtmlNodeCollection(null);
+            var paragraphs = doc.DocumentNode.SelectNodes("//p") ?? new HtmlNodeCollection(null);
             var images = doc.DocumentNode.SelectNodes("//img") ?? new HtmlNodeCollection(null);
             var links = doc.DocumentNode.SelectNodes("//a") ?? new HtmlNodeCollection(null);
 
