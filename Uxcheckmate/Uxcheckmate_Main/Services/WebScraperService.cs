@@ -38,6 +38,21 @@ namespace Uxcheckmate_Main.Services
             var images = doc.DocumentNode.SelectNodes("//img") ?? new HtmlNodeCollection(null);
             var links = doc.DocumentNode.SelectNodes("//a") ?? new HtmlNodeCollection(null);
 
+            // Extract font-family styles from <style> and inline elements
+            var fontStyles = doc.DocumentNode.SelectNodes("//style | //*[@style]") ?? new HtmlNodeCollection(null);
+            var fontsUsed = new HashSet<string>();
+
+            foreach (var node in fontStyles)
+            {
+                string style = node.InnerText + node.GetAttributeValue("style", "");
+                var matches = System.Text.RegularExpressions.Regex.Matches(style, @"font-family:\s*([^;]+)");
+                
+                foreach (System.Text.RegularExpressions.Match match in matches)
+                {
+                    fontsUsed.Add(match.Groups[1].Value.Trim());
+                }
+            }
+            
             return new Dictionary<string, object>
             {
                 { "headings", headings.Count },
