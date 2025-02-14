@@ -7,5 +7,4 @@ namespace Uxcheckmate_Main.Services
     { 
         public Task<UxResult> AnalyzeUx(string url);
     }
-
 }
