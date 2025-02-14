@@ -51,7 +51,10 @@ namespace Uxcheckmate_Main.Services
             // Read the API response content as a string
             var responseString = await response.Content.ReadAsStringAsync();
 
-            return responseString;
+            // Deserialize the response string into a UxResult object
+            var uxResult = JsonSerializer.Deserialize<UxResult>(responseString);
+
+            return uxResult;
         }
 
         // helper method to format dictionary data into a readable string
