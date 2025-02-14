@@ -67,11 +67,8 @@ namespace Uxcheckmate_Main.Services
             // Read the API response content as a string
             var responseString = await response.Content.ReadAsStringAsync();
 
-            // Extract AI response into structured sections
-            var sections = ExtractSections(responseString);
-
-            // Convert AI response into `UxResult` format
-            UxResult uxResult = ConvertToUxResult(sections);
+            // Deserialize the response string into a UxResult object
+            var uxResult = JsonSerializer.Deserialize<UxResult>(responseString);
 
             return uxResult;
         }
