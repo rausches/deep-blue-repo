@@ -2,11 +2,12 @@ using System.Net;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Text.RegularExpressions;
 using Uxcheckmate_Main.Models;
 
 namespace Uxcheckmate_Main.Services
 {
-    public class OpenAiService : IOpenAiService
+    public partial class OpenAiService : IOpenAiService
     {
         private readonly HttpClient _httpClient; 
         private readonly ILogger<OpenAiService> _logger; 
@@ -150,5 +151,8 @@ namespace Uxcheckmate_Main.Services
             // Return the formatted UX data string
             return sb.ToString();
         }
+
+        [GeneratedRegex(@"###\s*(.*?)\s*\n(.*?)(?=(\n###|\z))", RegexOptions.Singleline)]
+        private static partial Regex MyRegex();
     }
 }
