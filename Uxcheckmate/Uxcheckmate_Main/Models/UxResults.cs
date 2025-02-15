@@ -8,7 +8,7 @@ namespace Uxcheckmate_Main.Models
         public string Category { get; set; } 
         public string Message { get; set; }
         public string Selector { get; set; } 
-
+    }
         public class OpenAiResponse
         {
             [JsonPropertyName("choices")]
@@ -26,9 +26,6 @@ namespace Uxcheckmate_Main.Models
             [JsonPropertyName("content")]
             public string Content { get; set; }
         }
-
-    }
-
     public class UxResult
     {
         public List<UxIssue> Issues { get; set; } = new List<UxIssue>();

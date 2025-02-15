@@ -63,7 +63,7 @@ namespace Uxcheckmate_Main.Services
             var responseString = await response.Content.ReadAsStringAsync();
 
             // Deserialize the JSON response into an OpenAiResponse object
-            var openAiResponse = JsonSerializer.Deserialize<UxIssue.OpenAiResponse>(responseString);
+            var openAiResponse = JsonSerializer.Deserialize<OpenAiResponse>(responseString);
 
             // Extract the AI-generated content
             string aiText = openAiResponse?.Choices?.FirstOrDefault()?.Message?.Content ?? "No response";
@@ -74,8 +74,6 @@ namespace Uxcheckmate_Main.Services
             // Convert structured data into a UxResult
             return ConvertToUxResult(sections);
         }
-
-
 
         // Extracts structured sections from AI-generated text output
         private Dictionary<string, string> ExtractSections(string aiResponse)
