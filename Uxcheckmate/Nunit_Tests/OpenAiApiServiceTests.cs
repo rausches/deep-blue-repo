@@ -17,7 +17,6 @@ namespace Uxcheckmate_Tests.Services
             _openAiService = new OpenAiService(null, null); 
         }
 
-
         /* Test if FormatScrapedData function returns a formatted string */
         [Test]
         public void FormatScrapedData_ReturnFormattedString()
@@ -51,7 +50,44 @@ namespace Uxcheckmate_Tests.Services
         [Test]
         public void ExtractSections_ReturnsDictionary()
         {
+            // Arrange
+            string aiResponse = @"
+                ### Fonts
+                - Too many fonts used.
+
+                ### Text Structure
+                - Large text blocks found.
+
+                ### Usability Issues
+                - No significant issues found.";
+
+            // Act
+            var result = _openAiService.GetType()
+                .GetMethod("ExtractSections", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)
+                .Invoke(_openAiService, new object[] { aiResponse }) as Dictionary<string, string>;
+
+            // Debugging Output
+            Console.WriteLine("\nExtracted Sections:");
+            if (result != null)
+            {
+                foreach (var entry in result)
+                {
+                    Console.WriteLine($"Category: {entry.Key}\nContent: {entry.Value}\n");
+                }
+            }
+            else
+            {
+                Console.WriteLine("ExtractSections returned NULL");
+            }
+
+            // Assert
+            Assert.That(result, Is.Not.Null, "ExtractSections returned null.");
+            Assert.That(result.Count, Is.EqualTo(3), $"Expected 3 sections, but got {result?.Count ?? 0}");
+            Assert.That(result["Fonts"], Is.EqualTo("- Too many fonts used."));
+            Assert.That(result["Text Structure"], Is.EqualTo("- Large text blocks found."));
+            Assert.That(result["Usability Issues"], Is.EqualTo("- No significant issues found."));
         }
+
 
 
 
