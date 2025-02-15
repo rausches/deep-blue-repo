@@ -46,7 +46,6 @@ namespace Uxcheckmate_Main.Services
             Webpage Data:
             {pageContent}";
 
-            // Payload Request
             var request = new
             {
                 model = "gpt-4",
@@ -58,20 +57,25 @@ namespace Uxcheckmate_Main.Services
                 max_tokens = 500
             };
 
-            // Convert the request object into a JSON payload
             var requestContent = new StringContent(JsonSerializer.Serialize(request), Encoding.UTF8, "application/json");
 
-            // Send the request to OpenAI's chat completion API endpoint
             var response = await _httpClient.PostAsync("https://api.openai.com/v1/chat/completions", requestContent);
-
-            // Read the API response content as a string
             var responseString = await response.Content.ReadAsStringAsync();
 
-            // Deserialize the response string into a UxResult object
-            var uxResult = JsonSerializer.Deserialize<UxResult>(responseString);
+            // Deserialize the JSON response into an OpenAiResponse object
+            var openAiResponse = JsonSerializer.Deserialize<UxIssue.OpenAiResponse>(responseString);
 
-            return uxResult;
+            // Extract the AI-generated content
+            string aiText = openAiResponse?.Choices?.FirstOrDefault()?.Message?.Content ?? "No response";
+
+            // Process extracted sections
+            var sections = ExtractSections(aiText);
+
+            // Convert structured data into a UxResult
+            return ConvertToUxResult(sections);
         }
+
+
 
         // Extracts structured sections from AI-generated text output
         private Dictionary<string, string> ExtractSections(string aiResponse)
