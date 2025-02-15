@@ -88,14 +88,31 @@ namespace Uxcheckmate_Tests.Services
             Assert.That(result["Usability Issues"], Is.EqualTo("- No significant issues found."));
         }
 
-
-
-
-        /* Tests if  */
+        /* Tests if ConvertToUxResult returns a UxResult */
         [Test]
         public void ConvertToUxResult_ReturnsUxResult()
         {
-        }
+            // Arrange
+            var sections = new Dictionary<string, string>
+            {
+                { "Fonts", "Too many fonts used." },
+                { "Text Structure", "Large text blocks found." }
+            };
 
+            // Act
+            var result = _openAiService.GetType()
+                .GetMethod("ConvertToUxResult", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)
+                .Invoke(_openAiService, new object[] { sections }) as UxResult;
+
+            // Assert (NUnit 3+)
+            Assert.That(result, Is.Not.Null, "ConvertToUxResult returned null.");
+            Assert.That(result.Issues, Has.Count.EqualTo(2), "Expected 2 UX issues.");
+            
+            Assert.That(result.Issues[0].Category, Is.EqualTo("Fonts"), "First issue category mismatch.");
+            Assert.That(result.Issues[0].Message, Is.EqualTo("Too many fonts used."), "First issue message mismatch.");
+            
+            Assert.That(result.Issues[1].Category, Is.EqualTo("Text Structure"), "Second issue category mismatch.");
+            Assert.That(result.Issues[1].Message, Is.EqualTo("Large text blocks found."), "Second issue message mismatch.");
+        }
     }
 }
