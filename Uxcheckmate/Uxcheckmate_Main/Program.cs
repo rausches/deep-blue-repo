@@ -39,7 +39,7 @@ public class Program
         var app = builder.Build();
 
         // Middleware: Custom error handling
-        app.UseStatusCodePagesWithReExecute("/Home/ErrorPage");
+        app.UseStatusCodePagesWithRedirects("/Home/ErrorPage");
 
         // Configure the HTTP request pipeline.
         if (!app.Environment.IsDevelopment())

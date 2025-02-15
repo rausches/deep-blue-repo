@@ -2,11 +2,12 @@ using System.Net;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Text.RegularExpressions;
 using Uxcheckmate_Main.Models;
 
 namespace Uxcheckmate_Main.Services
 {
-    public class OpenAiService : IOpenAiService
+    public partial class OpenAiService : IOpenAiService
     {
         private readonly HttpClient _httpClient; 
         private readonly ILogger<OpenAiService> _logger; 
@@ -63,7 +64,7 @@ namespace Uxcheckmate_Main.Services
             var responseString = await response.Content.ReadAsStringAsync();
 
             // Deserialize the JSON response into an OpenAiResponse object
-            var openAiResponse = JsonSerializer.Deserialize<UxIssue.OpenAiResponse>(responseString);
+            var openAiResponse = JsonSerializer.Deserialize<OpenAiResponse>(responseString);
 
             // Extract the AI-generated content
             string aiText = openAiResponse?.Choices?.FirstOrDefault()?.Message?.Content ?? "No response";
@@ -74,8 +75,6 @@ namespace Uxcheckmate_Main.Services
             // Convert structured data into a UxResult
             return ConvertToUxResult(sections);
         }
-
-
 
         // Extracts structured sections from AI-generated text output
         private Dictionary<string, string> ExtractSections(string aiResponse)
@@ -152,5 +151,8 @@ namespace Uxcheckmate_Main.Services
             // Return the formatted UX data string
             return sb.ToString();
         }
+
+        [GeneratedRegex(@"###\s*(.*?)\s*\n(.*?)(?=(\n###|\z))", RegexOptions.Singleline)]
+        private static partial Regex MyRegex();
     }
 }

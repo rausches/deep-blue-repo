@@ -4,9 +4,9 @@ using Moq;
 using NUnit;
 using Uxcheckmate_Main.Controllers;
 
-namespace Moq_Tests.Error_Page_Tests
+namespace Moq_Tests.ErrorPage_Tests
 {
-    public class HomeControllerTests
+    public class ErrorPage_Tests
     {
         private Mock<ILogger<HomeController>> _mockLogger;
 
