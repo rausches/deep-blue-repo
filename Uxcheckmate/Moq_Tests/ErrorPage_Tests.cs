@@ -6,7 +6,7 @@ using Uxcheckmate_Main.Controllers;
 
 namespace Moq_Tests.ErrorPage_Tests
 {
-    public class HomeControllerTests
+    public class ErrorPage_Tests
     {
         private Mock<ILogger<HomeController>> _mockLogger;
 
