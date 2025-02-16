@@ -20,7 +20,7 @@ namespace Uxcheckmate_Main.Services
             _dbContext = dbContext;
         }
 
-        public async Task<UxResult> AnalyzeUx(string url)
+        public async Task<List<Report>> AnalyzeAndSaveUxReports(string url)
         {
             WebScraperService scraper = new WebScraperService(_httpClient);
 
@@ -30,7 +30,7 @@ namespace Uxcheckmate_Main.Services
             // Convert scraped data into a readable format for AI analysis
             string pageContent = FormatScrapedData(scrapedData);
 
-            var prompt = @$"Analyze the UX of the following webpage in structured sections:
+            string prompt = @$"Analyze the UX of the following webpage in structured sections:
 
             ### Fonts
             - How many unique fonts are used? Is this too many?
@@ -74,8 +74,57 @@ namespace Uxcheckmate_Main.Services
             // Process extracted sections
             var sections = ExtractSections(aiText);
 
-            // Convert structured data into a UxResult
-            return ConvertToUxResult(sections);
+            List<Report> reports = new List<Report>();
+
+            // Loop through each section returned by OpenAI
+            foreach (var section in sections)
+            {
+                // Look up the ReportCategory by name
+                var category = _dbContext.ReportCategories
+                    .FirstOrDefault(c => c.Name.ToLower() == section.Key.ToLower());
+
+                // TEMP: Need to create a seed for ReportCategory 
+                // If the category is not found, auto-create it.
+                if (category == null)
+                {
+                    category = new ReportCategory
+                    {
+                        Name = section.Key,
+                        Description = $"Auto-generated category for {section.Key}",
+                        OpenAiprompt = "" // Will implement in next sprint after discussion with team it might not be necessary to have the prompts in the db
+                    };
+                    _dbContext.ReportCategories.Add(category);
+                    await _dbContext.SaveChangesAsync(); // Save to generate a CategoryId
+                }
+
+                // TEMP: Creates a user (Will remove once authenication is implemented but because of FK's this was a temp solution)
+                var anonUser = _dbContext.UserAccounts.FirstOrDefault(u => u.Email == "anonymous@system.local");
+                if (anonUser == null)
+                {
+                    anonUser = new UserAccount
+                    {
+                        Email = "anonymous@system.local",
+                    };
+                    _dbContext.UserAccounts.Add(anonUser);
+                    await _dbContext.SaveChangesAsync();
+                }
+
+                // Create a report instance
+                var report = new Report
+                {
+                    UserId = anonUser.UserId, 
+                    CategoryId = category.CategoryId,
+                    Date = DateTime.UtcNow,
+                    Recommendations = $"Section: {section.Key}\n{section.Value}"
+                };
+
+                _dbContext.Reports.Add(report);
+                await _dbContext.SaveChangesAsync();
+
+                reports.Add(report);
+            }
+
+            return reports;
         }
 
         // Extracts structured sections from AI-generated text output
