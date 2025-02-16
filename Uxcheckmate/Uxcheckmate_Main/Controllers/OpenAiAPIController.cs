@@ -3,11 +3,11 @@ using Uxcheckmate_Main.Services;
 using System.Threading.Tasks;
 
 [ApiController]
-[Route("api/chat")] 
+[Route("api/chat")]
 public class OpenAiApiController : Controller
 {
-    private readonly IOpenAiService _OpenAiService; 
-    private readonly ILogger<OpenAiApiController> _logger; 
+    private readonly IOpenAiService _OpenAiService;
+    private readonly ILogger<OpenAiApiController> _logger;
 
     public OpenAiApiController(IOpenAiService OpenAIService, ILogger<OpenAiApiController> logger)
     {
@@ -23,7 +23,7 @@ public class OpenAiApiController : Controller
             return BadRequest(new { error = "URL is required." });
         }
 
-        var result = await _OpenAiService.AnalyzeUx(url);
+        var result = await _OpenAiService.AnalyzeAndSaveUxReports(url);
         return Ok(result);
     }
 }
