@@ -9,9 +9,9 @@ public partial class UserAccount
 
     public string Email { get; set; } = null!;
 
-    public int RoleId { get; set; }
+    public int? RoleId { get; set; }
 
     public virtual ICollection<Report> Reports { get; set; } = new List<Report>();
 
-    public virtual Role Role { get; set; } = null!;
+    public virtual Role? Role { get; set; }
 }

@@ -34,7 +34,7 @@ function handleUserUrl(event) {
         return false
     }
 
-    confirmationMessage.innerHTML = "<div class='alert alert-success'>Your URL has been successfully submitted! Please wait to get it analized...</div>";
+    confirmationMessage.innerHTML = "<div class='alert alert-success'>Your URL has been successfully submitted! Please wait to get it analyzed...</div>";
 
     // Added a delay to show the confirmation message before submitting the form
     setTimeout(() => {
