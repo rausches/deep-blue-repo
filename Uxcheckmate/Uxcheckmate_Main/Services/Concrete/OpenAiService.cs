@@ -11,11 +11,13 @@ namespace Uxcheckmate_Main.Services
     {
         private readonly HttpClient _httpClient; 
         private readonly ILogger<OpenAiService> _logger; 
+        private readonly UxCheckmateDbContext _dbContext;
 
-        public OpenAiService(HttpClient httpClient, ILogger<OpenAiService> logger)
+        public OpenAiService(HttpClient httpClient, ILogger<OpenAiService> logger, UxCheckmateDbContext dbContext)
         {
-            _httpClient = httpClient; 
-            _logger = logger; 
+            _httpClient = httpClient;
+            _logger = logger;
+            _dbContext = dbContext;
         }
 
         public async Task<UxResult> AnalyzeUx(string url)
