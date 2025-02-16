@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Uxcheckmate_Main.Models;
 
@@ -11,9 +12,11 @@ using Uxcheckmate_Main.Models;
 namespace Uxcheckmate_Main.Migrations
 {
     [DbContext(typeof(UxCheckmateDbContext))]
-    partial class UxCheckmateDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250216030441_MakeUserIdNullable")]
+    partial class MakeUserIdNullable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -130,7 +133,7 @@ namespace Uxcheckmate_Main.Migrations
                         .HasMaxLength(255)
                         .HasColumnType("nvarchar(255)");
 
-                    b.Property<int?>("RoleId")
+                    b.Property<int>("RoleId")
                         .HasColumnType("int")
                         .HasColumnName("RoleID");
 
@@ -168,6 +171,7 @@ namespace Uxcheckmate_Main.Migrations
                     b.HasOne("Uxcheckmate_Main.Models.Role", "Role")
                         .WithMany("UserAccounts")
                         .HasForeignKey("RoleId")
+                        .IsRequired()
                         .HasConstraintName("FK_UserAccounts_RoleID");
 
                     b.Navigation("Role");

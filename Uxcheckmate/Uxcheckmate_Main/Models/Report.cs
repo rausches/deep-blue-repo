@@ -7,7 +7,7 @@ public partial class Report
 {
     public int ReportId { get; set; }
 
-    public int UserId { get; set; }
+    public int? UserId { get; set; }
 
     public int CategoryId { get; set; }
 
@@ -17,5 +17,5 @@ public partial class Report
 
     public virtual ReportCategory Category { get; set; } = null!;
 
-    public virtual UserAccount User { get; set; } = null!;
+    public virtual UserAccount? User { get; set; } 
 }
