@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Text;
 using Uxcheckmate_Main.Services;
 using Uxcheckmate_Main.Models;
+using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.EntityFrameworkCore;
 
 namespace Uxcheckmate_Tests.Services
 {
@@ -14,7 +16,18 @@ namespace Uxcheckmate_Tests.Services
         [SetUp]
         public void Setup()
         {
-            _openAiService = new OpenAiService(null, null); 
+            var httpClient = new HttpClient();
+
+            // Use built-in NullLogger
+            var logger = NullLogger<OpenAiService>.Instance;
+
+            // Configure an in-memory EF context
+            var options = new DbContextOptionsBuilder<UxCheckmateDbContext>()
+                          .UseInMemoryDatabase(databaseName: "TestDb")
+                          .Options;
+            var dbContext = new UxCheckmateDbContext(options);
+
+            _openAiService = new OpenAiService(httpClient, logger, dbContext);
         }
 
         /* Test if FormatScrapedData function returns a formatted string */
