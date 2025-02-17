@@ -1,23 +1,50 @@
-@model IEnumerable<Uxcheckmate_Main.Models.Report>
-<h2>Accessibility Analysis Results</h2>
+@model Tuple<IEnumerable<Uxcheckmate_Main.Models.Report>, IEnumerable<Uxcheckmate_Main.Models.Pa11yIssue>>
 
-<h2>UX Analysis Results</h2>
-<table class="table">
-    <thead>
-        <tr>
-            <th>Category</th>
-            <th>Date</th>
-            <th>Recommendations</th>
-        </tr>
-    </thead>
-    <tbody>
-    @foreach (var report in Model)
-    {
-        <tr>
-            <td>@report.Category.Name</td>
-            <td>@report.Date.ToString("g")</td>
-            <td>@report.Recommendations</td>
-        </tr>
-    }
-    </tbody>
-</table>
+<h1>Analysis Reports</h1>
+
+@if (!Model.Item1.Any() && !Model.Item2.Any())
+{
+    <div class="alert alert-success"><strong>Congrats! No issues detected. Your site is in great shape!</strong></div>
+}
+else
+{
+    <h2>Analysis Results</h2>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Category</th>
+                <th>Recommendations</th>
+            </tr>
+        </thead>
+        <tbody>
+        @foreach (var report in Model.Item1)
+        {
+            <tr>
+                <td>@(report.Category != null ? report.Category.Name : "No Category Assigned")</td>
+                <td>@report.Recommendations</td>
+            </tr>
+        }
+        </tbody>
+    </table>
+
+    <h2>Accessibility Issues</h2>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Code</th>
+                <th>Message</th>
+                <th>Selector</th>
+            </tr>
+        </thead>
+        <tbody>
+        @foreach (var issue in Model.Item2)
+        {
+            <tr>
+                <td>@issue.Code</td>
+                <td>@issue.Message</td>
+                <td>@issue.Selector</td>
+            </tr>
+        }
+        </tbody>
+    </table>
+}
