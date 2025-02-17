@@ -22,18 +22,17 @@ namespace BDD_Tests.StepDefinitions
             });
         }
 
-        [Given(@"I request a non-existent page ""(.*)""")]
-        public async Task GivenIRequestANonExistentPage(string url)
+        [Given(@"David requests a non-existent page ""(.*)""")]
+        public async Task GivenDavidRequestsANonExistentPage(string url)
         {
             _response = await _client.GetAsync(url);  // Send a GET request to the specified URL
         }
 
-        // Step definition: Check if the response redirects to the expected error page
-        [Then(@"I should be redirected to ""(.*)""")]
-        public void ThenIShouldBeRedirectedTo(string expectedUrl)
+        [Then(@"he should be redirected to ""(.*)""")]
+        public void ThenHeShouldBeRedirectedTo(string expectedUrl)
         {
             Assert.That(_response.StatusCode, Is.EqualTo(HttpStatusCode.Redirect));  // Assert that the response is a redirect (302 Found)
-            Assert.That(_response.Headers.Location?.ToString(), Is.EqualTo(expectedUrl));  // Verify that the redirection target matches the expected URL
+            Assert.That(_response.Headers.Location?.ToString(), Is.EqualTo(expectedUrl));  // Verify the redirection target
         }
     }
 }
