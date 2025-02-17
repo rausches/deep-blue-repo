@@ -1,8 +1,9 @@
-module.exports = {
-    testEnvironment: 'jsdom', // Ensure the test environment is 'jsdom' for DOM manipulation
+export default {
+    testEnvironment: 'jsdom',
     roots: ['<rootDir>'],
     testMatch: ['**/*.test.js'],
     transform: {
-        '^.+\\.js$': 'babel-jest',
+      '^.+\\.js$': 'babel-jest',
     },
-};
+  };
+  
