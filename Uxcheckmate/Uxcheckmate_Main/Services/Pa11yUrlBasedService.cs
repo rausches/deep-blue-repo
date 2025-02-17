@@ -5,14 +5,13 @@ public class Pa11yUrlBasedService
     public string RunPa11y(string url){
         try{
             ProcessStartInfo psi = new ProcessStartInfo{
-                FileName = @"C:\Users\belen\AppData\Roaming\npm\pa11y.cmd",
-                Arguments = url + " --reporter json",
+                FileName = "pa11y",
+                // I had to use --reporter json flag to get the output in JSON format
+                Arguments = url + " --json",
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,
                 UseShellExecute = false,
-                CreateNoWindow = true,
-                WorkingDirectory = @"C:\Users\belen\OneDrive\Desktop\ux-20\deep-blue\Uxcheckmate\Uxcheckmate_Main" // Explicitly set working directory
-
+                CreateNoWindow = true
             };
             using (Process process = new Process { StartInfo = psi }){
                 process.Start();
