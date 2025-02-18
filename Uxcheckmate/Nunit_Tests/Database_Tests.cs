@@ -1,6 +1,7 @@
 namespace Nunit_Tests;
 using System.IO;
 using NUnit.Framework;
+using Microsoft.Extensions.Configuration;
 using Microsoft.EntityFrameworkCore;
 using Uxcheckmate_Main.Models;
 public class Database_Tests
@@ -11,7 +12,9 @@ public class Database_Tests
     {
         //Inside Nunit_Tests folder make sure you have the txt file dbconfig.txt with information like below
         //Data Source=localhost,1433;Initial Catalog=uxcheckmate;User Id=YourUsername;Password='YourPassword';TrustServerCertificate=True;
-        var DbConnection = File.ReadAllText(Path.Combine(Directory.GetCurrentDirectory(), "dbconfig.txt")).Trim();
+        var configPath = Path.Combine(Directory.GetCurrentDirectory(), "runPa11y.js");
+        var configuration = new ConfigurationBuilder().SetBasePath(Path.GetDirectoryName(configPath)!).AddJsonFile("appsettings.json", optional: false, reloadOnChange: true).Build();
+        var DbConnection = configuration.GetConnectionString("DBConnection");
         var options = new DbContextOptionsBuilder<UxCheckmateDbContext>().UseSqlServer(DbConnection).Options;
         _context = new UxCheckmateDbContext(options);
     }
