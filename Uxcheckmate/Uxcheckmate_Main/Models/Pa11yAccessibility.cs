@@ -15,7 +15,7 @@ public class Pa11yIssue
 
     [JsonPropertyName("selector")]
     public string Selector { get; set; }
-    public int Severity { get; set; } // 1 is highest and 3 is lowest. So lower number means how priority
+    public int Severity { get; set; } = 3; // 1 is highest and 3 is lowest. So lower number means how priority
     public DateTime Timestamp { get; set; } = ConvertToPacificTime(DateTime.UtcNow);
     private static DateTime ConvertToPacificTime(DateTime utcDateTime)
         {
