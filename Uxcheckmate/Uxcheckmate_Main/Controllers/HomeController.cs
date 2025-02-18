@@ -59,7 +59,7 @@ public class HomeController : Controller
         {
             _logger.LogError(ex, "Error analyzing URL: {Url}", model.Url);
             ModelState.AddModelError(string.Empty, "Failed to analyze the URL.");
-            return View(model);
+            return View("ErrorPage");
         }
     }
 

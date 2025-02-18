@@ -22,12 +22,11 @@ function handleUserUrl(event) {
         return false;
     }
 
-
-
-    if(!validateURL(urlInput)) {    
+    if (!urlInput.includes('http://') && !urlInput.includes('https://')) {
         confirmationMessage.innerHTML = `
         <div class='alert alert-danger'>
             <h5><strong>Invalid URL! A non-valid URL can occur if:</strong></h5>
+            <p><strong>Missing Protocol:</strong> example.com (should have http:// or https://)</p>
             <p><strong>Invalid characters:</strong> http://example[dot]com (no brackets or spaces)</p>
             <p><strong>Incorrect format:</strong> http:/example.com (missing one slash)</p>
             <p><strong>Missing Domain Extension:</strong> http://example (should have .com, .org, .edu, etc.)</p>
