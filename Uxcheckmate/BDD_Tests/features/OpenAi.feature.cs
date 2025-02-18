@@ -21,6 +21,7 @@ namespace BDD_Tests.Features
     [System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     [NUnit.Framework.TestFixtureAttribute()]
     [NUnit.Framework.DescriptionAttribute("UX Analysis Report Generation")]
+    [NUnit.Framework.FixtureLifeCycleAttribute(NUnit.Framework.LifeCycle.InstancePerTestCase)]
     public partial class UXAnalysisReportGenerationFeature
     {
         
@@ -108,8 +109,8 @@ namespace BDD_Tests.Features
     await testRunner.WhenAsync("the report loads", ((string)(null)), ((global::Reqnroll.Table)(null)), "When ");
 #line hidden
 #line 7
-    await testRunner.ThenAsync(("she will see a suggestion in the report to condense the amount of fonts on her si" +
-                        "te"), ((string)(null)), ((global::Reqnroll.Table)(null)), "Then ");
+    await testRunner.ThenAsync("she will see a suggestion in the report to condense the amount of fonts on her si" +
+                        "te", ((string)(null)), ((global::Reqnroll.Table)(null)), "Then ");
 #line hidden
             }
             await this.ScenarioCleanupAsync();
@@ -142,8 +143,8 @@ namespace BDD_Tests.Features
     await testRunner.WhenAsync("the report loads", ((string)(null)), ((global::Reqnroll.Table)(null)), "When ");
 #line hidden
 #line 13
-    await testRunner.ThenAsync(("she will see a suggestion to separate her text content with images, padding, and " +
-                        "color modules"), ((string)(null)), ((global::Reqnroll.Table)(null)), "Then ");
+    await testRunner.ThenAsync("she will see a suggestion to separate her text content with images, padding, and " +
+                        "color modules", ((string)(null)), ((global::Reqnroll.Table)(null)), "Then ");
 #line hidden
             }
             await this.ScenarioCleanupAsync();

@@ -7,14 +7,14 @@ public class Pa11yUrlBasedService
             ProcessStartInfo psi = new ProcessStartInfo{
                 // Pa11y is installed globally, so we can run it from the command line
                 // If you installed Pa11y locally, you would need to provide the full path to the pa11y.cmd file
-                FileName = "pa11y",
+                FileName = "C:/Users/lexyb/AppData/Roaming/npm/pa11y.cmd",
                 // Add the --reporter json flag to get the output in JSON format
                 Arguments = url + " --reporter json",
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,
                 UseShellExecute = false,
-                CreateNoWindow = true
-                // If needed you can set the working directory WorkingDirectory = "YOUR_PATH"
+                CreateNoWindow = true,
+                WorkingDirectory = @"C:/Users/lexyb/deep-blue/Uxcheckmate/Uxcheckmate_Main"
 
             };
             using (Process process = new Process { StartInfo = psi }){
