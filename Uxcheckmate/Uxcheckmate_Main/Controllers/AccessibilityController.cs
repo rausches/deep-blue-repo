@@ -71,7 +71,10 @@ namespace Uxcheckmate_Main.Controllers
                 }
                 // Deserialize the JSON output from pa11y
                 try{
-                    var pa11yResult = JsonSerializer.Deserialize<Pa11yResult>(output);
+                    var options = new JsonSerializerOptions{
+                        PropertyNameCaseInsensitive = true
+                    };
+                    var pa11yResult = JsonSerializer.Deserialize<Pa11yResult>(output, options);
                     return Ok(pa11yResult);
                 }catch (JsonException jsonEx){
                     _logger.LogError("Error deserializing pa11y JSON: {Error}", jsonEx.Message);
