@@ -1,0 +1,23 @@
+@model IEnumerable<Uxcheckmate_Main.Models.Report>
+<h2>Accessibility Analysis Results</h2>
+
+<h2>UX Analysis Results</h2>
+<table class="table">
+    <thead>
+        <tr>
+            <th>Category</th>
+            <th>Date</th>
+            <th>Recommendations</th>
+        </tr>
+    </thead>
+    <tbody>
+    @foreach (var report in Model)
+    {
+        <tr>
+            <td>@report.Category.Name</td>
+            <td>@report.Date.ToString("g")</td>
+            <td>@report.Recommendations</td>
+        </tr>
+    }
+    </tbody>
+</table>
