@@ -1,18 +1,24 @@
 using Microsoft.AspNetCore.Mvc;
 using Uxcheckmate_Main.Models;
-using Uxcheckmate_Main.Services; 
+using Uxcheckmate_Main.Services;
+using Microsoft.EntityFrameworkCore;
+using System.Text.Json;
 
 namespace Uxcheckmate_Main.Controllers;
 
 public class HomeController : Controller
 {
     private readonly ILogger<HomeController> _logger;
+    private readonly UxCheckmateDbContext _context;
     private readonly IOpenAiService _openAiService; 
+    private readonly IPa11yService _pa11yService;
 
-    public HomeController(ILogger<HomeController> logger, IOpenAiService openAiService)
+    public HomeController(ILogger<HomeController> logger, UxCheckmateDbContext dbContext, IOpenAiService openAiService, IPa11yService pa11yService)
     {
         _logger = logger;
+        _context = dbContext;
         _openAiService = openAiService;
+        _pa11yService = pa11yService;
     }
 
     [HttpGet]
@@ -29,11 +35,31 @@ public class HomeController : Controller
             return View(model);
         }
 
-        // Call OpenAiApiService
-        var reports = await _openAiService.AnalyzeAndSaveUxReports(model.Url);
-       
-        // Pass the reports to a results view 
-        return View("Results", reports);
+        // Check if model.Url is null or empty
+        if (string.IsNullOrEmpty(model.Url))
+        {
+            ModelState.AddModelError("Url", "URL cannot be empty.");
+            return View(model);
+        }
+
+        try
+        {
+            // Call OpenAiService for UX analysis
+            var uxReports = await _openAiService.AnalyzeAndSaveUxReports(model.Url);
+
+            // Call Pa11yService for accessibility analysis
+            var pa11yReports = await _pa11yService.AnalyzeAndSaveAccessibilityReport(model.Url);
+
+            // Pass the reports as a tuple to the view
+            ViewBag.AnalyzedUrl = model.Url;
+            return View("Results", new Tuple<IEnumerable<Report>, IEnumerable<Pa11yIssue>>(uxReports, pa11yReports));
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error analyzing URL: {Url}", model.Url);
+            ModelState.AddModelError(string.Empty, "Failed to analyze the URL.");
+            return View(model);
+        }
     }
 
     public IActionResult Privacy()
