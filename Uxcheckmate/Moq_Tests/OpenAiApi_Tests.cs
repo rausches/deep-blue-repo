@@ -1,9 +1,16 @@
+using System;
 using System.Net;
+using System.Net.Http;
 using System.Text;
 using System.Text.Json;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Moq.Protected;
+using NUnit.Framework;
+using Uxcheckmate_Main.Models; 
 using Uxcheckmate_Main.Services;
 
 namespace Moq_Tests.OpenAiApi_Tests
@@ -14,6 +21,7 @@ namespace Moq_Tests.OpenAiApi_Tests
         private Mock<HttpMessageHandler> _httpMessageHandlerMock;
         private HttpClient _httpClient;
         private Mock<ILogger<OpenAiService>> _loggerMock;
+        private UxCheckmateDbContext _dbContext;
         private OpenAiService _openAiService;
 
         [SetUp]
@@ -22,26 +30,40 @@ namespace Moq_Tests.OpenAiApi_Tests
             _httpMessageHandlerMock = new Mock<HttpMessageHandler>();
             _httpClient = new HttpClient(_httpMessageHandlerMock.Object);
             _loggerMock = new Mock<ILogger<OpenAiService>>();
+            
+            var options = new DbContextOptionsBuilder<UxCheckmateDbContext>()
+                .UseInMemoryDatabase("TestDb")
+                .Options;
 
-            _openAiService = new OpenAiService(_httpClient, _loggerMock.Object);
+            _dbContext = new UxCheckmateDbContext(options);
+            _openAiService = new OpenAiService(_httpClient, _loggerMock.Object, _dbContext);
         }
 
         [TearDown]
         public void TearDown()
         {
-            // Dispose HttpClient after each test
+            // Dispose HttpClient and dbcontext after each test
             _httpClient.Dispose();
+            _dbContext.Dispose();
         }
 
         [Test]
-        public async Task AnalyzeUx_CallsOpenAiAndProcessesResponse()
+        public async Task AnalyzeAndSaveUxReports_ReturnsListOfReports()
         {
-            // Arrange: Mock OpenAI API Response
+            // Arrange
             var mockResponse = new
             {
                 choices = new[]
                 {
-                    new { message = new { content = "### Fonts\n- Too many fonts used.\n### Text Structure\n- Large text blocks found." } }
+                    new
+                    {
+                        message = new
+                        {
+                            content = 
+                                "### Fonts\n- Too many fonts used.\n" +
+                                "### Text Structure\n- Large text blocks found."
+                        }
+                    }
                 }
             };
 
@@ -59,16 +81,22 @@ namespace Moq_Tests.OpenAiApi_Tests
                     ItExpr.IsAny<CancellationToken>())
                 .ReturnsAsync(responseMessage);
 
-            // Act: Call the AnalyzeUx method
-            var result = await _openAiService.AnalyzeUx("https://example.com");
+            // Act
+            var reports = await _openAiService.AnalyzeAndSaveUxReports("https://example.com");
 
-            // Assert: Verify that the OpenAI response was correctly processed
-            Assert.That(result, Is.Not.Null, "AnalyzeUx returned null.");
-            Assert.That(result.Issues, Has.Count.EqualTo(2), "Expected 2 UX issues.");
-            Assert.That(result.Issues[0].Category, Is.EqualTo("Fonts"), "First issue category mismatch.");
-            Assert.That(result.Issues[0].Message, Is.EqualTo("- Too many fonts used."), "First issue message mismatch.");
-            Assert.That(result.Issues[1].Category, Is.EqualTo("Text Structure"), "Second issue category mismatch.");
-            Assert.That(result.Issues[1].Message, Is.EqualTo("- Large text blocks found."), "Second issue message mismatch.");
+            // Assert
+            Assert.That(reports, Is.Not.Null);
+            Assert.That(reports.Count, Is.EqualTo(2), "Expected 2 reports generated.");
+            Assert.That(
+                reports[0].Recommendations,
+                Does.Contain("Section: Fonts").And.Contain("- Too many fonts used."),
+                "First report does not contain expected Fonts content."
+            );
+            Assert.That(
+                reports[1].Recommendations,
+                Does.Contain("Section: Text Structure").And.Contain("- Large text blocks found."),
+                "Second report does not contain expected Text Structure content."
+            );
         }
     }
 }
