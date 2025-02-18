@@ -22,6 +22,8 @@ function handleUserUrl(event) {
         return false;
     }
 
+
+
     if(!validateURL(urlInput)) {    
         confirmationMessage.innerHTML = `
         <div class='alert alert-danger'>

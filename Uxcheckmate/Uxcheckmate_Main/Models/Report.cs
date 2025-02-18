@@ -6,10 +6,9 @@ namespace Uxcheckmate_Main.Models;
 public partial class Report
 {
     public int ReportId { get; set; }
-
     public int? UserId { get; set; }
 
-    public int CategoryId { get; set; }
+    public int? CategoryId { get; set; }
 
     public DateTime Date { get; set; }
 
