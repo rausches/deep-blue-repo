@@ -47,7 +47,7 @@ namespace Uxcheckmate_Main.Moq_Test
             // Setting up controller
             _controller = new AccessibilityController(_scraperService, _logger);
         }
-        [TearDown]
+       [TearDown]
         public void TearDown()
         {
             // Opening up resources
