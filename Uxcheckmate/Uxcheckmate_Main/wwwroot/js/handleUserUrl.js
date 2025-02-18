@@ -2,7 +2,7 @@
 
 // Function to validate the URL format
 function validateURL(urlInput) {
-    var urlRegex = /^(https?:\/\/)?([\w-]+\.)+[\w-]{2,}(\/[\w-]*)*$/;
+    var urlRegex = /^(https?:\/\/)?([\w-]+\.)+[\w-]+(\/[\w-]*)*$/;
     return urlRegex.test(urlInput);
 }
 
