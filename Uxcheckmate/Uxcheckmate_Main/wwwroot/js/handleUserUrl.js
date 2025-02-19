@@ -7,9 +7,10 @@ function validateURL(urlInput) {
 }
 
 // Function to handle user input URL
-function handleUserUrl() {
+function handleUserUrl(event) {
+
     event.preventDefault();
-    var urlInput = document.getElementById('urlInput').value;
+    var urlInput = document.getElementById('urlInput').value.trim();
     var confirmationMessage = document.getElementById('confirmationMessage');
 
     if (urlInput === "") {
@@ -20,25 +21,29 @@ function handleUserUrl() {
         </div>`;
         return false;
     }
-    if (validateURL(urlInput)) {
-        confirmationMessage.innerHTML = "<div class='alert alert-success'>Your URL has been successfully submitted!</div>";
-        return true;
-    } else {
+
+    if (!urlInput.includes('http://') && !urlInput.includes('https://')) {
         confirmationMessage.innerHTML = `
         <div class='alert alert-danger'>
             <h5><strong>Invalid URL! A non-valid URL can occur if:</strong></h5>
+            <p><strong>Missing Protocol:</strong> example.com (should have http:// or https://)</p>
             <p><strong>Invalid characters:</strong> http://example[dot]com (no brackets or spaces)</p>
             <p><strong>Incorrect format:</strong> http:/example.com (missing one slash)</p>
             <p><strong>Missing Domain Extension:</strong> http://example (should have .com, .org, .edu, etc.)</p>
             <p><strong>Spaces:</strong> http://example .com (spaces not allowed)</p>
         </div>`;
-        return false;
+        return false
     }
+
+    confirmationMessage.innerHTML = "<div class='alert alert-success'>Your URL has been successfully submitted! Please wait to get it analyzed...</div>";
+
+    // Added a delay to show the confirmation message before submitting the form
+    setTimeout(() => {
+        document.getElementById('urlForm').submit();
+    }, 2000);
+
 }
 
-
-// Event listener to handle the form submission. Moved event listener inside a Window.onload function to avoid errors in Jest tests.
-// This is because Jest does not have a window or document object.
 if (typeof window !== 'undefined') {
     window.onload = function () {
         document.getElementById('urlForm').addEventListener('submit', handleUserUrl);

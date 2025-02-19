@@ -2,6 +2,7 @@
   "name": "jest_tests",
   "version": "1.0.0",
   "main": "index.js",
+  "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -10,6 +11,18 @@
   "license": "ISC",
   "description": "",
   "devDependencies": {
-    "jest": "^29.7.0"
+    "@babel/core": "^7.26.9",
+    "@babel/preset-env": "^7.26.9",
+    "@babel/preset-react": "^7.26.3",
+    "babel-jest": "^29.7.0",
+    "express": "^4.21.2",
+    "get-port": "^7.1.0",
+    "jest": "^29.7.0",
+    "jest-environment-jsdom": "^29.7.0",
+    "supertest": "^7.0.0"
+  },
+  "dependencies": {
+    "pa11y": "^6.2.3",
+    "puppeteer-core": "^20.9.0"
   }
 }
