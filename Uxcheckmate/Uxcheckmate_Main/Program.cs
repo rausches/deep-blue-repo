@@ -6,6 +6,7 @@ using System.Net.Http.Headers;
 using Uxcheckmate_Main.Services;
 using HtmlAgilityPack;
 using System.Net.Http;
+using Microsoft.Build.Framework;
 
 namespace Uxcheckmate_Main;
 
@@ -43,6 +44,11 @@ public class Program
 
         // Register HttpClient and WebScraperService
         builder.Services.AddHttpClient<WebScraperService>();
+
+        // Register Pa11yUrlBasedService and Pa11yService
+        builder.Services.AddScoped<IPa11yService, Pa11yService>();
+        builder.Services.AddScoped<Pa11yUrlBasedService>();
+        Console.WriteLine("Pa11yUrlBasedService registered");
 
         var app = builder.Build();
 

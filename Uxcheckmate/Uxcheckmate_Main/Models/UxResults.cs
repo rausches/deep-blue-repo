@@ -5,14 +5,14 @@ namespace Uxcheckmate_Main.Models
 {
     public class UxIssue
     {
-        public string Category { get; set; } 
-        public string Message { get; set; }
-        public string Selector { get; set; } 
+        public string? Category { get; set; } 
+        public string? Message { get; set; }
+        public string? Selector { get; set; } 
     }
         public class OpenAiResponse
         {
             [JsonPropertyName("choices")]
-            public List<Choice> Choices { get; set; }
+            public List<Choice>? Choices { get; set; }
         }
 
         public class Choice

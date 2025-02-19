@@ -40,7 +40,11 @@ public partial class UxCheckmateDbContext : DbContext
             entity.HasKey(e => e.ReportId).HasName("PK__Reports__D5BD48E55537F96D");
 
             entity.Property(e => e.ReportId).HasColumnName("ReportID");
+
             entity.Property(e => e.CategoryId).HasColumnName("CategoryID");
+            
+
+
             entity.Property(e => e.Date).HasDefaultValueSql("(sysdatetime())");
             entity.Property(e => e.UserId).HasColumnName("UserID");
 

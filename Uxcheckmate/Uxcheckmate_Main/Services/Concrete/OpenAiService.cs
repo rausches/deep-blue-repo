@@ -115,7 +115,7 @@ namespace Uxcheckmate_Main.Services
                     UserId = anonUser.UserId, 
                     CategoryId = category.CategoryId,
                     Date = DateTime.UtcNow,
-                    Recommendations = $"Section: {section.Key}\n{section.Value}"
+                    Recommendations = $"**Section: {section.Key}**\n{section.Value}"
                 };
 
                 _dbContext.Reports.Add(report);
