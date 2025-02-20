@@ -117,7 +117,7 @@ namespace Uxcheckmate_Tests.Services
                 .GetMethod("ConvertToUxResult", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)
                 .Invoke(_openAiService, new object[] { sections }) as UxResult;
 
-            // Assert (NUnit 3+)
+            // Assert
             Assert.That(result, Is.Not.Null, "ConvertToUxResult returned null.");
             Assert.That(result.Issues, Has.Count.EqualTo(2), "Expected 2 UX issues.");
             

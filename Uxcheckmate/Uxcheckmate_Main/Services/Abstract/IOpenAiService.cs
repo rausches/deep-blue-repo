@@ -5,6 +5,6 @@ namespace Uxcheckmate_Main.Services
     public interface IOpenAiService
 
     { 
-        public Task<List<Report>> AnalyzeAndSaveUxReports(string url);
+        public Task<List<DesignIssue>> AnalyzeAndSaveDesignIssues(string url);
     }
 }

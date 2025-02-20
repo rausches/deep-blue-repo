@@ -45,6 +45,7 @@ public class Pa11yAccessiblitySteps
     {
         _submittedUrl = url;
     }
+
     [When(@"the accessibility report loads")]
     public async Task WhenTheAccessibilityReportLoads()
     {
