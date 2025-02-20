@@ -29,38 +29,21 @@ public class HomeController : Controller
     }
 
     [HttpPost]
-    public async Task<IActionResult> Index(ReportUrl model)
+    public async Task<IActionResult> Report(string url)
     {
-        if (!ModelState.IsValid)
+        if (string.IsNullOrEmpty(url))
         {
-            return View(model);
+            ModelState.AddModelError("url", "URL cannot be empty.");
+            return View("Index");
         }
 
-        // Check if model.Url is null or empty
-        if (string.IsNullOrEmpty(model.Url))
-        {
-            ModelState.AddModelError("Url", "URL cannot be empty.");
-            return View(model);
-        }
+        // Call OpenAI service to analyze the design issues
+        List<DesignIssue> designIssues = await _openAiService.AnalyzeAndSaveDesignIssues(url) ?? new List<DesignIssue>();
+        List<Pa11yIssue> accessibilityIssues = await _pa11yService.AnalyzeAndSaveAccessibilityReport(url) ?? new List<Pa11yIssue>();
 
-        try
-        {
-            // Call OpenAiService for UX analysis
-            var uxReports = await _openAiService.AnalyzeAndSaveUxReports(model.Url);
+        var model = Tuple.Create<IEnumerable<DesignIssue>, IEnumerable<Pa11yIssue>>(designIssues, accessibilityIssues);
 
-            // Call Pa11yService for accessibility analysis
-            var pa11yReports = await _pa11yService.AnalyzeAndSaveAccessibilityReport(model.Url);
-
-            // Pass the reports as a tuple to the view
-            ViewBag.AnalyzedUrl = model.Url;
-            return View("Results", new Tuple<IEnumerable<Report>, IEnumerable<Pa11yIssue>>(uxReports, pa11yReports));
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error analyzing URL: {Url}", model.Url);
-            ModelState.AddModelError(string.Empty, "Failed to analyze the URL.");
-            return View("ErrorPage");
-        }
+        return View("Results", model);
     }
 
     public IActionResult Privacy()
