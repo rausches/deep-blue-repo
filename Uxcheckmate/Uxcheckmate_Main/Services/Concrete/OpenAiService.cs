@@ -43,7 +43,7 @@ namespace Uxcheckmate_Main.Services
             _dbContext.Reports.Add(report);
             await _dbContext.SaveChangesAsync(); // Save to generate ReportId
 
-            foreach (var category in designCategories)
+            foreach (var category in designCategories.Take(2))
             {
                 string prompt = $@"
                 Analyze the UX of the following webpage and identify any issues related to {category.Name}. 
