@@ -1,20 +1,28 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+using Microsoft.EntityFrameworkCore;
 
 namespace Uxcheckmate_Main.Models;
 
+[Table("Report")]
 public partial class Report
 {
-    public int ReportId { get; set; }
-    public int? UserId { get; set; }
+    [Key]
+    [Column("ID")]
+    public int Id { get; set; }
 
-    public int? CategoryId { get; set; }
+    [Column("URL")]
+    [StringLength(128)]
+    [Unicode(false)]
+    public string Url { get; set; } = null!;
 
-    public DateTime Date { get; set; }
+    public DateOnly Date { get; set; }
 
-    public string Recommendations { get; set; } = null!;
+    [InverseProperty("Report")]
+    public virtual ICollection<AccessibilityIssue> AccessibilityIssues { get; set; } = new List<AccessibilityIssue>();
 
-    public virtual ReportCategory Category { get; set; } = null!;
-
-    public virtual UserAccount? User { get; set; } 
+    [InverseProperty("Report")]
+    public virtual ICollection<DesignIssue> DesignIssues { get; set; } = new List<DesignIssue>();
 }

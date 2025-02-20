@@ -1,40 +1,45 @@
-DROP DATABASE IF EXISTS UxCheckmate;
-CREATE DATABASE UxCheckmate;
 USE UxCheckmate;
 
-CREATE TABLE [Roles] 
-(
-    [RoleID]  INT                      NOT NULL IDENTITY(1,1),
-    [Name]    NVARCHAR(50)             NOT NULL UNIQUE,
-    PRIMARY KEY ([RoleID])
+CREATE TABLE [Report] (
+    [ID] INT IDENTITY(1,1),
+    [URL] VARCHAR(128) NOT NULL,
+    [Date] DATE NOT NULL,
+    PRIMARY KEY([ID])
 );
 
-CREATE TABLE [UserAccounts] 
-(
-    [UserID]      INT                  NOT NULL IDENTITY(1,1),
-    [Email]       NVARCHAR(255)        NOT NULL UNIQUE,
-    [RoleID]      INT                  NOT NULL DEFAULT 0,
-    PRIMARY KEY ([UserID]),
-    CONSTRAINT FK_UserAccounts_RoleID FOREIGN KEY ([RoleID]) REFERENCES [Roles]([RoleID]) ON DELETE NO ACTION
+CREATE TABLE [AccessibilityCategory] (
+    [ID] INT IDENTITY(1,1),
+    [Name] VARCHAR(128) NOT NULL,
+    [Description] TEXT,
+    PRIMARY KEY([ID])
 );
 
-CREATE TABLE [ReportCategories] 
-(
-    [CategoryID]      INT              NOT NULL IDENTITY(1,1),
-    [Name]            NVARCHAR(255)    NOT NULL UNIQUE,
-    [Description]     NVARCHAR(MAX)    NOT NULL,
-    [OpenAIPrompt]    NVARCHAR(MAX)    NOT NULL,
-    PRIMARY KEY ([CategoryID])
+CREATE TABLE [AccessibilityIssue] (
+    [ID] INT IDENTITY(1,1),
+    [CategoryID] INT NOT NULL,
+    [ReportID] INT NOT NULL,
+    [Message] TEXT NOT NULL,
+    [Selector] VARCHAR(128) NOT NULL,
+    [Severity] INT NOT NULL,
+    PRIMARY KEY([ID]),
+    CONSTRAINT FK_AccessibilityIssue_CategoryID FOREIGN KEY ([CategoryID]) REFERENCES [AccessibilityCategory]([ID]) ON DELETE CASCADE,
+    CONSTRAINT FK_AccessibilityIssue_ReportID FOREIGN KEY ([ReportID]) REFERENCES [Report]([ID]) ON DELETE CASCADE
 );
 
-CREATE TABLE [Reports] 
-(
-    [ReportID]        INT             NOT NULL IDENTITY(1,1),
-    [UserID]          INT             NOT NULL,
-    [CategoryID]      INT             NOT NULL,
-    [Date]            DATETIME2       NOT NULL DEFAULT SYSDATETIME(),
-    [Recommendations] NVARCHAR(MAX)   NOT NULL,
-    PRIMARY KEY ([ReportID]),
-    CONSTRAINT FK_Reports_UserID FOREIGN KEY ([UserID]) REFERENCES [UserAccounts]([UserID]) ON DELETE CASCADE,
-    CONSTRAINT FK_Reports_CategoryID FOREIGN KEY ([CategoryID]) REFERENCES [ReportCategories]([CategoryID]) ON DELETE NO ACTION
+CREATE TABLE [DesignCategory] (
+    [ID] INT IDENTITY(1,1),
+    [Name] VARCHAR(128) NOT NULL,
+    [Description] TEXT,
+    PRIMARY KEY([ID])
+);
+
+CREATE TABLE [DesignIssue] (
+    [ID] INT IDENTITY(1,1),
+    [CategoryID] INT NOT NULL,
+    [ReportID] INT NOT NULL,
+    [Message] TEXT NOT NULL,
+    [Severity] INT NOT NULL,
+    PRIMARY KEY([ID]),
+    CONSTRAINT FK_DesignIssue_CategoryID FOREIGN KEY ([CategoryID]) REFERENCES [DesignCategory]([ID]) ON DELETE CASCADE,
+    CONSTRAINT FK_DesignIssue_ReportID FOREIGN KEY ([ReportID]) REFERENCES [Report]([ID]) ON DELETE CASCADE
 );
