@@ -27,9 +27,13 @@ public partial class UxCheckmateDbContext : DbContext
 
     public virtual DbSet<Report> Reports { get; set; }
 
-
-    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-        => optionsBuilder.UseSqlServer("Name=DBConnection");
+    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder){
+            if (!optionsBuilder.IsConfigured){
+                optionsBuilder.UseSqlServer("Name=DBConnection");
+        }
+    }
+   /* protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+        => optionsBuilder.UseSqlServer("Name=DBConnection");*/
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

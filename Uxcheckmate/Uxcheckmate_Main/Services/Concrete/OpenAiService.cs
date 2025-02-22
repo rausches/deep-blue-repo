@@ -32,6 +32,16 @@ namespace Uxcheckmate_Main.Services
             var designCategories = await _dbContext.DesignCategories.ToListAsync();
             var scanResults = new List<DesignIssue>();
 
+            // Create a new report entry
+            var report = new Report
+            {
+                Url = url,
+                Date = DateOnly.FromDateTime(DateTime.UtcNow),
+            };
+
+            _dbContext.Reports.Add(report);
+            await _dbContext.SaveChangesAsync(); // Save to generate ReportId
+
             foreach (var category in designCategories.Take(2))
             {
                 string message = "";
@@ -57,6 +67,7 @@ namespace Uxcheckmate_Main.Services
                     var designIssue = new DesignIssue
                     {
                         CategoryId = category.Id,
+                        ReportId = report.Id,
                         Message = message,
                         Severity = DetermineSeverity(message)
                     };
