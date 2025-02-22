@@ -32,7 +32,7 @@ namespace Uxcheckmate_Main.Services
             var designCategories = await _dbContext.DesignCategories.ToListAsync();
             var scanResults = new List<DesignIssue>();
 
-            foreach (var category in designCategories)
+            foreach (var category in designCategories.Take(2))
             {
                 string message = "";
 
@@ -43,7 +43,7 @@ namespace Uxcheckmate_Main.Services
                 }
                 else if (category.ScanMethod == "Custom")
                 {
-                    message = RunCustomAnalysis(url, category.Name, pageContent);
+                    message = await RunCustomAnalysisAsync(url, category.Name, scrapedData);
                 }
                 else
                 {
@@ -112,15 +112,43 @@ namespace Uxcheckmate_Main.Services
             return aiText.Contains("No significant issues found") ? "" : aiText;
         }
 
-        private string RunCustomAnalysis(string url, string categoryName, string pageContent)
+        private async Task<string> RunCustomAnalysisAsync(string url, string categoryName, Dictionary<string, object> scrapedData)
         {
-            if (categoryName == "Color Contrast")
+            if (categoryName == "Broken Links")
             {
-                return "Detected low contrast in some text elements.";
-            }
-            else if (categoryName == "Typography")
-            {
-                return "Inconsistent font sizes detected across the page.";
+                var links = new List<string>();
+
+                if (scrapedData.ContainsKey("links") && scrapedData["links"] != null)
+                {
+                    links = scrapedData["links"] as List<string> ?? new List<string>();
+                }
+
+                if (links.Any())
+                {
+                    links = links.Select(link =>
+                        Uri.TryCreate(new Uri(url), link, out Uri absoluteUri) ? absoluteUri.ToString() : link
+                    ).ToList();
+                }
+
+                var brokenLinks = new List<string>();
+
+                foreach (var link in links)
+                {
+                    try
+                    {
+                        var response = await _httpClient.GetAsync(link);
+                        if (!response.IsSuccessStatusCode)
+                        {
+                            brokenLinks.Add($"{link} (Status: {response.StatusCode})");
+                        }
+                    }
+                    catch
+                    {
+                        brokenLinks.Add($"{link} (Failed to connect)");
+                    }
+                }
+
+                return brokenLinks.ToString();
             }
 
             return ""; // No issues found

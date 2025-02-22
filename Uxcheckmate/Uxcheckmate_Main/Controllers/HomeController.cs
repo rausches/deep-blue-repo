@@ -38,7 +38,7 @@ public class HomeController : Controller
         }
 
         // Call OpenAI service to analyze the design issues
-        List<DesignIssue> designIssues = await _openAiService.AnalyzeAndSaveDesignIssues(url) ?? new List<DesignIssue>();
+        List<DesignIssue> designIssues = await _openAiService.AnalyzeWebsite(url) ?? new List<DesignIssue>();
         List<Pa11yIssue> accessibilityIssues = await _pa11yService.AnalyzeAndSaveAccessibilityReport(url) ?? new List<Pa11yIssue>();
 
         var model = Tuple.Create<IEnumerable<DesignIssue>, IEnumerable<Pa11yIssue>>(designIssues, accessibilityIssues);
