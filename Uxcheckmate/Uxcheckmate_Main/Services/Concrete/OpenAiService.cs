@@ -22,72 +22,67 @@ namespace Uxcheckmate_Main.Services
         }
         public async Task<List<DesignIssue>> AnalyzeWebsite(string url)
         {
-            // Create a new scan entry for this URL
-            var scan = new DesignScan
-            {
-                Url = url
-            };
+            WebScraperService scraper = new WebScraperService(_httpClient);
 
-            // Add the new scan entry to the database
-            _dbContext.DesignScans.Add(scan);
-            await _dbContext.SaveChangesAsync(); // Save scan to generate Scan ID
+            // Scrape the webpage content asynchronously
+            Dictionary<string, object> scrapedData = await scraper.ScrapeAsync(url);
+            string pageContent = FormatScrapedData(scrapedData);
 
-            // Retrieve all UX Categories with their respective ScanMethods
+            // Retrieve all UX Categories=
             var designCategories = await _dbContext.DesignCategories.ToListAsync();
             var scanResults = new List<DesignIssue>();
 
-            // Iterate through each UX category to analyze the website
             foreach (var category in designCategories)
             {
                 string message = "";
 
-                // Determine which scan method to use based on the DesignCategory's ScanMethod
+                // Determine scan method per category
                 if (category.ScanMethod == "OpenAI")
                 {
-                    // Analyze using OpenAI
-                    message = await AnalyzeWithOpenAI(url, category.Name, category.Description);
+                    message = await AnalyzeWithOpenAI(url, category.Name, category.Description, pageContent);
                 }
                 else if (category.ScanMethod == "Custom")
                 {
-                    // Analyze using a custom algorithm
-                    message = RunCustomAnalysis(url, category.Name);
+                    message = RunCustomAnalysis(url, category.Name, pageContent);
                 }
                 else
                 {
-                    // If no scan method is set, default to OpenAI
-                    message = await AnalyzeWithOpenAI(url, category.Name, category.Description);
+                    // Default to OpenAI
+                    message = await AnalyzeWithOpenAI(url, category.Name, category.Description, pageContent);
                 }
 
                 // If an issue is detected, create a new DesignIssue entry
                 if (!string.IsNullOrEmpty(message))
                 {
-                    var scanResult = new DesignIssue
+                    var designIssue = new DesignIssue
                     {
-                        Id = scan.Id, // Link this issue to the current scan
-                        CategoryId = category.Id, // Link to the relevant UX category
-                        Message = message, // Store the AI or custom analysis result
-                        Severity = DetermineSeverity(message) // Determine issue severity
+                        CategoryId = category.Id,
+                        Message = message,
+                        Severity = DetermineSeverity(message)
                     };
 
                     // Save the detected issue to the database
-                    _dbContext.DesignIssues.Add(scanResult);
-                    scanResults.Add(scanResult);
+                    _dbContext.DesignIssues.Add(designIssue);
+                    scanResults.Add(designIssue);
                 }
             }
 
-            // Save all detected issues to the database
             await _dbContext.SaveChangesAsync();
 
-            // Return the list of detected design issues
+            // Return all design issues for this scan
             return scanResults;
         }
 
-        private async Task<string> AnalyzeWithOpenAI(string url, string categoryName, string categoryDescription)
+
+        private async Task<string> AnalyzeWithOpenAI(string url, string categoryName, string categoryDescription, string pageContent)
         {
             string prompt = $@"
             Analyze the webpage {url} for UX issues related to {categoryName}.
             Category Description: {categoryDescription}.
-            If no issues are found, respond with 'No significant issues found.'";
+            If no issues are found, respond with 'No significant issues found.'
+            
+            Webpage Data:
+            {pageContent}";
 
             var request = new
             {
@@ -117,7 +112,7 @@ namespace Uxcheckmate_Main.Services
             return aiText.Contains("No significant issues found") ? "" : aiText;
         }
 
-        private string RunCustomAnalysis(string url, string categoryName)
+        private string RunCustomAnalysis(string url, string categoryName, string pageContent)
         {
             if (categoryName == "Color Contrast")
             {
@@ -130,7 +125,6 @@ namespace Uxcheckmate_Main.Services
 
             return ""; // No issues found
         }
-
 
         public async Task<List<DesignIssue>> AnalyzeAndSaveDesignIssues(string url)
         {

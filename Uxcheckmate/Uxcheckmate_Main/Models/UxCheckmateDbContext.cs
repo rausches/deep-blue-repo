@@ -17,8 +17,6 @@ public partial class UxCheckmateDbContext : DbContext
     {
     }
 
-    public virtual DbSet<DesignScan> DesignScans { get; set; }
-
     public virtual DbSet<AccessibilityCategory> AccessibilityCategories { get; set; }
 
     public virtual DbSet<AccessibilityIssue> AccessibilityIssues { get; set; }
