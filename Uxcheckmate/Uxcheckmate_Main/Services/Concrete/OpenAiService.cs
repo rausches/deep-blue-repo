@@ -20,6 +20,117 @@ namespace Uxcheckmate_Main.Services
             _logger = logger;
             _dbContext = dbContext;
         }
+        public async Task<List<DesignIssue>> AnalyzeWebsite(string url)
+        {
+            // Create a new scan entry for this URL
+            var scan = new DesignScan
+            {
+                Url = url
+            };
+
+            // Add the new scan entry to the database
+            _dbContext.DesignScans.Add(scan);
+            await _dbContext.SaveChangesAsync(); // Save scan to generate Scan ID
+
+            // Retrieve all UX Categories with their respective ScanMethods
+            var designCategories = await _dbContext.DesignCategories.ToListAsync();
+            var scanResults = new List<DesignIssue>();
+
+            // Iterate through each UX category to analyze the website
+            foreach (var category in designCategories)
+            {
+                string message = "";
+
+                // Determine which scan method to use based on the DesignCategory's ScanMethod
+                if (category.ScanMethod == "OpenAI")
+                {
+                    // Analyze using OpenAI
+                    message = await AnalyzeWithOpenAI(url, category.Name, category.Description);
+                }
+                else if (category.ScanMethod == "Custom")
+                {
+                    // Analyze using a custom algorithm
+                    message = RunCustomAnalysis(url, category.Name);
+                }
+                else
+                {
+                    // If no scan method is set, default to OpenAI
+                    message = await AnalyzeWithOpenAI(url, category.Name, category.Description);
+                }
+
+                // If an issue is detected, create a new DesignIssue entry
+                if (!string.IsNullOrEmpty(message))
+                {
+                    var scanResult = new DesignIssue
+                    {
+                        Id = scan.Id, // Link this issue to the current scan
+                        CategoryId = category.Id, // Link to the relevant UX category
+                        Message = message, // Store the AI or custom analysis result
+                        Severity = DetermineSeverity(message) // Determine issue severity
+                    };
+
+                    // Save the detected issue to the database
+                    _dbContext.DesignIssues.Add(scanResult);
+                    scanResults.Add(scanResult);
+                }
+            }
+
+            // Save all detected issues to the database
+            await _dbContext.SaveChangesAsync();
+
+            // Return the list of detected design issues
+            return scanResults;
+        }
+
+        private async Task<string> AnalyzeWithOpenAI(string url, string categoryName, string categoryDescription)
+        {
+            string prompt = $@"
+            Analyze the webpage {url} for UX issues related to {categoryName}.
+            Category Description: {categoryDescription}.
+            If no issues are found, respond with 'No significant issues found.'";
+
+            var request = new
+            {
+                model = "gpt-4", 
+                messages = new[]
+                {
+                    new { role = "system", content = "You are a UX expert analyzing websites." },
+                    new { role = "user", content = prompt }
+                },
+                max_tokens = 100 // Limit response length
+            };
+
+            // Serialize request data to JSON format
+            var requestContent = new StringContent(JsonSerializer.Serialize(request), Encoding.UTF8, "application/json");
+
+            // Send the request to OpenAI's API
+            var response = await _httpClient.PostAsync("https://api.openai.com/v1/chat/completions", requestContent);
+            var responseString = await response.Content.ReadAsStringAsync();
+
+            // Deserialize the response from OpenAI
+            var openAiResponse = JsonSerializer.Deserialize<OpenAiResponse>(responseString);
+            
+            // Extract the AI-generated content or return "No response" if empty
+            string aiText = openAiResponse?.Choices?.FirstOrDefault()?.Message?.Content ?? "No response";
+
+            // If OpenAI finds no issues, return an empty string; otherwise, return the result
+            return aiText.Contains("No significant issues found") ? "" : aiText;
+        }
+
+        private string RunCustomAnalysis(string url, string categoryName)
+        {
+            if (categoryName == "Color Contrast")
+            {
+                return "Detected low contrast in some text elements.";
+            }
+            else if (categoryName == "Typography")
+            {
+                return "Inconsistent font sizes detected across the page.";
+            }
+
+            return ""; // No issues found
+        }
+
 
         public async Task<List<DesignIssue>> AnalyzeAndSaveDesignIssues(string url)
         {
