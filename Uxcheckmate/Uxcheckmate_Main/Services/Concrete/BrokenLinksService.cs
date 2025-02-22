@@ -5,6 +5,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using Uxcheckmate_Main.Models;
 
 namespace Uxcheckmate_Main.Services
@@ -24,16 +25,25 @@ namespace Uxcheckmate_Main.Services
 
         public async Task<string> BrokenLinkAnalysis(string url, Dictionary<string, object> scrapedData)
         {
-            // Change relative links to absolute urls
             var links = scrapedData.ContainsKey("links") ? scrapedData["links"] as List<string> : new List<string>();
-
+            
             // Convert relative links to absolute URLs
             links = links.Select(link => MakeAbsoluteUrl(url, link)).ToList();
+            
             // Check for broken links
             var brokenLinks = await CheckBrokenLinksAsync(links);
-            // Get http status codes for all links
 
-            // Any 404 status codes add links to string message 
+            var message = "";
+
+            // Any 404 status codes add links to string message
+            if (!brokenLinks.IsNullOrEmpty())
+            {
+                return message = $"The following broken links were found on this page: {brokenLinks}";
+            }
+            else
+            {
+                return message;
+            }
         }
 
         private string MakeAbsoluteUrl(string baseUrl, string relativeUrl)
@@ -46,7 +56,7 @@ namespace Uxcheckmate_Main.Services
             return relativeUrl; // Return as is if conversion fails
         }
 
-        private async Task<string> CheckBrokenLinksAsync (List<string>? links)
+        private async Task<List<string>> CheckBrokenLinksAsync (List<string>? links)
         {
             var brokenLinks = new List<string>();
 

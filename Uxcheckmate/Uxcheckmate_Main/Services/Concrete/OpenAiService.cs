@@ -20,7 +20,7 @@ namespace Uxcheckmate_Main.Services
             _logger = logger;
             _dbContext = dbContext;
         }
-        public async Task<List<DesignIssue>> AnalyzeWebsite(string url)
+ /*       public async Task<List<DesignIssue>> AnalyzeWebsite(string url)
         {
             WebScraperService scraper = new WebScraperService(_httpClient);
 
@@ -82,11 +82,12 @@ namespace Uxcheckmate_Main.Services
 
             // Return all design issues for this scan
             return scanResults;
-        }
+        }*/
 
 
-        private async Task<string> AnalyzeWithOpenAI(string url, string categoryName, string categoryDescription, string pageContent)
+        public async Task<string> AnalyzeWithOpenAI(string url, string categoryName, string categoryDescription, Dictionary<string, object> scrapedData)
         {
+            string pageContent = FormatScrapedData(scrapedData);
             string prompt = $@"
             Analyze the webpage {url} for UX issues related to {categoryName}.
             Category Description: {categoryDescription}.
@@ -123,7 +124,7 @@ namespace Uxcheckmate_Main.Services
             return aiText.Contains("No significant issues found") ? "" : aiText;
         }
 
-        private async Task<string> RunCustomAnalysisAsync(string url, string categoryName, Dictionary<string, object> scrapedData)
+    /*    private async Task<string> RunCustomAnalysisAsync(string url, string categoryName, Dictionary<string, object> scrapedData)
         {
             if (categoryName == "Broken Links")
             {
@@ -163,9 +164,9 @@ namespace Uxcheckmate_Main.Services
             }
 
             return ""; // No issues found
-        }
+        }*/
 
-        public async Task<List<DesignIssue>> AnalyzeAndSaveDesignIssues(string url)
+  /*      public async Task<List<DesignIssue>> AnalyzeAndSaveDesignIssues(string url)
         {
             WebScraperService scraper = new WebScraperService(_httpClient);
 
@@ -235,7 +236,7 @@ namespace Uxcheckmate_Main.Services
 
             await _dbContext.SaveChangesAsync();
             return designIssues;
-        }
+        }*/
 
         private int DetermineSeverity(string aiText)
         {

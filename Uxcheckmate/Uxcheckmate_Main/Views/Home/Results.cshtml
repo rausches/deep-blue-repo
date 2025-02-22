@@ -1,16 +1,15 @@
-@model Tuple<IEnumerable<Uxcheckmate_Main.Models.DesignIssue>, IEnumerable<Uxcheckmate_Main.Models.Pa11yIssue>>
+@model List<Uxcheckmate_Main.Models.DesignIssue>
 
-<h1 class="text-center">UXCheckmate Analysis Reports</h1>
+<h2 class="text-center">Design Issues Report</h2>
 
-@if (Model == null || (!Model.Item1.Any() && !Model.Item2.Any()))
+@if (Model == null || !Model.Any())
 {
-    <div class="alert alert-success"><strong>Congrats! No issues detected. Your site is in great shape!</strong></div>
+    <div class="alert alert-success">
+        <strong>No UX issues found! Your site looks great.</strong>
+    </div>
 }
 else
 {
-    <h3>Design Issues</h3>
-    <p>Total Issues: @Model.Item1.Count()</p>
-
     <table class="table table-striped table-bordered">
         <thead class="thead-dark">
             <tr>
@@ -20,10 +19,10 @@ else
             </tr>
         </thead>
         <tbody>
-        @foreach (var issue in Model.Item1 ?? Enumerable.Empty<Uxcheckmate_Main.Models.DesignIssue>())
+        @foreach (var issue in Model)
         {
             <tr>
-                <td>@(issue.Category != null ? issue.Category.Name : "Uncategorized")</td>
+                <td>@(issue.Category?.Name ?? "Uncategorized")</td>
                 <td>@issue.Message</td>
                 <td>
                     @if (issue.Severity == 3)
@@ -43,8 +42,11 @@ else
         }
         </tbody>
     </table>
+}
 
-    <h3>Accessibility Issues</h3>
+
+
+  @* <h3>Accessibility Issues</h3>
     <p>Total Issues: @Model.Item2.Count()</p>
 
     <table class="table table-striped table-bordered">
@@ -65,7 +67,7 @@ else
             </tr>
         }
         </tbody>
-    </table>
+    </table>*@ 
 }
 
 @section Scripts {

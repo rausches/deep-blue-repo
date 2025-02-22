@@ -48,6 +48,7 @@ public class Program
         // Register Pa11yUrlBasedService and Pa11yService
         builder.Services.AddScoped<IPa11yService, Pa11yService>();
         builder.Services.AddScoped<Pa11yUrlBasedService>();
+        builder.Services.AddScoped<IReportService, ReportService>();
         Console.WriteLine("Pa11yUrlBasedService registered");
 
         var app = builder.Build();
