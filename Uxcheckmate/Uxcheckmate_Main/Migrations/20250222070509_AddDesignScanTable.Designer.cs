@@ -12,7 +12,7 @@ using Uxcheckmate_Main.Models;
 namespace Uxcheckmate_Main.Migrations
 {
     [DbContext(typeof(UxCheckmateDbContext))]
-    [Migration("20250222061524_AddDesignScanTable")]
+    [Migration("20250222070509_AddDesignScanTable")]
     partial class AddDesignScanTable
     {
         /// <inheritdoc />
@@ -111,7 +111,6 @@ namespace Uxcheckmate_Main.Migrations
                         .HasColumnType("varchar(128)");
 
                     b.Property<string>("ScanMethod")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id")
@@ -133,6 +132,9 @@ namespace Uxcheckmate_Main.Migrations
                         .HasColumnType("int")
                         .HasColumnName("CategoryID");
 
+                    b.Property<int?>("DesignScanId")
+                        .HasColumnType("int");
+
                     b.Property<string>("Message")
                         .IsRequired()
                         .HasColumnType("text");
@@ -149,9 +151,30 @@ namespace Uxcheckmate_Main.Migrations
 
                     b.HasIndex("CategoryId");
 
+                    b.HasIndex("DesignScanId");
+
                     b.HasIndex("ReportId");
 
                     b.ToTable("DesignIssue");
+                });
+
+            modelBuilder.Entity("Uxcheckmate_Main.Models.DesignScan", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("ID");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Url")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)")
+                        .HasColumnName("URL");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("DesignScan");
                 });
 
             modelBuilder.Entity("Uxcheckmate_Main.Models.Report", b =>
@@ -209,6 +232,10 @@ namespace Uxcheckmate_Main.Migrations
                         .IsRequired()
                         .HasConstraintName("FK_DesignIssue_CategoryID");
 
+                    b.HasOne("Uxcheckmate_Main.Models.DesignScan", null)
+                        .WithMany("DesignScanResults")
+                        .HasForeignKey("DesignScanId");
+
                     b.HasOne("Uxcheckmate_Main.Models.Report", "Report")
                         .WithMany("DesignIssues")
                         .HasForeignKey("ReportId")
@@ -229,6 +256,11 @@ namespace Uxcheckmate_Main.Migrations
             modelBuilder.Entity("Uxcheckmate_Main.Models.DesignCategory", b =>
                 {
                     b.Navigation("DesignIssues");
+                });
+
+            modelBuilder.Entity("Uxcheckmate_Main.Models.DesignScan", b =>
+                {
+                    b.Navigation("DesignScanResults");
                 });
 
             modelBuilder.Entity("Uxcheckmate_Main.Models.Report", b =>

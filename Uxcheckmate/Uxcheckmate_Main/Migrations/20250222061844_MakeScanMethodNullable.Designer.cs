@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Uxcheckmate_Main.Models;
 
@@ -11,9 +12,11 @@ using Uxcheckmate_Main.Models;
 namespace Uxcheckmate_Main.Migrations
 {
     [DbContext(typeof(UxCheckmateDbContext))]
-    partial class UxCheckmateDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250222061844_MakeScanMethodNullable")]
+    partial class MakeScanMethodNullable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -129,9 +132,6 @@ namespace Uxcheckmate_Main.Migrations
                         .HasColumnType("int")
                         .HasColumnName("CategoryID");
 
-                    b.Property<int?>("DesignScanId")
-                        .HasColumnType("int");
-
                     b.Property<string>("Message")
                         .IsRequired()
                         .HasColumnType("text");
@@ -148,30 +148,9 @@ namespace Uxcheckmate_Main.Migrations
 
                     b.HasIndex("CategoryId");
 
-                    b.HasIndex("DesignScanId");
-
                     b.HasIndex("ReportId");
 
                     b.ToTable("DesignIssue");
-                });
-
-            modelBuilder.Entity("Uxcheckmate_Main.Models.DesignScan", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasColumnName("ID");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Url")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)")
-                        .HasColumnName("URL");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("DesignScan");
                 });
 
             modelBuilder.Entity("Uxcheckmate_Main.Models.Report", b =>
@@ -229,10 +208,6 @@ namespace Uxcheckmate_Main.Migrations
                         .IsRequired()
                         .HasConstraintName("FK_DesignIssue_CategoryID");
 
-                    b.HasOne("Uxcheckmate_Main.Models.DesignScan", null)
-                        .WithMany("DesignScanResults")
-                        .HasForeignKey("DesignScanId");
-
                     b.HasOne("Uxcheckmate_Main.Models.Report", "Report")
                         .WithMany("DesignIssues")
                         .HasForeignKey("ReportId")
@@ -253,11 +228,6 @@ namespace Uxcheckmate_Main.Migrations
             modelBuilder.Entity("Uxcheckmate_Main.Models.DesignCategory", b =>
                 {
                     b.Navigation("DesignIssues");
-                });
-
-            modelBuilder.Entity("Uxcheckmate_Main.Models.DesignScan", b =>
-                {
-                    b.Navigation("DesignScanResults");
                 });
 
             modelBuilder.Entity("Uxcheckmate_Main.Models.Report", b =>
