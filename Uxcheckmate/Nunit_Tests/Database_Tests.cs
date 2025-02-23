@@ -48,7 +48,7 @@ public class Database_Tests
         var DesignCategory = _context.DesignCategories.ToList();
         Assert.That(DesignCategory, Is.Not.Empty);
         Assert.That(DesignCategory.Any(d => d.Id == 1 && d.Name == "Visual Hierarchy"), Is.True);
-        Assert.That(DesignCategory.Any(d => d.Id == 1 && d.Name == "Broken Links"), Is.True);
+        Assert.That(DesignCategory.Any(d => d.Id == 2 && d.Name == "Broken Links"), Is.True);
     }
 
     [Test]

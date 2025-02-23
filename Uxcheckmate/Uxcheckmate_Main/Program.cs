@@ -34,8 +34,7 @@ public class Program
             
                 return new OpenAiService(
                     httpClient,
-                    services.GetRequiredService<ILogger<OpenAiService>>(),
-                    services.GetRequiredService<UxCheckmateDbContext>()
+                    services.GetRequiredService<ILogger<OpenAiService>>()
                 );
             });
 
@@ -48,9 +47,11 @@ public class Program
         // Register Pa11yUrlBasedService and Pa11yService
         builder.Services.AddScoped<IPa11yService, Pa11yService>();
         builder.Services.AddScoped<Pa11yUrlBasedService>();
+        Console.WriteLine("Pa11yUrlBasedService registered");
+
+        // Register Report Services
         builder.Services.AddScoped<IReportService, ReportService>();
         builder.Services.AddScoped<IBrokenLinksService, BrokenLinksService>();
-        Console.WriteLine("Pa11yUrlBasedService registered");
 
         var app = builder.Build();
 

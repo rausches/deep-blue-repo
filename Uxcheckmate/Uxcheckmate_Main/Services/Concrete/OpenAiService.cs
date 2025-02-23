@@ -84,16 +84,42 @@ namespace Uxcheckmate_Main.Services
 
         private string FormatScrapedData(Dictionary<string, object> scrapedData)
         {
-            _logger.LogDebug("Formatting scraped data for display in prompt.");
             StringBuilder sb = new StringBuilder();
-            foreach (var entry in scrapedData)
+
+            // Format headings count if available.
+            if (scrapedData.TryGetValue("headings", out var headings))
             {
-                sb.AppendLine($"### {entry.Key}");
-                sb.AppendLine(entry.Value.ToString());
+                sb.AppendLine($"Headings Count: {headings}");
             }
+
+            // Format images count if available.
+            if (scrapedData.TryGetValue("images", out var images))
+            {
+                sb.AppendLine($"Images Count: {images}");
+            }
+
+            // Format links count if available.
+            if (scrapedData.TryGetValue("links", out var links))
+            {
+                sb.AppendLine($"Links Count: {links}");
+            }
+
+            // Format fonts list if available.
+            if (scrapedData.TryGetValue("fonts", out var fontsObj) && fontsObj is IEnumerable<string> fonts)
+            {
+                string fontsList = string.Join(", ", fonts);
+                sb.AppendLine($"Fonts Used: {fontsList}");
+            }
+
+            // Append text content if available.
+            if (scrapedData.TryGetValue("text_content", out var textContent))
+            {
+                sb.AppendLine(textContent.ToString());
+            }
+
             string formattedData = sb.ToString();
-            _logger.LogDebug("Formatted scraped data length: {Length}", formattedData.Length);
             return formattedData;
         }
+
     }
 }
