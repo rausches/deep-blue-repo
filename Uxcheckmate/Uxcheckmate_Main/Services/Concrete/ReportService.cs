@@ -28,35 +28,49 @@ namespace Uxcheckmate_Main.Services
 
         public async Task<List<DesignIssue>> GenerateReportAsync(string url)
         {
+            _logger.LogInformation("Starting report generation for URL: {Url}", url);
+
+            // Validate the URL input.
             if (string.IsNullOrEmpty(url))
             {
+                _logger.LogError("URL is null or empty.");
                 throw new ArgumentException("URL cannot be empty.", nameof(url));
             }
 
+            // Scrape the website content.
             var scraper = new WebScraperService(_httpClient);
+            _logger.LogDebug("Scraping content from URL: {Url}", url);
             var scrapedData = await scraper.ScrapeAsync(url);
+            _logger.LogDebug("Scraping completed for URL: {Url}", url);
 
+            // Create and save the report record.
             var report = new Report
             {
                 Url = url,
                 Date = DateOnly.FromDateTime(DateTime.UtcNow),
             };
-
             _dbContext.Reports.Add(report);
             await _dbContext.SaveChangesAsync();
+            _logger.LogInformation("Report record created with ID: {ReportId}", report.Id);
 
+            // Retrieve design categories from the database.
             var designCategories = await _dbContext.DesignCategories.ToListAsync();
+            _logger.LogInformation("Found {Count} design categories.", designCategories.Count);
+
             var scanResults = new List<DesignIssue>();
 
+            // Analyze each design category.
             foreach (var category in designCategories)
             {
+                _logger.LogInformation("Analyzing category: {CategoryName} using scan method: {ScanMethod}", category.Name, category.ScanMethod);
                 string message = category.ScanMethod switch
                 {
                     "OpenAI" => await _openAiService.AnalyzeWithOpenAI(url, category.Name, category.Description, scrapedData),
                     "Custom" => await RunCustomAnalysisAsync(url, category.Name, category.Description, scrapedData),
-                    _ => "",
+                    _ => ""
                 };
 
+                // If analysis returns a message, record it as a design issue.
                 if (!string.IsNullOrEmpty(message))
                 {
                     var designIssue = new DesignIssue
@@ -69,29 +83,50 @@ namespace Uxcheckmate_Main.Services
 
                     _dbContext.DesignIssues.Add(designIssue);
                     scanResults.Add(designIssue);
+                    _logger.LogInformation("Design issue added for category {CategoryName} with severity {Severity}.", category.Name, designIssue.Severity);
+                }
+                else
+                {
+                    _logger.LogInformation("No issues found for category: {CategoryName}", category.Name);
                 }
             }
 
+            // Save all design issues to the database.
             await _dbContext.SaveChangesAsync();
+            _logger.LogInformation("Report generation completed for URL: {Url}. Total issues found: {IssueCount}", url, scanResults.Count);
+
             return scanResults;
         }
 
         private async Task<string> RunCustomAnalysisAsync(string url, string categoryName, string categoryDescription, Dictionary<string, object> scrapedData)
         {
+            _logger.LogInformation("Running custom analysis for category: {CategoryName}", categoryName);
             switch (categoryName)
             {
                 case "Broken Links":
+                    _logger.LogDebug("Delegating Broken Links analysis for URL: {Url}", url);
                     return await _brokenLinksService.BrokenLinkAnalysis(url, scrapedData);
                 // Add additional cases for other custom analyses here
                 default:
+                    _logger.LogDebug("No custom analysis implemented for category: {CategoryName}", categoryName);
                     return string.Empty;
             }
         }
 
         private int DetermineSeverity(string aiText)
         {
-            if (aiText.Contains("critical", StringComparison.OrdinalIgnoreCase)) return 3; // High Severity
-            if (aiText.Contains("should", StringComparison.OrdinalIgnoreCase)) return 2; // Medium Severity
+            _logger.LogDebug("Determining severity for analysis text.");
+            if (aiText.Contains("critical", StringComparison.OrdinalIgnoreCase))
+            {
+                _logger.LogDebug("Severity determined as High.");
+                return 3; // High Severity
+            }
+            if (aiText.Contains("should", StringComparison.OrdinalIgnoreCase))
+            {
+                _logger.LogDebug("Severity determined as Medium.");
+                return 2; // Medium Severity
+            }
+            _logger.LogDebug("Severity determined as Low.");
             return 1; // Low Severity
         }
     }
