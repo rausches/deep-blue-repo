@@ -26,10 +26,10 @@ namespace Uxcheckmate_Main.Services
             _brokenLinksService = brokenLinksService;
         }
 
-        public async Task<List<DesignIssue>> GenerateReportAsync(string url)
+        public async Task<ICollection<DesignIssue>> GenerateReportAsync(Report report)
         {
+            var url = report.Url;
             _logger.LogInformation("Starting report generation for URL: {Url}", url);
-
             // Validate the URL input.
             if (string.IsNullOrEmpty(url))
             {
@@ -42,16 +42,6 @@ namespace Uxcheckmate_Main.Services
             _logger.LogDebug("Scraping content from URL: {Url}", url);
             var scrapedData = await scraper.ScrapeAsync(url);
             _logger.LogDebug("Scraping completed for URL: {Url}", url);
-
-            // Create and save the report record.
-            var report = new Report
-            {
-                Url = url,
-                Date = DateOnly.FromDateTime(DateTime.UtcNow),
-            };
-            _dbContext.Reports.Add(report);
-            await _dbContext.SaveChangesAsync();
-            _logger.LogInformation("Report record created with ID: {ReportId}", report.Id);
 
             // Retrieve design categories from the database.
             var designCategories = await _dbContext.DesignCategories.ToListAsync();
