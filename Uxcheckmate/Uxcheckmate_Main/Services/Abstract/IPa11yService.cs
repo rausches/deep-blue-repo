@@ -6,6 +6,6 @@ namespace Uxcheckmate_Main.Services
 {
     public interface IPa11yService
     {
-      Task<List<Pa11yIssue>> AnalyzeAndSaveAccessibilityReport(string url);
+      Task<ICollection<AccessibilityIssue>> AnalyzeAndSaveAccessibilityReport(Report report);
     }
 }

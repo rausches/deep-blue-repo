@@ -40,10 +40,8 @@ namespace Uxcheckmate_Main.Services
                 PropertyNameCaseInsensitive = true
             }) ?? new List<Dictionary<string, object>>();
 
-
             // Fetch all predefined categories from the database
             var categories = await _dbContext.AccessibilityCategories.ToListAsync();
-
 
             foreach (var issue in pa11yResultsCollection)
             {
@@ -61,14 +59,12 @@ namespace Uxcheckmate_Main.Services
                     ? issue["type"].ToString()
                     : "notice"; // Default to notice
 
-
                 // Call ExtractWCAGLabel() to clean message and extract WCAG (if possible)
                 var (cleanedMessage, extractedWCAG) = ExtractWCAGLabel(message);
                 if (extractedWCAG != "Unknown WCAG Rule" || !string.IsNullOrWhiteSpace(wcagLabel))
                 {
                     wcagLabel = extractedWCAG != "Unknown WCAG Rule" ? extractedWCAG : wcagLabel;
                 }
-
 
                 // Assign severity based on Pa11y’s type
                 int severityLevel = type switch
@@ -77,7 +73,6 @@ namespace Uxcheckmate_Main.Services
                     "warning" => 2,
                     _ => 1 // "notice" = low severity
                 };
-
 
                 // Categorize the issue dynamically
                 string catName = CategorizePa11yIssue(cleanedMessage, categories);
@@ -97,7 +92,6 @@ namespace Uxcheckmate_Main.Services
                     Category = category
                 };
 
-
                 scanResults.Add(accessibilityIssue);
             }
 
@@ -108,6 +102,63 @@ namespace Uxcheckmate_Main.Services
 
 
             return scanResults;
+        }
+
+        private string CategorizePa11yIssue(string message, List<AccessibilityCategory> categories)
+        {
+            var categoryMappings = new Dictionary<string, string>
+            {
+                { "contrast", "Color & Contrast" },
+                { "color", "Color & Contrast" },
+                { "keyboard", "Keyboard & Focus" },
+                { "focus", "Keyboard & Focus" },
+                { "tab", "Keyboard & Focus" },
+                { "input", "Forms & Inputs" },
+                { "form", "Forms & Inputs" },
+                { "label", "Forms & Inputs" },
+                { "button", "Link & Buttons" },
+                { "link", "Link & Buttons" },
+                { "alt text", "Multimedia & Animations" },
+                { "caption", "Multimedia & Animations" },
+                { "autoplay", "Multimedia & Animations" },
+                { "heading", "Page Structure & Landmarks" },
+                { "landmark", "Page Structure & Landmarks" },
+                { "title", "Page Structure & Landmarks" },
+                { "timeout", "Timeouts & Auto-Refresh" },
+                { "auto-refresh", "Timeouts & Auto-Refresh" },
+                { "motion", "Motion & Interaction" },
+                { "scroll", "Motion & Interaction" },
+                { "aria", "ARIA & Semantic HTML" }
+            };
+
+
+            // Match the message against category mappings
+            foreach (var mapping in categoryMappings)
+            {
+                if (message.Contains(mapping.Key, StringComparison.OrdinalIgnoreCase))
+                {
+                    return mapping.Value;
+                }
+            }
+
+
+            return "Other"; // Default category if no match
+        }
+        private static (string cleanedMessage, string wcagLabel) ExtractWCAGLabel(string message)
+        {
+            // Match WCAG label inside parentheses
+            var match = Regex.Match(message, @"\((WCAG [^\)]+)\)");
+
+
+            if (match.Success)
+            {
+                string wcagLabel = match.Groups[1].Value; // Extract WCAG label
+                string cleanedMessage = Regex.Replace(message, @"\s*\(WCAG.*?\)", "", RegexOptions.IgnoreCase).Trim(); // Remove WCAG reference
+                return (cleanedMessage, wcagLabel);
+            }
+
+
+            return (message, "Unknown WCAG Rule"); // If no match, assign "Unknown"
         }
 
         private List<Pa11yIssue> DeserializePa11yResult(string pa11yJsonResult)
