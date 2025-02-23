@@ -10,10 +10,13 @@ namespace Uxcheckmate_Main.Services
         private readonly Pa11yUrlBasedService _pa11yUrlBasedService;
         private readonly ILogger<Pa11yService> _logger;
 
-        public Pa11yService(Pa11yUrlBasedService pa11yUrlBasedService, ILogger<Pa11yService> logger)
+        private readonly UxCheckmateDbContext _dbContext;
+
+        public Pa11yService(Pa11yUrlBasedService pa11yUrlBasedService, ILogger<Pa11yService> logger, UxCheckmateDbContext dbContext)
         {
             _pa11yUrlBasedService = pa11yUrlBasedService;
             _logger = logger;
+            _dbContext = dbContext;
         }
 
         public async Task<List<Pa11yIssue>> AnalyzeAndSaveAccessibilityReport(string url)
