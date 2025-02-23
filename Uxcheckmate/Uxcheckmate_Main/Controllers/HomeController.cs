@@ -22,6 +22,7 @@ public class HomeController : Controller
         _httpClient = httpClient;
         _context = dbContext;
         _reportService = reportService;
+        _pa11yService = pa11yService;
     }
 
     [HttpGet]
@@ -29,24 +30,6 @@ public class HomeController : Controller
     {
         return View();
     }
-
- /*   [HttpPost]
-    public async Task<IActionResult> Report(string url)
-    {
-        if (string.IsNullOrEmpty(url))
-        {
-            ModelState.AddModelError("url", "URL cannot be empty.");
-            return View("Index");
-        }
-
-        // Call OpenAI service to analyze the design issues
-        List<DesignIssue> designIssues = await _openAiService.AnalyzeWebsite(url) ?? new List<DesignIssue>();
-        List<Pa11yIssue> accessibilityIssues = await _pa11yService.AnalyzeAndSaveAccessibilityReport(url) ?? new List<Pa11yIssue>();
-
-        var model = Tuple.Create<IEnumerable<DesignIssue>, IEnumerable<Pa11yIssue>>(designIssues, accessibilityIssues);
-
-        return View("Results", model);
-    }*/
 
     [HttpPost]
     public async Task<IActionResult> Report(string url)
@@ -57,10 +40,37 @@ public class HomeController : Controller
             return View("Index");
         }
 
-        try
+       try
         {
-            var scanResults = await _reportService.GenerateReportAsync(url);
-            return View("Results", scanResults);
+            // Create and save the report record.
+            var report = new Report
+            {
+                Url = url,
+                Date = DateOnly.FromDateTime(DateTime.UtcNow),
+                AccessibilityIssues = new List<AccessibilityIssue>(),
+                DesignIssues = new List<DesignIssue>()
+            };
+            _context.Reports.Add(report);
+            await _context.SaveChangesAsync();
+            _logger.LogInformation("Report record created with ID: {ReportId}", report.Id);
+           
+            await _pa11yService.AnalyzeAndSaveAccessibilityReport(report);
+            await _reportService.GenerateReportAsync(report);
+
+            // Fetch the full report 
+            var fullReport = await _context.Reports
+                .Include(r => r.AccessibilityIssues) // Load accessibility issues
+                .Include(r => r.DesignIssues) // Load design issues
+                .FirstOrDefaultAsync(r => r.Id == report.Id);
+
+            if (fullReport == null)
+            {
+                _logger.LogError("Failed to fetch report with ID: {ReportId}", report.Id);
+                ModelState.AddModelError("", "An error occurred while fetching the report.");
+                return View("Index");
+            }
+
+            return View("Results", fullReport);
         }
         catch (Exception ex)
         {
