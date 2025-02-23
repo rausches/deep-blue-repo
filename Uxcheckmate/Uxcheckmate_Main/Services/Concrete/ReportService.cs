@@ -46,13 +46,13 @@ namespace Uxcheckmate_Main.Services
             var designCategories = await _dbContext.DesignCategories.ToListAsync();
             var scanResults = new List<DesignIssue>();
 
-            foreach (var category in designCategories.Take(1))
+            foreach (var category in designCategories)
             {
                 string message = category.ScanMethod switch
                 {
                     "OpenAI" => await _openAiService.AnalyzeWithOpenAI(url, category.Name, category.Description, scrapedData),
                     "Custom" => await RunCustomAnalysisAsync(url, category.Name, category.Description, scrapedData),
-                    _ => await _openAiService.AnalyzeWithOpenAI(url, category.Name, category.Description, scrapedData),
+                    _ => "",
                 };
 
                 if (!string.IsNullOrEmpty(message))
@@ -79,7 +79,7 @@ namespace Uxcheckmate_Main.Services
             switch (categoryName)
             {
                 case "Broken Links":
-                    return await _openAiService.AnalyzeWithOpenAI(url, categoryName, categoryDescription, scrapedData);
+                    return "This is a test";
                 // Add additional cases for other custom analyses here
                 default:
                     return string.Empty;

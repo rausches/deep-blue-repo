@@ -1,4 +1,5 @@
 @model List<Uxcheckmate_Main.Models.DesignIssue>
+<h1 class="text-center">UXCheckmate Analysis Reports</h1>
 
 <h2 class="text-center">Design Issues Report</h2>
 
@@ -19,7 +20,7 @@ else
             </tr>
         </thead>
         <tbody>
-        @foreach (var issue in Model)
+        @foreach (var issue in Model.Where(issue => issue != null))
         {
             <tr>
                 <td>@(issue.Category?.Name ?? "Uncategorized")</td>
