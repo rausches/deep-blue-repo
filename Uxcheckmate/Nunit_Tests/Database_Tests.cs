@@ -10,13 +10,29 @@ public class Database_Tests
     [SetUp]
     public void Setup()
     {
-        //Inside Nunit_Tests folder make sure you have the txt file dbconfig.txt with information like below
-        //Data Source=localhost,1433;Initial Catalog=uxcheckmate;User Id=YourUsername;Password='YourPassword';TrustServerCertificate=True;
-        var configPath = Path.Combine(Directory.GetCurrentDirectory(), "runPa11y.js");
-        var configuration = new ConfigurationBuilder().SetBasePath(Path.GetDirectoryName(configPath)!).AddJsonFile("appsettings.json", optional: false, reloadOnChange: true).Build();
-        var DbConnection = configuration.GetConnectionString("DBConnection");
-        var options = new DbContextOptionsBuilder<UxCheckmateDbContext>().UseSqlServer(DbConnection).Options;
+        var configPath = Path.Combine(TestContext.CurrentContext.WorkDirectory, "appsettings.json");
+        
+        var configuration = new ConfigurationBuilder()
+            .SetBasePath(TestContext.CurrentContext.WorkDirectory)
+            .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+            .Build();
+
+        var dbConnectionString = configuration.GetConnectionString("DBConnection");
+
+        // Debugging output
+        Console.WriteLine($"Retrieved Connection String: {dbConnectionString}");
+
+        if (string.IsNullOrEmpty(dbConnectionString))
+        {
+            throw new InvalidOperationException("DBConnection was not found in appsettings.json!");
+        }
+
+        var options = new DbContextOptionsBuilder<UxCheckmateDbContext>()
+            .UseSqlServer(dbConnectionString)  // Directly use the string, not relying on named connections
+            .Options;
+
         _context = new UxCheckmateDbContext(options);
+
     }
 
     [Test]
@@ -27,37 +43,32 @@ public class Database_Tests
     }
 
     [Test]
-    public void Read_Roles()
+    public void Read_Categories()
     {
-        var roles = _context.Roles.ToList();
-        Assert.That(roles, Is.Not.Empty);
-        Assert.That(roles.Any(r => r.RoleId == 0 && r.Name == "Admin"), Is.True);
-        Assert.That(roles.Any(r => r.RoleId == 1 && r.Name == "User"), Is.True);
+        var DesignCategory = _context.DesignCategories.ToList();
+        Assert.That(DesignCategory, Is.Not.Empty);
+        Assert.That(DesignCategory.Any(d => d.Id == 1 && d.Name == "Visual Hierarchy"), Is.True);
+        Assert.That(DesignCategory.Any(d => d.Id == 1 && d.Name == "Broken Links"), Is.True);
     }
 
     [Test]
-    public void Add_Test_Category_Test()
+    public void Add_Test_Issue_Test()
     {
-        var category = new ReportCategory { Name = "Test Category", Description = "Test description", OpenAiprompt = "Test prompt" };
-        _context.ReportCategories.Add(category);
+        var category = new DesignIssue { CategoryId = 1, ReportId = 1, Message = "Test Message", Severity = 1 };
+        _context.DesignIssues.Add(category);
         _context.SaveChanges();
-        var testCategory = _context.ReportCategories.FirstOrDefault(c => c.Name == "Test Category");
+        var testCategory = _context.DesignIssues.FirstOrDefault(c => c.Message == "Test Message");
         Assert.That(testCategory, Is.Not.Null);
-        Assert.That(testCategory.Description, Is.EqualTo("Test description"));
-        Assert.That(testCategory.OpenAiprompt, Is.EqualTo("Test prompt"));
-    }
-
-    [Test]
-    public void Test1()
-    {
-        Assert.Pass();
+        Assert.That(testCategory.CategoryId, Is.EqualTo(1));
+        Assert.That(testCategory.ReportId, Is.EqualTo(1));
+        Assert.That(testCategory.Severity, Is.EqualTo(1));
     }
 
     [TearDown]
     public void TearDown()
     {
-        var testCategories = _context.ReportCategories.Where(c => c.Name == "Test Category");
-        _context.ReportCategories.RemoveRange(testCategories);
+        var testCategories = _context.DesignIssues.Where(c => c.Message == "Test Message");
+        _context.DesignIssues.RemoveRange(testCategories);
         _context.SaveChanges();
         _context.Dispose();
     }

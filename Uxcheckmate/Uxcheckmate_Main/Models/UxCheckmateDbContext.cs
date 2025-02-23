@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
+using Uxcheckmate_Main.Models;
+using Uxcheckmate_Main.Migrations;
 
 namespace Uxcheckmate_Main.Models;
 
@@ -25,8 +27,13 @@ public partial class UxCheckmateDbContext : DbContext
 
     public virtual DbSet<Report> Reports { get; set; }
 
-    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-        => optionsBuilder.UseSqlServer("Name=DBConnection");
+    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder){
+            if (!optionsBuilder.IsConfigured){
+                optionsBuilder.UseSqlServer("Name=DBConnection");
+        }
+    }
+   /* protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+        => optionsBuilder.UseSqlServer("Name=DBConnection");*/
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -62,6 +69,7 @@ public partial class UxCheckmateDbContext : DbContext
         {
             entity.HasKey(e => e.Id).HasName("PK__Report__3214EC27DC95E762");
         });
+
 
         OnModelCreatingPartial(modelBuilder);
     }
