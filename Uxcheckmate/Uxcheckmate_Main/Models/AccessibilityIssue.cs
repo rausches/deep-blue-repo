@@ -28,6 +28,8 @@ public partial class AccessibilityIssue
 
     public int Severity { get; set; }
 
+    public string WCAG { get; set; }
+
     [ForeignKey("CategoryId")]
     [InverseProperty("AccessibilityIssues")]
     public virtual AccessibilityCategory Category { get; set; } = null!;
