@@ -14,13 +14,11 @@ namespace Uxcheckmate_Main.Services
     {
         private readonly HttpClient _httpClient; 
         private readonly ILogger<BrokenLinksService> _logger; 
-        private readonly UxCheckmateDbContext _dbContext;
     
-    public BrokenLinksService(HttpClient httpClient, ILogger<BrokenLinksService> logger, UxCheckmateDbContext dbContext)
+    public BrokenLinksService(HttpClient httpClient, ILogger<BrokenLinksService> logger)
         {
             _httpClient = httpClient;
             _logger = logger;
-            _dbContext = dbContext;
         }
 
         public async Task<string> BrokenLinkAnalysis(string url, Dictionary<string, object> scrapedData)
@@ -54,12 +52,19 @@ namespace Uxcheckmate_Main.Services
             return relativeUrl; // Return as is if conversion fails
         }
 
-        private async Task<List<string>> CheckBrokenLinksAsync (List<string>? links)
+        private async Task<List<string>> CheckBrokenLinksAsync(List<string> links)
         {
             var brokenLinks = new List<string>();
 
             foreach (var link in links)
             {
+                // Skip URLs that don't start with http or https
+                if (!Uri.TryCreate(link, UriKind.Absolute, out Uri uriResult) ||
+                    (uriResult.Scheme != Uri.UriSchemeHttp && uriResult.Scheme != Uri.UriSchemeHttps))
+                {
+                    continue;
+                }
+
                 var response = await _httpClient.GetAsync(link);
                 if (!response.IsSuccessStatusCode)
                 {

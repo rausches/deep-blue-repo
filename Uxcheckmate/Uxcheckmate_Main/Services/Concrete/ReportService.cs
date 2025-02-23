@@ -15,13 +15,15 @@ namespace Uxcheckmate_Main.Services
         private readonly ILogger<ReportService> _logger; 
         private readonly UxCheckmateDbContext _dbContext;
         private readonly IOpenAiService _openAiService; 
+        private readonly IBrokenLinksService _brokenLinksService;
 
-        public ReportService(HttpClient httpClient, ILogger<ReportService> logger, UxCheckmateDbContext context, IOpenAiService openAiService)
+        public ReportService(HttpClient httpClient, ILogger<ReportService> logger, UxCheckmateDbContext context, IOpenAiService openAiService, IBrokenLinksService brokenLinksService)
         {
             _httpClient = httpClient;
             _dbContext = context;
             _openAiService = openAiService;
             _logger = logger;
+            _brokenLinksService = brokenLinksService;
         }
 
         public async Task<List<DesignIssue>> GenerateReportAsync(string url)
@@ -79,7 +81,7 @@ namespace Uxcheckmate_Main.Services
             switch (categoryName)
             {
                 case "Broken Links":
-                    return "This is a test";
+                    return await _brokenLinksService.BrokenLinkAnalysis(url, scrapedData);
                 // Add additional cases for other custom analyses here
                 default:
                     return string.Empty;
