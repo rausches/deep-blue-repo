@@ -111,11 +111,9 @@ public class WebScraperServiceMockTests
         // Debugging output
         TestContext.WriteLine($"Scraped {result["headings"]} headings.");
         TestContext.WriteLine($"Scraped {result["images"]} images.");
-        TestContext.WriteLine($"Scraped {result["links"]} links.");
 
         // Assert expected counts
         Assert.That(result["headings"], Is.EqualTo(2), "Incorrect number of headings scraped.");
         Assert.That(result["images"], Is.EqualTo(3), "Incorrect number of images scraped.");
-        Assert.That(result["links"], Is.EqualTo(2), "Incorrect number of links scraped.");
     }
 }

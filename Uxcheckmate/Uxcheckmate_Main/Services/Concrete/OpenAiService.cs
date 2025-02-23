@@ -62,9 +62,15 @@ namespace Uxcheckmate_Main.Services
             var responseString = await response.Content.ReadAsStringAsync();
             _logger.LogDebug("Response string from OpenAI API: {ResponseString}", responseString);
 
+            // Configure the serializer to be case-insensitive.
+            var options = new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true
+            };
+
             // Deserialize the response.
-            var openAiResponse = JsonSerializer.Deserialize<OpenAiResponse>(responseString);
-            
+            var openAiResponse = JsonSerializer.Deserialize<OpenAiResponse>(responseString, options);
+
             // Extract the AI-generated text or fallback if empty.
             string aiText = openAiResponse?.Choices?.FirstOrDefault()?.Message?.Content ?? "No response";
             _logger.LogInformation("Extracted AI response: {AiText}", aiText);
