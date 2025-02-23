@@ -3,6 +3,7 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
+using Microsoft.DotNet.Scaffolding.Shared.Messaging;
 using Microsoft.EntityFrameworkCore;
 using Uxcheckmate_Main.Models;
 
@@ -45,12 +46,12 @@ namespace Uxcheckmate_Main.Services
             var designCategories = await _dbContext.DesignCategories.ToListAsync();
             var scanResults = new List<DesignIssue>();
 
-            foreach (var category in designCategories)
+            foreach (var category in designCategories.Take(1))
             {
                 string message = category.ScanMethod switch
                 {
                     "OpenAI" => await _openAiService.AnalyzeWithOpenAI(url, category.Name, category.Description, scrapedData),
-                    "Custom" => await RunCustomAnalysisAsync(url, category.Name, scrapedData),
+                    "Custom" => await RunCustomAnalysisAsync(url, category.Name, category.Description, scrapedData),
                     _ => await _openAiService.AnalyzeWithOpenAI(url, category.Name, category.Description, scrapedData),
                 };
 
@@ -61,7 +62,7 @@ namespace Uxcheckmate_Main.Services
                         CategoryId = category.Id,
                         ReportId = report.Id,
                         Message = message,
-                        Severity = 1 // Optionally, calculate dynamic severity
+                        Severity = DetermineSeverity(message)
                     };
 
                     _dbContext.DesignIssues.Add(designIssue);
@@ -73,10 +74,23 @@ namespace Uxcheckmate_Main.Services
             return scanResults;
         }
 
-        private Task<string> RunCustomAnalysisAsync(string url, string categoryName, Dictionary<string, object> scrapedData)
+        private async Task<string> RunCustomAnalysisAsync(string url, string categoryName, string categoryDescription, Dictionary<string, object> scrapedData)
         {
-            // Implement your custom analysis logic here.
-            return Task.FromResult(string.Empty);
+            switch (categoryName)
+            {
+                case "Broken Links":
+                    return await _openAiService.AnalyzeWithOpenAI(url, categoryName, categoryDescription, scrapedData);
+                // Add additional cases for other custom analyses here
+                default:
+                    return string.Empty;
+            }
+        }
+
+        private int DetermineSeverity(string aiText)
+        {
+            if (aiText.Contains("critical", StringComparison.OrdinalIgnoreCase)) return 3; // High Severity
+            if (aiText.Contains("should", StringComparison.OrdinalIgnoreCase)) return 2; // Medium Severity
+            return 1; // Low Severity
         }
     }
 }

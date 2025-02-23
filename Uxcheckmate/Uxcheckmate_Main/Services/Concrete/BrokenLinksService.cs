@@ -25,24 +25,22 @@ namespace Uxcheckmate_Main.Services
 
         public async Task<string> BrokenLinkAnalysis(string url, Dictionary<string, object> scrapedData)
         {
-            var links = scrapedData.ContainsKey("links") ? scrapedData["links"] as List<string> : new List<string>();
-            
-            // Convert relative links to absolute URLs
+            // Ensure that links is not null
+            List<string> links = scrapedData.ContainsKey("links") && scrapedData["links"] != null 
+                                    ? scrapedData["links"] as List<string> 
+                                    : new List<string>();
+
+            // Now links is guaranteed not to be null.
             links = links.Select(link => MakeAbsoluteUrl(url, link)).ToList();
-            
-            // Check for broken links
+
             var brokenLinks = await CheckBrokenLinksAsync(links);
-
-            var message = "";
-
-            // Any 404 status codes add links to string message
-            if (!brokenLinks.IsNullOrEmpty())
+            if (brokenLinks.Any())
             {
-                return message = $"The following broken links were found on this page: {brokenLinks}";
+                return $"The following broken links were found on this page: {string.Join(", ", brokenLinks)}";
             }
             else
             {
-                return message;
+                return string.Empty;
             }
         }
 

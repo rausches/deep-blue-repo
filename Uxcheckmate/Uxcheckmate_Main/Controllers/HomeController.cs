@@ -64,8 +64,8 @@ public class HomeController : Controller
         }
         catch (Exception ex)
         {
-            // Handle exceptions appropriately (logging, error view, etc.)
-            ModelState.AddModelError("", "An error occurred while generating the report.");
+            _logger.LogError(ex, "Error generating report for URL: {Url}", url);
+            ModelState.AddModelError("", $"An error occurred: {ex.Message}");
             return View("Index");
         }
     }
