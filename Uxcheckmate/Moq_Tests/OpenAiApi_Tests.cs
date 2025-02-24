@@ -1,102 +1,153 @@
-using System;
 using System.Net;
 using System.Net.Http;
-using System.Text;
-using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Moq.Protected;
 using NUnit.Framework;
-using Uxcheckmate_Main.Models; 
+using System.Text;
+using System.Text.Json;
+using Uxcheckmate_Main.Models;
 using Uxcheckmate_Main.Services;
+using System.Collections.Generic;
 
-namespace Moq_Tests.OpenAiApi_Tests
+namespace Moq_Tests.OpenAiService_Tests
 {
     [TestFixture]
-    public class OpenAiApi_Tests
+    public class OpenAiServiceTests
     {
-        private Mock<HttpMessageHandler> _httpMessageHandlerMock;
+        private Mock<HttpMessageHandler> _mockHttpMessageHandler;
         private HttpClient _httpClient;
-        private Mock<ILogger<OpenAiService>> _loggerMock;
-        private UxCheckmateDbContext _dbContext;
+        private Mock<ILogger<OpenAiService>> _mockLogger;
         private OpenAiService _openAiService;
 
         [SetUp]
         public void Setup()
         {
-            _httpMessageHandlerMock = new Mock<HttpMessageHandler>();
-            _httpClient = new HttpClient(_httpMessageHandlerMock.Object);
-            _loggerMock = new Mock<ILogger<OpenAiService>>();
-            
-            var options = new DbContextOptionsBuilder<UxCheckmateDbContext>()
-                .UseInMemoryDatabase("TestDb")
-                .Options;
+            // Setup the mocked HttpMessageHandler.
+            _mockHttpMessageHandler = new Mock<HttpMessageHandler>();
+            _httpClient = new HttpClient(_mockHttpMessageHandler.Object);
 
-            _dbContext = new UxCheckmateDbContext(options);
-            _openAiService = new OpenAiService(_httpClient, _loggerMock.Object, _dbContext);
+            _mockLogger = new Mock<ILogger<OpenAiService>>();
+
+            _openAiService = new OpenAiService(_httpClient, _mockLogger.Object);
+        }
+
+        [Test]
+        public async Task AnalyzeWithOpenAI_NoIssuesFound_ReturnsEmptyString()
+        {
+            // Arrange: Setup a fake response that returns "No significant issues found" from the API.
+            var fakeApiResponse = new OpenAiResponse
+            {
+                Choices = new List<Choice>
+                {
+                    new Choice { Message = new Message { Content = "No significant issues found" } }
+                }
+            };
+            var fakeResponseJson = JsonSerializer.Serialize(fakeApiResponse);
+
+            // Setup the HttpMessageHandler to return the fake response.
+            _mockHttpMessageHandler.Protected()
+                .Setup<Task<HttpResponseMessage>>(
+                    "SendAsync",
+                    ItExpr.IsAny<HttpRequestMessage>(),
+                    ItExpr.IsAny<CancellationToken>()
+                )
+                .ReturnsAsync(new HttpResponseMessage
+                {
+                    StatusCode = HttpStatusCode.OK,
+                    Content = new StringContent(fakeResponseJson, Encoding.UTF8, "application/json")
+                });
+
+            // Create a sample scrapedData dictionary.
+            var scrapedData = new Dictionary<string, object>
+            {
+                { "headings", 5 },
+                { "images", 10 },
+                { "links", 8 },
+                { "fonts", new List<string> { "Arial", "Roboto", "Verdana" } },
+                { "text_content", "This is sample text for testing purposes." }
+            };
+
+            // Act
+            var result = await _openAiService.AnalyzeWithOpenAI(
+                "http://example.com", 
+                "Test Category", 
+                "Test Description", 
+                scrapedData);
+
+            // Assert: When "No significant issues found" is returned, the service should return an empty string.
+            Assert.That(result, Is.EqualTo(string.Empty));
+        }
+
+        [Test]
+        public async Task AnalyzeWithOpenAI_IssuesFound_ReturnsAIResponseText()
+        {
+            // Arrange: Setup a fake response that returns an issue message.
+            var fakeApiResponse = new OpenAiResponse
+            {
+                Choices = new List<Choice>
+                {
+                    new Choice { Message = new Message { Content = "Issue detected: Button is not accessible." } }
+                }
+            };
+            var fakeResponseJson = JsonSerializer.Serialize(fakeApiResponse);
+
+            // Setup the HttpMessageHandler to return the fake response.
+            _mockHttpMessageHandler.Protected()
+                .Setup<Task<HttpResponseMessage>>(
+                    "SendAsync",
+                    ItExpr.IsAny<HttpRequestMessage>(),
+                    ItExpr.IsAny<CancellationToken>()
+                )
+                .ReturnsAsync(new HttpResponseMessage
+                {
+                    StatusCode = HttpStatusCode.OK,
+                    Content = new StringContent(fakeResponseJson, Encoding.UTF8, "application/json")
+                });
+
+            // Create a sample scrapedData dictionary.
+            var scrapedData = new Dictionary<string, object>
+            {
+                { "headings", 3 },
+                { "images", 5 },
+                { "links", 2 },
+                { "fonts", new List<string> { "Helvetica", "Arial" } },
+                { "text_content", "Sample text content." }
+            };
+
+            // Act
+            var result = await _openAiService.AnalyzeWithOpenAI(
+                "http://example.com", 
+                "Test Category", 
+                "Test Description", 
+                scrapedData);
+
+            // Assert: The returned response should match the content from the fake API response.
+            Assert.That(result, Is.EqualTo("Issue detected: Button is not accessible."));
         }
 
         [TearDown]
         public void TearDown()
         {
-            // Dispose HttpClient and dbcontext after each test
-            _httpClient.Dispose();
-            _dbContext.Dispose();
+            _httpClient?.Dispose();
         }
+    }
 
-        [Test]
-        public async Task AnalyzeAndSaveUxReports_ReturnsListOfReports()
-        {
-            // Arrange
-            var mockResponse = new
-            {
-                choices = new[]
-                {
-                    new
-                    {
-                        message = new
-                        {
-                            content = 
-                                "### Fonts\n- Too many fonts used.\n" +
-                                "### Text Structure\n- Large text blocks found."
-                        }
-                    }
-                }
-            };
+    // Helper classes to match the OpenAiResponse structure in your code.
+    public class OpenAiResponse
+    {
+        public List<Choice> Choices { get; set; }
+    }
 
-            var responseJson = JsonSerializer.Serialize(mockResponse);
-            var responseMessage = new HttpResponseMessage(HttpStatusCode.OK)
-            {
-                Content = new StringContent(responseJson, Encoding.UTF8, "application/json")
-            };
+    public class Choice
+    {
+        public Message Message { get; set; }
+    }
 
-            _httpMessageHandlerMock
-                .Protected()
-                .Setup<Task<HttpResponseMessage>>(
-                    "SendAsync",
-                    ItExpr.IsAny<HttpRequestMessage>(),
-                    ItExpr.IsAny<CancellationToken>())
-                .ReturnsAsync(responseMessage);
-
-            // Act
-            var reports = await _openAiService.AnalyzeAndSaveUxReports("https://example.com");
-
-            // Assert
-            Assert.That(reports, Is.Not.Null);
-            Assert.That(reports.Count, Is.EqualTo(2), "Expected 2 reports generated.");
-            Assert.That(
-                reports[0].Recommendations,
-                Does.Contain("Section: Fonts").And.Contain("- Too many fonts used."),
-                "First report does not contain expected Fonts content."
-            );
-            Assert.That(
-                reports[1].Recommendations,
-                Does.Contain("Section: Text Structure").And.Contain("- Large text blocks found."),
-                "Second report does not contain expected Text Structure content."
-            );
-        }
+    public class Message
+    {
+        public string Content { get; set; }
     }
 }

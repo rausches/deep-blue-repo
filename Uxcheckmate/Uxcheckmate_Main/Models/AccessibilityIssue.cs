@@ -22,11 +22,13 @@ public partial class AccessibilityIssue
     [Column(TypeName = "text")]
     public string Message { get; set; } = null!;
 
-    [StringLength(128)]
+    [Column(TypeName = "varchar(max)")]
     [Unicode(false)]
     public string Selector { get; set; } = null!;
 
     public int Severity { get; set; }
+
+    public string WCAG { get; set; }
 
     [ForeignKey("CategoryId")]
     [InverseProperty("AccessibilityIssues")]

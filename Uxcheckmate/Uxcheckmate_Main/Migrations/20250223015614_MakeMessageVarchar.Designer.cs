@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Uxcheckmate_Main.Models;
 
@@ -11,9 +12,11 @@ using Uxcheckmate_Main.Models;
 namespace Uxcheckmate_Main.Migrations
 {
     [DbContext(typeof(UxCheckmateDbContext))]
-    partial class UxCheckmateDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250223015614_MakeMessageVarchar")]
+    partial class MakeMessageVarchar
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -72,15 +75,12 @@ namespace Uxcheckmate_Main.Migrations
 
                     b.Property<string>("Selector")
                         .IsRequired()
+                        .HasMaxLength(128)
                         .IsUnicode(false)
-                        .HasColumnType("varchar(max)");
+                        .HasColumnType("varchar(128)");
 
                     b.Property<int>("Severity")
                         .HasColumnType("int");
-
-                    b.Property<string>("WCAG")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id")
                         .HasName("PK__Accessib__3214EC2759D39646");

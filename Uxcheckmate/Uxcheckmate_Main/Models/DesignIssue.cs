@@ -19,7 +19,7 @@ public partial class DesignIssue
     [Column("ReportID")]
     public int ReportId { get; set; }
 
-    [Column(TypeName = "text")]
+    [Column(TypeName = "varchar(max)")]
     public string Message { get; set; } = null!;
 
     public int Severity { get; set; }

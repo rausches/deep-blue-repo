@@ -21,20 +21,14 @@ namespace Uxcheckmate_Tests.Services
             // Use built-in NullLogger
             var logger = NullLogger<OpenAiService>.Instance;
 
-            // Configure an in-memory EF context
-            var options = new DbContextOptionsBuilder<UxCheckmateDbContext>()
-                          .UseInMemoryDatabase(databaseName: "TestDb")
-                          .Options;
-            var dbContext = new UxCheckmateDbContext(options);
-
-            _openAiService = new OpenAiService(httpClient, logger, dbContext);
+            _openAiService = new OpenAiService(httpClient, logger);
         }
 
         /* Test if FormatScrapedData function returns a formatted string */
         [Test]
-        public void FormatScrapedData_ReturnFormattedString()
+        public void FormatScrapedData_ProducesExpectedOutput()
         {
-            // Arrange
+            // Arrange: Create sample scraped data dictionary.
             var scrapedData = new Dictionary<string, object>
             {
                 { "headings", 5 },
@@ -44,88 +38,26 @@ namespace Uxcheckmate_Tests.Services
                 { "text_content", "This is sample text for testing purposes." }
             };
 
-            // Act
-            var result = _openAiService.GetType()
-                .GetMethod("FormatScrapedData", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)
-                .Invoke(_openAiService, new object[] { scrapedData }) as string;
+            // Build the expected formatted output using Environment.NewLine.
+            string expected = string.Join(Environment.NewLine, new[]
+            {
+                "Headings Count: 5",
+                "Images Count: 10",
+                "Links Count: 8",
+                "Fonts Used: Arial, Roboto, Verdana",
+                "This is sample text for testing purposes.",
+                "" // Represents the trailing newline.
+            });
 
-            // Assert
+            // Act: Use reflection to invoke the private FormatScrapedData method.
+            var method = _openAiService.GetType()
+                .GetMethod("FormatScrapedData", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            var result = method.Invoke(_openAiService, new object[] { scrapedData }) as string;
+
+            // Assert: Ensure the result is not null or empty and matches the expected output.
             Assert.That(result, Is.Not.Null.And.Not.Empty, "FormatScrapedData returned null or empty string.");
-
-            Assert.That(result, Does.Contain("Headings Count: 5"), "Missing 'Headings Count: 5' in formatted data.");
-            Assert.That(result, Does.Contain("Images Count: 10"), "Missing 'Images Count: 10' in formatted data.");
-            Assert.That(result, Does.Contain("Links Count: 8"), "Missing 'Links Count: 8' in formatted data.");
-            Assert.That(result, Does.Contain("Fonts Used: Arial, Roboto, Verdana"), "Missing font list in formatted data.");
-            Assert.That(result, Does.Contain("This is sample text for testing purposes."), "Missing text content in formatted data.");
+            Assert.That(result.Trim(), Is.EqualTo(expected.Trim()), "The formatted output does not match the expected value.");
         }
 
-        /* Test if ExtractSections function returns a dictionary */
-        [Test]
-        public void ExtractSections_ReturnsDictionary()
-        {
-            // Arrange
-            string aiResponse = @"
-                ### Fonts
-                - Too many fonts used.
-
-                ### Text Structure
-                - Large text blocks found.
-
-                ### Usability Issues
-                - No significant issues found.";
-
-            // Act
-            var result = _openAiService.GetType()
-                .GetMethod("ExtractSections", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)
-                .Invoke(_openAiService, new object[] { aiResponse }) as Dictionary<string, string>;
-
-            // Debugging Output
-            Console.WriteLine("\nExtracted Sections:");
-            if (result != null)
-            {
-                foreach (var entry in result)
-                {
-                    Console.WriteLine($"Category: {entry.Key}\nContent: {entry.Value}\n");
-                }
-            }
-            else
-            {
-                Console.WriteLine("ExtractSections returned NULL");
-            }
-
-            // Assert
-            Assert.That(result, Is.Not.Null, "ExtractSections returned null.");
-            Assert.That(result.Count, Is.EqualTo(3), $"Expected 3 sections, but got {result?.Count ?? 0}");
-            Assert.That(result["Fonts"], Is.EqualTo("- Too many fonts used."));
-            Assert.That(result["Text Structure"], Is.EqualTo("- Large text blocks found."));
-            Assert.That(result["Usability Issues"], Is.EqualTo("- No significant issues found."));
-        }
-
-        /* Tests if ConvertToUxResult returns a UxResult */
-        [Test]
-        public void ConvertToUxResult_ReturnsUxResult()
-        {
-            // Arrange
-            var sections = new Dictionary<string, string>
-            {
-                { "Fonts", "Too many fonts used." },
-                { "Text Structure", "Large text blocks found." }
-            };
-
-            // Act
-            var result = _openAiService.GetType()
-                .GetMethod("ConvertToUxResult", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)
-                .Invoke(_openAiService, new object[] { sections }) as UxResult;
-
-            // Assert
-            Assert.That(result, Is.Not.Null, "ConvertToUxResult returned null.");
-            Assert.That(result.Issues, Has.Count.EqualTo(2), "Expected 2 UX issues.");
-            
-            Assert.That(result.Issues[0].Category, Is.EqualTo("Fonts"), "First issue category mismatch.");
-            Assert.That(result.Issues[0].Message, Is.EqualTo("Too many fonts used."), "First issue message mismatch.");
-            
-            Assert.That(result.Issues[1].Category, Is.EqualTo("Text Structure"), "Second issue category mismatch.");
-            Assert.That(result.Issues[1].Message, Is.EqualTo("Large text blocks found."), "Second issue message mismatch.");
-        }
     }
 }
