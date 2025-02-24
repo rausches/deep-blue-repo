@@ -15,12 +15,12 @@ public class OpenAiApiController : Controller
         _OpenAiService = OpenAIService;
     }
 
-    [HttpPost("analyze")]
+   /* [HttpPost("analyze")]
     public async Task<IActionResult> Analyze([FromBody] AnalyzeRequest request)
     {
-        var issues = await _OpenAiService.AnalyzeAndSaveDesignIssues(request.Url);
+        var issues = await _OpenAiService.AnalyzeWithOpenAI(request.Url);
         return Ok(issues);
-    }
+    }*/
 }
 
 public class AnalyzeRequest

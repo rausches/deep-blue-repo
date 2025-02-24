@@ -10,15 +10,18 @@ namespace Uxcheckmate_Main.Controllers;
 public class HomeController : Controller
 {
     private readonly ILogger<HomeController> _logger;
+    private readonly HttpClient _httpClient; 
     private readonly UxCheckmateDbContext _context;
     private readonly IOpenAiService _openAiService; 
     private readonly IPa11yService _pa11yService;
+    private readonly IReportService _reportService;
 
-    public HomeController(ILogger<HomeController> logger, UxCheckmateDbContext dbContext, IOpenAiService openAiService, IPa11yService pa11yService)
+    public HomeController(ILogger<HomeController> logger, HttpClient httpClient, UxCheckmateDbContext dbContext, IOpenAiService openAiService, IPa11yService pa11yService, IReportService reportService)
     {
         _logger = logger;
+        _httpClient = httpClient;
         _context = dbContext;
-        _openAiService = openAiService;
+        _reportService = reportService;
         _pa11yService = pa11yService;
     }
 
@@ -37,13 +40,44 @@ public class HomeController : Controller
             return View("Index");
         }
 
-        // Call OpenAI service to analyze the design issues
-        List<DesignIssue> designIssues = await _openAiService.AnalyzeAndSaveDesignIssues(url) ?? new List<DesignIssue>();
-        List<Pa11yIssue> accessibilityIssues = await _pa11yService.AnalyzeAndSaveAccessibilityReport(url) ?? new List<Pa11yIssue>();
+       try
+        {
+            // Create and save the report record.
+            var report = new Report
+            {
+                Url = url,
+                Date = DateOnly.FromDateTime(DateTime.UtcNow),
+                AccessibilityIssues = new List<AccessibilityIssue>(),
+                DesignIssues = new List<DesignIssue>()
+            };
+            _context.Reports.Add(report);
+            await _context.SaveChangesAsync();
+            _logger.LogInformation("Report record created with ID: {ReportId}", report.Id);
+           
+            await _pa11yService.AnalyzeAndSaveAccessibilityReport(report);
+            await _reportService.GenerateReportAsync(report);
 
-        var model = Tuple.Create<IEnumerable<DesignIssue>, IEnumerable<Pa11yIssue>>(designIssues, accessibilityIssues);
+            // Fetch the full report 
+            var fullReport = await _context.Reports
+                .Include(r => r.AccessibilityIssues) // Load accessibility issues
+                .Include(r => r.DesignIssues) // Load design issues
+                .FirstOrDefaultAsync(r => r.Id == report.Id);
 
-        return View("Results", model);
+            if (fullReport == null)
+            {
+                _logger.LogError("Failed to fetch report with ID: {ReportId}", report.Id);
+                ModelState.AddModelError("", "An error occurred while fetching the report.");
+                return View("Index");
+            }
+
+            return View("Results", fullReport);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error generating report for URL: {Url}", url);
+            ModelState.AddModelError("", $"An error occurred: {ex.Message}");
+            return View("Index");
+        }
     }
 
     public IActionResult Privacy()

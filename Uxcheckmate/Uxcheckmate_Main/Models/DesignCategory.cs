@@ -20,6 +20,8 @@ public partial class DesignCategory
     [Column(TypeName = "text")]
     public string? Description { get; set; }
 
+    public string? ScanMethod { get; set; }
+
     [InverseProperty("Category")]
     public virtual ICollection<DesignIssue> DesignIssues { get; set; } = new List<DesignIssue>();
 }

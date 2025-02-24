@@ -24,7 +24,6 @@ public class Pa11yIssue
         }
 }
 
-
 public class Pa11yResult{
         public List<Pa11yIssue>? Issues { get; set; }
 

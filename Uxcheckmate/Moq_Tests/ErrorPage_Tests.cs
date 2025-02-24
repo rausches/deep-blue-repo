@@ -17,6 +17,9 @@ namespace Moq_Tests.ErrorPage_Tests
 
         private Mock<IPa11yService> _mockPa11yService;
 
+        private Mock<IReportService> _mockReportService;
+        private Mock<HttpClient> _mockHttpClient; 
+
         [SetUp]
         public void Setup()
         {
@@ -24,6 +27,8 @@ namespace Moq_Tests.ErrorPage_Tests
             _mockOpenAiService = new Mock<IOpenAiService>();
             _mockPa11yService = new Mock<IPa11yService>();
             _mockDbContext = new Mock<UxCheckmateDbContext>();
+            _mockReportService = new Mock<IReportService>();
+            _mockHttpClient = new Mock<HttpClient>();
 
         }
 
@@ -31,7 +36,7 @@ namespace Moq_Tests.ErrorPage_Tests
         public void Error404_ReturnsErrorPageView()
         {
             // Arrange
-           var controller = new HomeController(_mockLogger.Object, _mockDbContext.Object, _mockOpenAiService.Object, _mockPa11yService.Object);
+           var controller = new HomeController(_mockLogger.Object, _mockHttpClient.Object, _mockDbContext.Object, _mockOpenAiService.Object, _mockPa11yService.Object, _mockReportService.Object);
 
             // Act
             var result = controller.ErrorPage() as ViewResult;

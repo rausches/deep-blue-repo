@@ -36,7 +36,14 @@ namespace Uxcheckmate_Main.Services
             var headings = doc.DocumentNode.SelectNodes("//h1 | //h2 | //h3 | //h4 | //h5 | //h6") ?? new HtmlNodeCollection(null);
             var paragraphs = doc.DocumentNode.SelectNodes("//p") ?? new HtmlNodeCollection(null);
             var images = doc.DocumentNode.SelectNodes("//img") ?? new HtmlNodeCollection(null);
-            var links = doc.DocumentNode.SelectNodes("//a") ?? new HtmlNodeCollection(null);
+            var linkNodes = doc.DocumentNode.SelectNodes("//a");
+
+            var links = linkNodes != null 
+                ? linkNodes
+                    .Select(node => node.GetAttributeValue("href", ""))
+                    .Where(href => !string.IsNullOrEmpty(href))
+                    .ToList()
+                : new List<string>();
 
             // Extract font-family styles from <style> and inline elements
             var fontStyles = doc.DocumentNode.SelectNodes("//style | //*[@style]") ?? new HtmlNodeCollection(null);
@@ -58,7 +65,7 @@ namespace Uxcheckmate_Main.Services
                 { "headings", headings.Count },
                 { "paragraphs", paragraphs.Count },
                 { "images", images.Count },
-                { "links", links.Count },
+                { "links", links },
                 { "text_content", string.Join("\n", paragraphs.Select(p => p.InnerText.Trim()).Where(text => !string.IsNullOrEmpty(text))) },
                 { "fonts", fontsUsed.ToList() }
             };

@@ -2,8 +2,6 @@ using System.Net;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using System.Text.RegularExpressions;
-using Microsoft.EntityFrameworkCore;
 using Uxcheckmate_Main.Models;
 
 namespace Uxcheckmate_Main.Services
@@ -12,103 +10,122 @@ namespace Uxcheckmate_Main.Services
     {
         private readonly HttpClient _httpClient; 
         private readonly ILogger<OpenAiService> _logger; 
-        private readonly UxCheckmateDbContext _dbContext;
 
-        public OpenAiService(HttpClient httpClient, ILogger<OpenAiService> logger, UxCheckmateDbContext dbContext)
+        public OpenAiService(HttpClient httpClient, ILogger<OpenAiService> logger)
         {
             _httpClient = httpClient;
             _logger = logger;
-            _dbContext = dbContext;
         }
 
-        public async Task<List<DesignIssue>> AnalyzeAndSaveDesignIssues(string url)
+        public async Task<string> AnalyzeWithOpenAI(string url, string categoryName, string categoryDescription, Dictionary<string, object> scrapedData)
         {
-            WebScraperService scraper = new WebScraperService(_httpClient);
+            _logger.LogInformation("Starting OpenAI analysis for URL: {Url} in category: {CategoryName}", url, categoryName);
 
-            // Scrape the webpage content asynchronously
-            Dictionary<string, object> scrapedData = await scraper.ScrapeAsync(url);
+            // Format the scraped data into a single string.
             string pageContent = FormatScrapedData(scrapedData);
+            _logger.LogDebug("Formatted scraped data for URL: {Url}. Content length: {Length}", url, pageContent.Length);
 
-            // Get all Design Categories from the database
-            var designCategories = await _dbContext.DesignCategories.ToListAsync();
-            var designIssues = new List<DesignIssue>();
+            // Construct the prompt for OpenAI.
+            string prompt = $@"
+            Analyze the webpage {url} for UX issues related to {categoryName}.
+            Category Description: {categoryDescription}.
+            If no issues are found, respond with 'No significant issues found.'
+            
+            Webpage Data:
+            {pageContent}";
 
-            // Create a new report entry
-            var report = new Report
+            _logger.LogDebug("Constructed prompt for OpenAI: {Prompt}", prompt);
+
+            // Create the request payload.
+            var request = new
             {
-                Url = url,
-                Date = DateOnly.FromDateTime(DateTime.UtcNow),
+                model = "gpt-4", 
+                messages = new[]
+                {
+                    new { role = "system", content = "You are a UX expert analyzing websites." },
+                    new { role = "user", content = prompt }
+                },
+                max_tokens = 100 // Limit response length
             };
 
-            _dbContext.Reports.Add(report);
-            await _dbContext.SaveChangesAsync(); // Save to generate ReportId
+            // Serialize the request object to JSON.
+            var requestJson = JsonSerializer.Serialize(request);
+            _logger.LogDebug("Serialized OpenAI request: {RequestJson}", requestJson);
+            var requestContent = new StringContent(requestJson, Encoding.UTF8, "application/json");
 
-            foreach (var category in designCategories.Take(2))
+            // Send the request to OpenAI's API.
+            _logger.LogInformation("Sending request to OpenAI API for URL: {Url}", url);
+            var response = await _httpClient.PostAsync("https://api.openai.com/v1/chat/completions", requestContent);
+            _logger.LogInformation("Received response from OpenAI API with status code: {StatusCode}", response.StatusCode);
+
+            // Read and log the response content.
+            var responseString = await response.Content.ReadAsStringAsync();
+            _logger.LogDebug("Response string from OpenAI API: {ResponseString}", responseString);
+
+            // Configure the serializer to be case-insensitive.
+            var options = new JsonSerializerOptions
             {
-                string prompt = $@"
-                Analyze the UX of the following webpage and identify any issues related to {category.Name}. 
-                If no issues are found, respond with 'No significant issues found.'.
-                {category.Description}
+                PropertyNameCaseInsensitive = true
+            };
 
-                Webpage Data:
-                {pageContent}";
+            // Deserialize the response.
+            var openAiResponse = JsonSerializer.Deserialize<OpenAiResponse>(responseString, options);
 
-                var request = new
-                {
-                    model = "gpt-4",
-                    messages = new[]
-                    {
-                        new { role = "system", content = "You are a UX expert analyzing websites for accessibility, usability, and design flaws." },
-                        new { role = "user", content = prompt }
-                    },
-                    max_tokens = 100
-                };
+            // Extract the AI-generated text or fallback if empty.
+            string aiText = openAiResponse?.Choices?.FirstOrDefault()?.Message?.Content ?? "No response";
+            _logger.LogInformation("Extracted AI response: {AiText}", aiText);
 
-                var requestContent = new StringContent(JsonSerializer.Serialize(request), Encoding.UTF8, "application/json");
-
-                var response = await _httpClient.PostAsync("https://api.openai.com/v1/chat/completions", requestContent);
-                var responseString = await response.Content.ReadAsStringAsync();
-
-                // Deserialize the response
-                var openAiResponse = JsonSerializer.Deserialize<OpenAiResponse>(responseString);
-                string aiText = openAiResponse?.Choices?.FirstOrDefault()?.Message?.Content ?? "No response";
-
-                if (!aiText.Contains("No significant issues found", StringComparison.OrdinalIgnoreCase))
-                {
-                    // If an issue is found, save it
-                    var designIssue = new DesignIssue
-                    {
-                        CategoryId = category.Id,
-                        ReportId = report.Id,
-                        Message = aiText,
-                        Severity = DetermineSeverity(aiText)
-                    };
-
-                    _dbContext.DesignIssues.Add(designIssue);
-                    designIssues.Add(designIssue);
-                }
+            // Return an empty string if no issues are found.
+            if (aiText.Contains("No significant issues found"))
+            {
+                _logger.LogInformation("OpenAI analysis indicates no significant issues for URL: {Url}", url);
+                return "";
             }
-
-            await _dbContext.SaveChangesAsync();
-            return designIssues;
-        }
-
-        private int DetermineSeverity(string aiText)
-        {
-            if (aiText.Contains("critical", StringComparison.OrdinalIgnoreCase)) return 3; // High Severity
-            if (aiText.Contains("should", StringComparison.OrdinalIgnoreCase)) return 2; // Medium Severity
-            return 1; // Low Severity
+            else
+            {
+                _logger.LogInformation("OpenAI analysis detected issues for URL: {Url}", url);
+                return aiText;
+            }
         }
 
         private string FormatScrapedData(Dictionary<string, object> scrapedData)
         {
             StringBuilder sb = new StringBuilder();
-            foreach (var entry in scrapedData)
+
+            // Format headings count if available.
+            if (scrapedData.TryGetValue("headings", out var headings))
             {
-                sb.AppendLine($"### {entry.Key}");
-                sb.AppendLine(entry.Value.ToString());
+                sb.AppendLine($"Headings Count: {headings}");
             }
-            return sb.ToString();
+
+            // Format images count if available.
+            if (scrapedData.TryGetValue("images", out var images))
+            {
+                sb.AppendLine($"Images Count: {images}");
+            }
+
+            // Format links count if available.
+            if (scrapedData.TryGetValue("links", out var links))
+            {
+                sb.AppendLine($"Links Count: {links}");
+            }
+
+            // Format fonts list if available.
+            if (scrapedData.TryGetValue("fonts", out var fontsObj) && fontsObj is IEnumerable<string> fonts)
+            {
+                string fontsList = string.Join(", ", fonts);
+                sb.AppendLine($"Fonts Used: {fontsList}");
+            }
+
+            // Append text content if available.
+            if (scrapedData.TryGetValue("text_content", out var textContent))
+            {
+                sb.AppendLine(textContent.ToString());
+            }
+
+            string formattedData = sb.ToString();
+            return formattedData;
         }
+
     }
 }
