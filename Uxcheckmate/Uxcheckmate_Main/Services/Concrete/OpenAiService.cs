@@ -2,8 +2,6 @@ using System.Net;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using System.Text.RegularExpressions;
-using Microsoft.EntityFrameworkCore;
 using Uxcheckmate_Main.Models;
 
 namespace Uxcheckmate_Main.Services
@@ -12,59 +10,48 @@ namespace Uxcheckmate_Main.Services
     {
         private readonly HttpClient _httpClient; 
         private readonly ILogger<OpenAiService> _logger; 
-        private readonly UxCheckmateDbContext _dbContext;
 
-        public OpenAiService(HttpClient httpClient, ILogger<OpenAiService> logger, UxCheckmateDbContext dbContext)
+        public OpenAiService(HttpClient httpClient, ILogger<OpenAiService> logger)
         {
             _httpClient = httpClient;
             _logger = logger;
-            _dbContext = dbContext;
         }
 
-        public async Task<List<DesignIssue>> AnalyzeAndSaveDesignIssues(string url)
+        public async Task<string> AnalyzeWithOpenAI(string url, string categoryName, string categoryDescription, Dictionary<string, object> scrapedData)
         {
-            WebScraperService scraper = new WebScraperService(_httpClient);
+            _logger.LogInformation("Starting OpenAI analysis for URL: {Url} in category: {CategoryName}", url, categoryName);
 
-            // Scrape the webpage content asynchronously
-            Dictionary<string, object> scrapedData = await scraper.ScrapeAsync(url);
+            // Format the scraped data into a single string.
             string pageContent = FormatScrapedData(scrapedData);
+            _logger.LogDebug("Formatted scraped data for URL: {Url}. Content length: {Length}", url, pageContent.Length);
 
-            // Get all Design Categories from the database
-            var designCategories = await _dbContext.DesignCategories.ToListAsync();
-            var designIssues = new List<DesignIssue>();
+            // Construct the prompt for OpenAI.
+            string prompt = $@"
+            Analyze the webpage {url} for UX issues related to {categoryName}.
+            Category Description: {categoryDescription}.
+            If no issues are found, respond with 'No significant issues found.'
+            
+            Webpage Data:
+            {pageContent}";
 
-            // Create a new report entry
-            var report = new Report
+            _logger.LogDebug("Constructed prompt for OpenAI: {Prompt}", prompt);
+
+            // Create the request payload.
+            var request = new
             {
-                Url = url,
-                Date = DateOnly.FromDateTime(DateTime.UtcNow),
+                model = "gpt-4", 
+                messages = new[]
+                {
+                    new { role = "system", content = "You are a UX expert analyzing websites." },
+                    new { role = "user", content = prompt }
+                },
+                max_tokens = 100 // Limit response length
             };
 
-            _dbContext.Reports.Add(report);
-            await _dbContext.SaveChangesAsync(); // Save to generate ReportId
-
-            foreach (var category in designCategories.Take(2))
-            {
-                string prompt = $@"
-                Analyze the UX of the following webpage and identify any issues related to {category.Name}. 
-                If no issues are found, respond with 'No significant issues found.'.
-                {category.Description}
-
-                Webpage Data:
-                {pageContent}";
-
-                var request = new
-                {
-                    model = "gpt-4",
-                    messages = new[]
-                    {
-                        new { role = "system", content = "You are a UX expert analyzing websites for accessibility, usability, and design flaws." },
-                        new { role = "user", content = prompt }
-                    },
-                    max_tokens = 100
-                };
-
-                var requestContent = new StringContent(JsonSerializer.Serialize(request), Encoding.UTF8, "application/json");
+            // Serialize the request object to JSON.
+            var requestJson = JsonSerializer.Serialize(request);
+            _logger.LogDebug("Serialized OpenAI request: {RequestJson}", requestJson);
+            var requestContent = new StringContent(requestJson, Encoding.UTF8, "application/json");
 
             // Send the request to OpenAI's API.
             _logger.LogInformation("Sending request to OpenAI API for URL: {Url}", url);
