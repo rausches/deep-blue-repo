@@ -104,9 +104,10 @@ public class HomeController : Controller
     }
 
     [HttpGet]
-    public IActionResult Guide()
+    public async Task<IActionResult> Guide()
     {
-        return View();
+        var designCategories = await _context.DesignCategories.ToListAsync(); // Fetch Design Categories
+        return View(designCategories);
     }
 
     [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]

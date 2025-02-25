@@ -1,3 +1,5 @@
+@model List<Uxcheckmate_Main.Models.DesignCategory>
+
 @{
     ViewData["Title"] = "Guide";
 }
@@ -7,45 +9,36 @@
 </div>
 <div class="container service-container">
     <div class="row">
-        <div class="col">
+        <div class="col text-center">
             <h2 class="service-header">Accessibility</h2>
         </div>
     </div>
-    <div class="row service-row">
-        <div class="col-md-4">
-            <h3 class="service-heading-title">Definition</h3>
-        </div>
-        <div class="col-md-8">
-            <p class="service-description">[Definition]</p>
-        </div>
-    </div>
-    <div class="row service-row">
-        <div class="col-md-4">
-            <h3 class="service-heading-title">Uxcheckmate Checks</h3>
-        </div>
-        <div class="col-md-8">
-            <p class="service-description">[WCAG stuff]</p>
-        </div>
-    </div>
-    <div class="row mt-4">
+    <div class="row service-row mt-3">
         <div class="col">
+            <p class="service-description">Accessibility in web design is the commitment to creating digital experiences that are inclusive and functional for all users, including those with disabilities. It involves designing websites that are easy to perceive, navigate, and interact with, ensuring that everyone, regardless of their abilities or assistive technologies, can access and engage with online content effectively.</p>
+        </div>
+    </div>
+    <div class="row service-row">
+        <div class="col">
+            <p class="service-description">Our website checks for compliance with the Web Content Accessibility Guidelines (WCAG), the internationally recognized standard for ensuring web content is accessible to people with disabilities. <a href="https://www.w3.org/WAI/standards-guidelines/wcag/">Click here</a> to view the guidelines that web technologies follow.</p>
+        </div>
+    </div>
+    <div class="row mt-5">
+        <div class="col text-center">
             <h2 class="service-header">UX/UI Design</h2>
         </div>
     </div>
-    <div class="row service-row">
-        <div class="col-md-4">
-            <h3 class="service-heading-title">Definition</h3>
-        </div>
-        <div class="col-md-8">
-            <p class="service-description">[Definition]</p>
+    <div class="row service-row mt-3">
+        <div class="col">
+            <p class="service-description">UX/UI design focuses on crafting digital experiences that are both visually engaging and functionally intuitive. UX (User Experience) design emphasizes usability, accessibility, and user satisfaction by optimizing interactions and navigation. UI (User Interface) design ensures an aesthetically cohesive and responsive interface that enhances usability. Together, they create seamless, user-friendly digital products that meet both user needs and business objectives.</p>
         </div>
     </div>
     <div class="row service-row">
-        <div class="col-md-4">
-            <h3 class="service-heading-title">Uxcheckmate Checks</h3>
-        </div>
-        <div class="col-md-8">
-            <p class="service-description">[Load report categories and definitions]</p>
+        <div class="col">
+            <h3>Our website evaluates the following aspects for UI/UX design issues:</h3>
+            @foreach (var category in Model){
+                <p class="service-description"><strong>@category.Name:</strong> @category.Description</p>
+            }
         </div>
     </div>
 </div>
