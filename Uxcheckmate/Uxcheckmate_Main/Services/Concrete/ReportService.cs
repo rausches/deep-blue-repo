@@ -16,14 +16,16 @@ namespace Uxcheckmate_Main.Services
         private readonly UxCheckmateDbContext _dbContext;
         private readonly IOpenAiService _openAiService; 
         private readonly IBrokenLinksService _brokenLinksService;
+        private readonly IHeadingHierarchyService _headingHierarchyService;
 
-        public ReportService(HttpClient httpClient, ILogger<ReportService> logger, UxCheckmateDbContext context, IOpenAiService openAiService, IBrokenLinksService brokenLinksService)
+        public ReportService(HttpClient httpClient, ILogger<ReportService> logger, UxCheckmateDbContext context, IOpenAiService openAiService, IBrokenLinksService brokenLinksService, IHeadingHierarchyService headingHierarchyService)
         {
             _httpClient = httpClient;
             _dbContext = context;
             _openAiService = openAiService;
             _logger = logger;
             _brokenLinksService = brokenLinksService;
+            _headingHierarchyService = headingHierarchyService;
         }
 
         public async Task<ICollection<DesignIssue>> GenerateReportAsync(Report report)
@@ -96,6 +98,9 @@ namespace Uxcheckmate_Main.Services
                 case "Broken Links":
                     _logger.LogDebug("Delegating Broken Links analysis for URL: {Url}", url);
                     return await _brokenLinksService.BrokenLinkAnalysis(url, scrapedData);
+                case "Visual Hierarchy":
+                    _logger.LogDebug("Delegating Visual Hierarchy analysis for URL: {Url}", url);
+                    return await _headingHierarchyService.AnalyzeAsync(url);
                 // Add additional cases for other custom analyses here
                 default:
                     _logger.LogDebug("No custom analysis implemented for category: {CategoryName}", categoryName);
