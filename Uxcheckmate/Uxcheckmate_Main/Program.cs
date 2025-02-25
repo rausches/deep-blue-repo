@@ -52,6 +52,7 @@ public class Program
         // Register Report Services
         builder.Services.AddScoped<IReportService, ReportService>();
         builder.Services.AddScoped<IBrokenLinksService, BrokenLinksService>();
+        builder.Services.AddScoped<IHeadingHierarchyService, HeadingHierarchyService>();
 
         var app = builder.Build();
 

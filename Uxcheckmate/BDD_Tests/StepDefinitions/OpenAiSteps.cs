@@ -19,7 +19,7 @@ public class UxAnalysisSteps
         var httpClient = new HttpClient(); 
         var logger = new Mock<ILogger<OpenAiService>>().Object;
         var dbContext = new UxCheckmateDbContext();
-        _openAiService = new OpenAiService(httpClient, logger, dbContext);
+        _openAiService = new OpenAiService(httpClient, logger);
     }
 
     [Given(@"Sarah submits her URL")]
