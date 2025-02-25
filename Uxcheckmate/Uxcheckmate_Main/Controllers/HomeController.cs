@@ -103,6 +103,13 @@ public class HomeController : Controller
         return View();
     }
 
+    [HttpGet]
+    public async Task<IActionResult> Guide()
+    {
+        var designCategories = await _context.DesignCategories.ToListAsync(); // Fetch Design Categories
+        return View(designCategories);
+    }
+
     [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
     public IActionResult Error()
     {
