@@ -32,7 +32,8 @@ namespace Uxcheckmate_Main.Services
             var pa11yJsonResult = await Task.Run(() => _pa11yUrlBasedService.RunPa11y(url));
 
             // Log the JSON result
-            _logger.LogInformation("Pa11y JSON Result: {Pa11yJsonResult}", pa11yJsonResult);
+            _logger.LogError("Pa11y JSON Result: {Pa11yJsonResult}", pa11yJsonResult);
+            
 
             // Deserialize the JSON result into a collection of dictionaries
             var pa11yResultsCollection = JsonSerializer.Deserialize<List<Dictionary<string, object>>>(pa11yJsonResult, new JsonSerializerOptions
