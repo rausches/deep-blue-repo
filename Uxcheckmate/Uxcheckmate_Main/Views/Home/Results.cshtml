@@ -44,8 +44,10 @@ else
         </tbody>
     </table>
 }
+
 <h3>Accessibility Issues</h3>
 <p>Total Issues: @Model.AccessibilityIssues.Count()</p>
+
 @if (Model.AccessibilityIssues == null || !Model.AccessibilityIssues.Any())
 {
     <div class="alert alert-success">
@@ -69,13 +71,11 @@ else
                          .OrderBy(g => g.Key == "Other" ? 1 : 0)
                          .ThenBy(g => g.Key))
             {
-                <!-- Category header row -->
                 <tr class="table-secondary">
                     <td colspan="4">
                         <strong>@categoryGroup.Key</strong>
                     </td>
                 </tr>
-                <!-- List each issue under the category -->
                 @foreach (var issue in categoryGroup)
                 {
                     <tr>
@@ -102,6 +102,10 @@ else
         </tbody>
     </table>
 }
+
+<!-- Export PDF Button -->
+<button id="exportPdfButton" class="btn btn-primary mt-3">Export as PDF</button>
+<input type="hidden" id="analyzed-url" value="@Model.Url" />
 
 @section Scripts {
     <script src="~/js/reportResults.js"></script>

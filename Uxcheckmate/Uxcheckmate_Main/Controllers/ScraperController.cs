@@ -11,10 +11,12 @@ namespace Uxcheckmate_Main.Controllers
     public class ScraperController : ControllerBase
     {
         private readonly WebScraperService _scraperService;
+        private readonly PdfService _pdfService; // Add this
 
-        public ScraperController(WebScraperService scraperService)
+        public ScraperController(WebScraperService scraperService, PdfService pdfService)
         {
             _scraperService = scraperService;
+            _pdfService = pdfService;
         }
 
         [HttpGet("extract")]
@@ -27,7 +29,7 @@ namespace Uxcheckmate_Main.Controllers
 
             try
             {
-                var extractedData = await _scraperService.ScrapeAsync(url); // ✅ Ensure this is a Dictionary<string, object>
+                var extractedData = await _scraperService.ScrapeAsync(url);
 
                 return Ok(new
                 {
@@ -36,6 +38,26 @@ namespace Uxcheckmate_Main.Controllers
                     Images = extractedData.TryGetValue("images", out var images) ? images : 0,
                     Links = extractedData.TryGetValue("links", out var links) ? links : 0
                 });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = ex.Message });
+            }
+        }
+
+        [HttpGet("export-pdf")]
+        public async Task<IActionResult> ExportPdf([FromQuery] string url)
+        {
+            if (string.IsNullOrEmpty(url))
+            {
+                return BadRequest("URL parameter is required.");
+            }
+
+            try
+            {
+                byte[] pdfBytes = await _pdfService.GeneratePdfAsync(url);
+
+                return File(pdfBytes, "application/pdf", "UX_Report.pdf");
             }
             catch (Exception ex)
             {

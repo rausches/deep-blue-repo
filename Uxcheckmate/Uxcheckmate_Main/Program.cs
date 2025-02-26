@@ -53,6 +53,9 @@ public class Program
         builder.Services.AddScoped<IReportService, ReportService>();
         builder.Services.AddScoped<IBrokenLinksService, BrokenLinksService>();
 
+        // Register PDF export service
+        builder.Services.AddScoped<PdfService>();
+
         var app = builder.Build();
 
         // Middleware: Custom error handling
