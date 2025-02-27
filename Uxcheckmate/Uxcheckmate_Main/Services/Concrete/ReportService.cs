@@ -6,6 +6,11 @@ using System.Text.RegularExpressions;
 using Microsoft.DotNet.Scaffolding.Shared.Messaging;
 using Microsoft.EntityFrameworkCore;
 using Uxcheckmate_Main.Models;
+using iText.Kernel.Pdf;
+using iText.Layout;
+using iText.Layout.Element;
+using iText.Kernel.Font;
+using iText.IO.Font.Constants;
 
 namespace Uxcheckmate_Main.Services
 {
@@ -30,26 +35,22 @@ namespace Uxcheckmate_Main.Services
         {
             var url = report.Url;
             _logger.LogInformation("Starting report generation for URL: {Url}", url);
-            // Validate the URL input.
             if (string.IsNullOrEmpty(url))
             {
                 _logger.LogError("URL is null or empty.");
                 throw new ArgumentException("URL cannot be empty.", nameof(url));
             }
 
-            // Scrape the website content.
             var scraper = new WebScraperService(_httpClient);
             _logger.LogDebug("Scraping content from URL: {Url}", url);
             var scrapedData = await scraper.ScrapeAsync(url);
             _logger.LogDebug("Scraping completed for URL: {Url}", url);
 
-            // Retrieve design categories from the database.
             var designCategories = await _dbContext.DesignCategories.ToListAsync();
             _logger.LogInformation("Found {Count} design categories.", designCategories.Count);
 
             var scanResults = new List<DesignIssue>();
 
-            // Analyze each design category.
             foreach (var category in designCategories)
             {
                 _logger.LogInformation("Analyzing category: {CategoryName} using scan method: {ScanMethod}", category.Name, category.ScanMethod);
@@ -60,7 +61,6 @@ namespace Uxcheckmate_Main.Services
                     _ => ""
                 };
 
-                // If analysis returns a message, record it as a design issue.
                 if (!string.IsNullOrEmpty(message))
                 {
                     var designIssue = new DesignIssue
@@ -81,9 +81,9 @@ namespace Uxcheckmate_Main.Services
                 }
             }
 
-            // Save all design issues to the database.
             await _dbContext.SaveChangesAsync();
-            _logger.LogInformation("Report generation completed for URL: {Url}. Total issues found: {IssueCount}", url, scanResults.Count);
+            _logger.LogInformation("Generating PDF immediately after scraping...");
+            await GenerateReportPdfAsync(report);
 
             return scanResults;
         }
@@ -91,33 +91,76 @@ namespace Uxcheckmate_Main.Services
         private async Task<string> RunCustomAnalysisAsync(string url, string categoryName, string categoryDescription, Dictionary<string, object> scrapedData)
         {
             _logger.LogInformation("Running custom analysis for category: {CategoryName}", categoryName);
-            switch (categoryName)
+            return categoryName switch
             {
-                case "Broken Links":
-                    _logger.LogDebug("Delegating Broken Links analysis for URL: {Url}", url);
-                    return await _brokenLinksService.BrokenLinkAnalysis(url, scrapedData);
-                // Add additional cases for other custom analyses here
-                default:
-                    _logger.LogDebug("No custom analysis implemented for category: {CategoryName}", categoryName);
-                    return string.Empty;
-            }
+                "Broken Links" => await _brokenLinksService.BrokenLinkAnalysis(url, scrapedData),
+                _ => string.Empty
+            };
         }
 
         private int DetermineSeverity(string aiText)
         {
             _logger.LogDebug("Determining severity for analysis text.");
-            if (aiText.Contains("critical", StringComparison.OrdinalIgnoreCase))
+            return aiText.Contains("critical", StringComparison.OrdinalIgnoreCase) ? 3 :
+                   aiText.Contains("should", StringComparison.OrdinalIgnoreCase) ? 2 : 1;
+        }
+
+        public async Task<byte[]> GenerateReportPdfAsync(Report report)
+        {
+            var issues = await _dbContext.DesignIssues.Where(i => i.ReportId == report.Id).ToListAsync();
+            return await GeneratePdfFromIssues(report, issues);
+        }
+
+        private async Task<byte[]> GeneratePdfFromIssues(Report report, ICollection<DesignIssue> issues)
+        {
+            using var memoryStream = new MemoryStream();
+            using var writer = new PdfWriter(memoryStream);
+            using var pdf = new PdfDocument(writer);
+            var document = new Document(pdf);
+
+            var fontBold = PdfFontFactory.CreateFont(StandardFonts.HELVETICA_BOLD);
+            var fontRegular = PdfFontFactory.CreateFont(StandardFonts.HELVETICA);
+
+            document.Add(new Paragraph($"UX Report for {report.Url}")
+                .SetFont(fontBold)
+                .SetFontSize(16));
+
+            document.Add(new Paragraph($"Generated on: {DateTime.UtcNow}")
+                .SetFont(fontRegular)
+                .SetFontSize(10));
+
+            document.Add(new Paragraph("\n--- UX Issues Found ---\n")
+                .SetFont(fontBold)
+                .SetFontSize(14));
+
+            if (issues == null || issues.Count == 0)
             {
-                _logger.LogDebug("Severity determined as High.");
-                return 3; // High Severity
+                document.Add(new Paragraph("No issues found.")
+                    .SetFont(fontRegular)
+                    .SetFontSize(12));
             }
-            if (aiText.Contains("should", StringComparison.OrdinalIgnoreCase))
+            else
             {
-                _logger.LogDebug("Severity determined as Medium.");
-                return 2; // Medium Severity
+                foreach (var issue in issues)
+                {
+                    document.Add(new Paragraph($"Category: {issue.CategoryId}")
+                        .SetFont(fontBold)
+                        .SetFontSize(12));
+
+                    document.Add(new Paragraph($"Severity: {issue.Severity}")
+                        .SetFont(fontRegular)
+                        .SetFontSize(11));
+
+                    document.Add(new Paragraph(issue.Message)
+                        .SetFont(fontRegular)
+                        .SetFontSize(10));
+
+                    document.Add(new Paragraph("\n"));
+                }
             }
-            _logger.LogDebug("Severity determined as Low.");
-            return 1; // Low Severity
+
+            document.Close();
+            return memoryStream.ToArray();
         }
     }
 }

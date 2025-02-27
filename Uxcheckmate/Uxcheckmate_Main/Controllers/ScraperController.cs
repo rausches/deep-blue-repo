@@ -1,8 +1,8 @@
-using System;
+/*using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Uxcheckmate_Main.Services;
-using System.Collections.Generic;
+using Uxcheckmate_Main.Models;
 
 namespace Uxcheckmate_Main.Controllers
 {
@@ -11,7 +11,7 @@ namespace Uxcheckmate_Main.Controllers
     public class ScraperController : ControllerBase
     {
         private readonly WebScraperService _scraperService;
-        private readonly PdfService _pdfService; // Add this
+        private readonly PdfService _pdfService;
 
         public ScraperController(WebScraperService scraperService, PdfService pdfService)
         {
@@ -20,7 +20,7 @@ namespace Uxcheckmate_Main.Controllers
         }
 
         [HttpGet("extract")]
-        public async Task<IActionResult> Extract([FromQuery] string url)
+        public async Task<IActionResult> Extract([FromQuery] string url, [FromQuery] bool exportPdf = false)
         {
             if (string.IsNullOrEmpty(url))
             {
@@ -29,7 +29,21 @@ namespace Uxcheckmate_Main.Controllers
 
             try
             {
-                var extractedData = await _scraperService.ScrapeAsync(url);
+                var extractedData = await _scraperService.ScrapeAsync(url); // ✅ Ensure this is a Dictionary<string, object>
+
+                if (exportPdf)
+                {
+                    var report = new Report
+                    {
+                        Url = url,
+                        Date = DateOnly.FromDateTime(DateTime.UtcNow),
+                        AccessibilityIssues = new List<AccessibilityIssue>(), // Populate with real data
+                        DesignIssues = new List<DesignIssue>() // Populate with real data
+                    };
+
+                    var pdfBytes = _pdfService.GenerateReportPdf(report);
+                    return File(pdfBytes, "application/pdf", "UX_Report.pdf");
+                }
 
                 return Ok(new
                 {
@@ -44,25 +58,6 @@ namespace Uxcheckmate_Main.Controllers
                 return BadRequest(new { error = ex.Message });
             }
         }
-
-        [HttpGet("export-pdf")]
-        public async Task<IActionResult> ExportPdf([FromQuery] string url)
-        {
-            if (string.IsNullOrEmpty(url))
-            {
-                return BadRequest("URL parameter is required.");
-            }
-
-            try
-            {
-                byte[] pdfBytes = await _pdfService.GeneratePdfAsync(url);
-
-                return File(pdfBytes, "application/pdf", "UX_Report.pdf");
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new { error = ex.Message });
-            }
-        }
     }
 }
+*/

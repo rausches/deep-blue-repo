@@ -103,9 +103,10 @@ else
     </table>
 }
 
-<!-- Export PDF Button -->
-<button id="exportPdfButton" class="btn btn-primary mt-3">Export as PDF</button>
-<input type="hidden" id="analyzed-url" value="@Model.Url" />
+<a asp-action="DownloadReport" asp-route-id="@Model.Id" class="btn btn-primary">
+    Download PDF Report
+</a>
+
 
 @section Scripts {
     <script src="~/js/reportResults.js"></script>
