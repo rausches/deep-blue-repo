@@ -10,7 +10,7 @@ using Moq.Protected;
 using NUnit.Framework;
 using Uxcheckmate_Main.Services;
 
-namespace Moq_Tests
+namespace Service_Tests
 {
     [TestFixture]
     public class BrokenLinks_Tests

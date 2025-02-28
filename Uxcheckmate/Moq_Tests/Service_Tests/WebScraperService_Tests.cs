@@ -8,10 +8,10 @@ using System.Threading.Tasks;
 using System.Collections.Generic;
 using Uxcheckmate_Main.Services;
 
-namespace Moq_Tests
+namespace Service_Tests
 {
     [TestFixture]
-    public class WebScraperServiceMock_Tests
+    public class WebScraperService_Tests
     {
         private Mock<HttpMessageHandler> _handlerMock;
         private HttpClient _httpClient;

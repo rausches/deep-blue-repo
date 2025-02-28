@@ -8,10 +8,10 @@ using Uxcheckmate_Main.Models;
 using Uxcheckmate_Main.Services;
 using Microsoft.Extensions.Logging.Abstractions;
 
-namespace Moq_Tests
+namespace Service_Tests
 {
     [TestFixture]
-    public class Pa11yMoq_Tests
+    public class Pa11yService_Tests
     {
         private WebScraperService _scraperService;
         private ILogger<AccessibilityController> _logger;

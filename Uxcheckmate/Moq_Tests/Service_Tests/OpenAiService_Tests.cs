@@ -12,7 +12,7 @@ using Uxcheckmate_Main.Models;
 using Uxcheckmate_Main.Services;
 using System.Collections.Generic;
 
-namespace Moq_Tests
+namespace Service_Tests
 {
     [TestFixture]
     public class OpenAiService_Tests
@@ -127,7 +127,40 @@ namespace Moq_Tests
             // Assert: The returned response should match the content from the fake API response.
             Assert.That(result, Is.EqualTo("Issue detected: Button is not accessible."));
         }
+        /* Test if FormatScrapedData function returns a formatted string */
+        [Test]
+        public void FormatScrapedData_ProducesExpectedOutput()
+        {
+            // Arrange: Create sample scraped data dictionary.
+            var scrapedData = new Dictionary<string, object>
+            {
+                { "headings", 5 },
+                { "images", 10 },
+                { "links", 8 },
+                { "fonts", new List<string> { "Arial", "Roboto", "Verdana" } },
+                { "text_content", "This is sample text for testing purposes." }
+            };
 
+            // Build the expected formatted output using Environment.NewLine.
+            string expected = string.Join(Environment.NewLine, new[]
+            {
+                "Headings Count: 5",
+                "Images Count: 10",
+                "Links Count: 8",
+                "Fonts Used: Arial, Roboto, Verdana",
+                "This is sample text for testing purposes.",
+                "" // Represents the trailing newline.
+            });
+
+            // Act: Use reflection to invoke the private FormatScrapedData method.
+            var method = _openAiService.GetType()
+                .GetMethod("FormatScrapedData", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            var result = method.Invoke(_openAiService, new object[] { scrapedData }) as string;
+
+            // Assert: Ensure the result is not null or empty and matches the expected output.
+            Assert.That(result, Is.Not.Null.And.Not.Empty, "FormatScrapedData returned null or empty string.");
+            Assert.That(result.Trim(), Is.EqualTo(expected.Trim()), "The formatted output does not match the expected value.");
+        }
         [TearDown]
         public void TearDown()
         {

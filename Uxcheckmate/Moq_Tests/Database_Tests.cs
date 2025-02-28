@@ -4,7 +4,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.EntityFrameworkCore;
 using Uxcheckmate_Main.Models;
 
-namespace Nunit_Tests
+namespace Database_Tests
 {
     public class Database_Tests
     {
