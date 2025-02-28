@@ -15,7 +15,7 @@ using System.Collections.Generic;
 namespace Moq_Tests
 {
     [TestFixture]
-    public class OpenAiServiceTests
+    public class OpenAiService_Tests
     {
         private Mock<HttpMessageHandler> _mockHttpMessageHandler;
         private HttpClient _httpClient;

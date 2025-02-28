@@ -11,7 +11,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 namespace Moq_Tests
 {
     [TestFixture]
-    public class Pa11yMoqTests
+    public class Pa11yMoq_Tests
     {
         private WebScraperService _scraperService;
         private ILogger<AccessibilityController> _logger;

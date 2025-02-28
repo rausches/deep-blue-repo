@@ -11,7 +11,7 @@ using Uxcheckmate_Main.Services;
 namespace Moq_Tests
 {
     [TestFixture]
-    public class WebScraperServiceMockTests
+    public class WebScraperServiceMock_Tests
     {
         private Mock<HttpMessageHandler> _handlerMock;
         private HttpClient _httpClient;

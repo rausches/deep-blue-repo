@@ -6,7 +6,7 @@ using Uxcheckmate_Main.Models;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.EntityFrameworkCore;
 
-namespace Uxcheckmate_Tests.Services
+namespace Nunit_Tests
 {
     [TestFixture]
     public class OpenAiServiceUnitTests
