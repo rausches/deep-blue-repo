@@ -42,6 +42,28 @@ public class HomeController : Controller
 
        try
         {
+            // Check if the URL is reachable
+            using (var httpClient = new HttpClient())
+            {
+                var request = new HttpRequestMessage(HttpMethod.Head, url);
+                // Sending a HEAD request to the URL to check if it is reachable
+                HttpResponseMessage response;
+                try{
+                    response = await httpClient.SendAsync(request);
+                }
+                catch (HttpRequestException ex)
+                {
+                    _logger.LogError(ex, "The URL is unreachable: {Url}", url);
+                    TempData["UrlUnreachable"] = "The URL you entered seems incorrect or no longer exists. Please try again.";
+                    return RedirectToAction("Index");
+                }
+                if (!response.IsSuccessStatusCode)
+                {
+                    _logger.LogError("The URL is unreachable: {Url}", url);
+                    TempData["UrlUnreachable"] = "The URL you entered seems incorrect or no longer exists. Please try again.";
+                    return RedirectToAction("Index");
+                }
+            }
             // Create and save the report record.
             var report = new Report
             {
