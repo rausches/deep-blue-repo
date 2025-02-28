@@ -6,7 +6,7 @@ using Uxcheckmate_Main.Controllers;
 using Uxcheckmate_Main.Models;
 using Uxcheckmate_Main.Services; 
 
-namespace Moq_Tests.ErrorPage_Tests
+namespace Moq_Tests
 {
     public class ErrorPage_Tests
     {

@@ -8,7 +8,7 @@ using Uxcheckmate_Main.Models;
 using Uxcheckmate_Main.Services;
 using Microsoft.Extensions.Logging.Abstractions;
 
-namespace Uxcheckmate_Main.Moq_Test
+namespace Moq_Tests
 {
     [TestFixture]
     public class Pa11yMoqTests

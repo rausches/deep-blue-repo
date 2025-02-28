@@ -12,7 +12,7 @@ using Uxcheckmate_Main.Models;
 using Uxcheckmate_Main.Services;
 using System.Collections.Generic;
 
-namespace Moq_Tests.OpenAiService_Tests
+namespace Moq_Tests
 {
     [TestFixture]
     public class OpenAiServiceTests

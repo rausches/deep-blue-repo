@@ -8,112 +8,115 @@ using System.Threading.Tasks;
 using System.Collections.Generic;
 using Uxcheckmate_Main.Services;
 
-[TestFixture]
-public class WebScraperServiceMockTests
+namespace Moq_Tests
 {
-    private Mock<HttpMessageHandler> _handlerMock;
-    private HttpClient _httpClient;
-
-    [SetUp]
-    public void Setup()
+    [TestFixture]
+    public class WebScraperServiceMockTests
     {
-        _handlerMock = new Mock<HttpMessageHandler>();
-        _httpClient = new HttpClient(_handlerMock.Object) ?? throw new System.Exception("HttpClient initialization failed");
-    }
+        private Mock<HttpMessageHandler> _handlerMock;
+        private HttpClient _httpClient;
 
-    [TearDown]
-    public void Cleanup()
-    {
-        _httpClient?.Dispose();
-    }
+        [SetUp]
+        public void Setup()
+        {
+            _handlerMock = new Mock<HttpMessageHandler>();
+            _httpClient = new HttpClient(_handlerMock.Object) ?? throw new System.Exception("HttpClient initialization failed");
+        }
 
-    [Test]
-    public async Task FetchHtmlAsync_ShouldReturnEmptyHtmlContent_MarinaOfficial()
-    {
-        // Arrange
-        var expectedUrl = "https://marinaofficial.co.uk/";
-        _handlerMock
-            .Protected()
-            .Setup<Task<HttpResponseMessage>>(
-                "SendAsync",
-                ItExpr.Is<HttpRequestMessage>(req => req.RequestUri.ToString() == expectedUrl),
-                ItExpr.IsAny<CancellationToken>())
-            .ReturnsAsync(new HttpResponseMessage
-            {
-                StatusCode = HttpStatusCode.OK,
-                Content = new StringContent("")
-            });
+        [TearDown]
+        public void Cleanup()
+        {
+            _httpClient?.Dispose();
+        }
 
-        var scraperService = new WebScraperService(_httpClient);
+        [Test]
+        public async Task FetchHtmlAsync_ShouldReturnEmptyHtmlContent_MarinaOfficial()
+        {
+            // Arrange
+            var expectedUrl = "https://marinaofficial.co.uk/";
+            _handlerMock
+                .Protected()
+                .Setup<Task<HttpResponseMessage>>(
+                    "SendAsync",
+                    ItExpr.Is<HttpRequestMessage>(req => req.RequestUri.ToString() == expectedUrl),
+                    ItExpr.IsAny<CancellationToken>())
+                .ReturnsAsync(new HttpResponseMessage
+                {
+                    StatusCode = HttpStatusCode.OK,
+                    Content = new StringContent("")
+                });
 
-        // Act
-        var result = await scraperService.FetchHtmlAsync(expectedUrl);
+            var scraperService = new WebScraperService(_httpClient);
 
-        // Assert
-        Assert.That(result, Is.EqualTo(string.Empty), "Expected empty HTML content but got something else.");
-    }
+            // Act
+            var result = await scraperService.FetchHtmlAsync(expectedUrl);
 
-    [Test]
-    public async Task FetchHtmlAsync_ShouldReturnHtmlContent_WouEdu()
-    {
-        // Arrange
-        var expectedUrl = "https://wou.edu/";
-        _handlerMock
-            .Protected()
-            .Setup<Task<HttpResponseMessage>>(
-                "SendAsync",
-                ItExpr.Is<HttpRequestMessage>(req => req.RequestUri.ToString() == expectedUrl),
-                ItExpr.IsAny<CancellationToken>())
-            .ReturnsAsync(new HttpResponseMessage
-            {
-                StatusCode = HttpStatusCode.OK,
-                Content = new StringContent("<html><body>Mocked Content</body></html>")
-            });
+            // Assert
+            Assert.That(result, Is.EqualTo(string.Empty), "Expected empty HTML content but got something else.");
+        }
 
-        var scraperService = new WebScraperService(_httpClient);
+        [Test]
+        public async Task FetchHtmlAsync_ShouldReturnHtmlContent_WouEdu()
+        {
+            // Arrange
+            var expectedUrl = "https://wou.edu/";
+            _handlerMock
+                .Protected()
+                .Setup<Task<HttpResponseMessage>>(
+                    "SendAsync",
+                    ItExpr.Is<HttpRequestMessage>(req => req.RequestUri.ToString() == expectedUrl),
+                    ItExpr.IsAny<CancellationToken>())
+                .ReturnsAsync(new HttpResponseMessage
+                {
+                    StatusCode = HttpStatusCode.OK,
+                    Content = new StringContent("<html><body>Mocked Content</body></html>")
+                });
 
-        // Act
-        var result = await scraperService.FetchHtmlAsync(expectedUrl);
+            var scraperService = new WebScraperService(_httpClient);
 
-        // Assert
-        Assert.That(result, Is.Not.Empty, "Expected non-empty HTML content but got empty string.");
-        Assert.That(result, Is.EqualTo("<html><body>Mocked Content</body></html>"), "HTML content mismatch.");
-    }
+            // Act
+            var result = await scraperService.FetchHtmlAsync(expectedUrl);
 
-    [Test]
-    public async Task ScrapeAsync_ShouldReturnCorrectElementCounts()
-    {
-        // Arrange
-        var expectedUrl = "https://example.com/";
-        var mockHtml = "<html><body>" +
-                       "<h2>Heading 1</h2><h2>Heading 2</h2>" +
-                       "<img src='img1.jpg'/><img src='img2.jpg'/><img src='img3.jpg'/>" +
-                       "<a href='link1.html'></a><a href='link2.html'></a>" +
-                       "</body></html>";
+            // Assert
+            Assert.That(result, Is.Not.Empty, "Expected non-empty HTML content but got empty string.");
+            Assert.That(result, Is.EqualTo("<html><body>Mocked Content</body></html>"), "HTML content mismatch.");
+        }
 
-        _handlerMock
-            .Protected()
-            .Setup<Task<HttpResponseMessage>>(
-                "SendAsync",
-                ItExpr.Is<HttpRequestMessage>(req => req.RequestUri.ToString() == expectedUrl),
-                ItExpr.IsAny<CancellationToken>())
-            .ReturnsAsync(new HttpResponseMessage
-            {
-                StatusCode = HttpStatusCode.OK,
-                Content = new StringContent(mockHtml)
-            });
+        [Test]
+        public async Task ScrapeAsync_ShouldReturnCorrectElementCounts()
+        {
+            // Arrange
+            var expectedUrl = "https://example.com/";
+            var mockHtml = "<html><body>" +
+                        "<h2>Heading 1</h2><h2>Heading 2</h2>" +
+                        "<img src='img1.jpg'/><img src='img2.jpg'/><img src='img3.jpg'/>" +
+                        "<a href='link1.html'></a><a href='link2.html'></a>" +
+                        "</body></html>";
 
-        var scraperService = new WebScraperService(_httpClient);
+            _handlerMock
+                .Protected()
+                .Setup<Task<HttpResponseMessage>>(
+                    "SendAsync",
+                    ItExpr.Is<HttpRequestMessage>(req => req.RequestUri.ToString() == expectedUrl),
+                    ItExpr.IsAny<CancellationToken>())
+                .ReturnsAsync(new HttpResponseMessage
+                {
+                    StatusCode = HttpStatusCode.OK,
+                    Content = new StringContent(mockHtml)
+                });
 
-        // Act
-        var result = await scraperService.ScrapeAsync(expectedUrl);
+            var scraperService = new WebScraperService(_httpClient);
 
-        // Debugging output
-        TestContext.WriteLine($"Scraped {result["headings"]} headings.");
-        TestContext.WriteLine($"Scraped {result["images"]} images.");
+            // Act
+            var result = await scraperService.ScrapeAsync(expectedUrl);
 
-        // Assert expected counts
-        Assert.That(result["headings"], Is.EqualTo(2), "Incorrect number of headings scraped.");
-        Assert.That(result["images"], Is.EqualTo(3), "Incorrect number of images scraped.");
+            // Debugging output
+            TestContext.WriteLine($"Scraped {result["headings"]} headings.");
+            TestContext.WriteLine($"Scraped {result["images"]} images.");
+
+            // Assert expected counts
+            Assert.That(result["headings"], Is.EqualTo(2), "Incorrect number of headings scraped.");
+            Assert.That(result["images"], Is.EqualTo(3), "Incorrect number of images scraped.");
+        }
     }
 }
