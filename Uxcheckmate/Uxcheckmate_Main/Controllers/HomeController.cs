@@ -15,12 +15,16 @@ public class HomeController : Controller
     private readonly IOpenAiService _openAiService; 
     private readonly IReportService _reportService;
 
-    public HomeController(ILogger<HomeController> logger, HttpClient httpClient, UxCheckmateDbContext dbContext, IOpenAiService openAiService, IPa11yService pa11yService, IReportService reportService)
+    private readonly PdfExportService _pdfExportService;
+
+    public HomeController(ILogger<HomeController> logger, HttpClient httpClient, UxCheckmateDbContext dbContext, 
+        IOpenAiService openAiService, IPa11yService pa11yService, IReportService reportService, PdfExportService pdfExportService)
     {
         _logger = logger;
         _httpClient = httpClient;
         _context = dbContext;
         _reportService = reportService;
+        _pdfExportService = pdfExportService;
     }
 
     [HttpGet]
@@ -110,5 +114,22 @@ public class HomeController : Controller
     public IActionResult Error()
     {
         return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> DownloadReport(int id)
+    {
+        var report = await _context.Reports
+            .Include(r => r.AccessibilityIssues)
+            .Include(r => r.DesignIssues)
+            .FirstOrDefaultAsync(r => r.Id == id);
+
+        if (report == null)
+        {
+            return NotFound("Report not found.");
+        }
+
+        var pdfBytes = _pdfExportService.GenerateReportPdf(report);
+        return File(pdfBytes, "application/pdf", $"UXCheckmate_Report_{report.Id}.pdf");
     }
 }

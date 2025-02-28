@@ -45,6 +45,69 @@ else
     </table>
 }
 
+<h3>Accessibility Issues</h3>
+<p>Total Issues: @Model.AccessibilityIssues.Count()</p>
+
+@if (Model.AccessibilityIssues == null || !Model.AccessibilityIssues.Any())
+{
+    <div class="alert alert-success">
+        <strong>No accessibility issues found!</strong>
+    </div>
+}
+else
+{
+    <table class="table table-striped table-bordered">
+        <thead class="thead-dark">
+            <tr>
+                <th>Category</th>
+                <th>Issue</th>
+                <th>Selector</th>
+                <th>Severity</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var categoryGroup in Model.AccessibilityIssues
+                         .GroupBy(issue => issue.Category?.Name)
+                         .OrderBy(g => g.Key == "Other" ? 1 : 0)
+                         .ThenBy(g => g.Key))
+            {
+                <tr class="table-secondary">
+                    <td colspan="4">
+                        <strong>@categoryGroup.Key</strong>
+                    </td>
+                </tr>
+                @foreach (var issue in categoryGroup)
+                {
+                    <tr>
+                        <td>@issue.Category?.Name</td>
+                        <td>@issue.Message</td>
+                        <td>@issue.Selector</td>
+                        <td>
+                            @if (issue.Severity == 3)
+                            {
+                                <span class="badge bg-danger">High</span>
+                            }
+                            else if (issue.Severity == 2)
+                            {
+                                <span class="badge bg-warning">Medium</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-info">Low</span>
+                            }
+                        </td>
+                    </tr>
+                }
+            }
+        </tbody>
+    </table>
+}
+
+<a asp-action="DownloadReport" asp-route-id="@Model.Id" class="btn btn-primary">
+    Download PDF Report
+</a>
+
+
 @section Scripts {
     <script src="~/js/reportResults.js"></script>
 }
