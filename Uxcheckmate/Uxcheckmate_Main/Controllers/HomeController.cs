@@ -13,7 +13,6 @@ public class HomeController : Controller
     private readonly HttpClient _httpClient; 
     private readonly UxCheckmateDbContext _context;
     private readonly IOpenAiService _openAiService; 
-    private readonly IPa11yService _pa11yService;
     private readonly IReportService _reportService;
 
     private readonly PdfExportService _pdfExportService;
@@ -25,7 +24,6 @@ public class HomeController : Controller
         _httpClient = httpClient;
         _context = dbContext;
         _reportService = reportService;
-        _pa11yService = pa11yService;
         _pdfExportService = pdfExportService;
     }
 
@@ -58,12 +56,10 @@ public class HomeController : Controller
             await _context.SaveChangesAsync();
             _logger.LogInformation("Report record created with ID: {ReportId}", report.Id);
            
-            await _pa11yService.AnalyzeAndSaveAccessibilityReport(report);
             await _reportService.GenerateReportAsync(report);
 
             // Fetch the full report 
             var fullReport = await _context.Reports
-                .Include(r => r.AccessibilityIssues) // Load accessibility issues
                 .Include(r => r.DesignIssues) // Load design issues
                 .FirstOrDefaultAsync(r => r.Id == report.Id);
 
@@ -105,6 +101,13 @@ public class HomeController : Controller
     public IActionResult Disclosure()
     {
         return View();
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> Guide()
+    {
+        var designCategories = await _context.DesignCategories.ToListAsync(); // Fetch Design Categories
+        return View(designCategories);
     }
 
     [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
