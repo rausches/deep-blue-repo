@@ -168,7 +168,7 @@ namespace Service_Tests
         }
     }
 
-    // Helper classes to match the OpenAiResponse structure in your code.
+    // Helper classes to match the OpenAiResponse
     public class OpenAiResponse
     {
         public List<Choice> Choices { get; set; }
