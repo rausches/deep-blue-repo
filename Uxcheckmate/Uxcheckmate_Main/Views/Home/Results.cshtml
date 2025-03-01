@@ -44,7 +44,7 @@ else
         </tbody>
     </table>
 }
-<h3>Accessibility Issues</h3>
+<h3 class="text-center">Accessibility Issues</h3>
 <p>Total Issues: @Model.AccessibilityIssues.Count()</p>
 @if (Model.AccessibilityIssues == null || !Model.AccessibilityIssues.Any())
 {
@@ -101,6 +101,9 @@ else
             }
         </tbody>
     </table>
+
+
+
 }
 
 @section Scripts {
