@@ -103,7 +103,7 @@ namespace Uxcheckmate_Main.Services
                 case "Visual Hierarchy":
                     _logger.LogDebug("Delegating Visual Hierarchy analysis for URL: {Url}", url);
                     return await _headingHierarchyService.AnalyzeAsync(url);
-                case "Dynamic Sizing":
+                case "Mobile Responsiveness":
                     _logger.LogDebug("Delegating Dynamic Sizing analysis for URL: {Url}", url);
                     var hasDynamicSizing = _dynamicSizingService.HasDynamicSizing(scrapedData["htmlContent"].ToString());
 
