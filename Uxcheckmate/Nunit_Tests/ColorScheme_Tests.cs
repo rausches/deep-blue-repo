@@ -122,5 +122,105 @@ namespace Uxcheckmate_Tests
             Assert.That(tagCharacterCount.ContainsKey("p"), "Paragraph should be counted.");
             Assert.AreEqual(21, tagCharacterCount["p"], "Paragraph should have 21 characters.");
         }
+        [Test]
+        public void DefaultSizingForTags()
+        {
+            // Html without sizing
+            string htmlContent = @"
+                <h1>Main Header</h1>
+                <p>Paragraph text.</p>";       
+            List<string> externalCss = new List<string>();
+            var result = _colorService.ExtractHtmlElements(htmlContent, externalCss);
+            var tagFontSizes = (Dictionary<string, int>)result["tag_font_sizes"];
+            // h1 needs to be 32 px and p needs to be 16px
+            Assert.AreEqual(32, tagFontSizes["h1"], "Default font size for <h1> should be 32px.");
+            Assert.AreEqual(16, tagFontSizes["p"], "Default font size for <p> should be 16px.");
+        }
+        [Test]
+        public void ShouldUseClassFontSize()
+        {
+            // Class font size
+            string htmlContent = @"
+                <style>
+                    .large-text { font-size: 24px; }
+                </style>
+                <p class='large-text'>Big text</p>";
+            List<string> externalCss = new List<string>();
+            var result = _colorService.ExtractHtmlElements(htmlContent, externalCss);
+            var classFontSizes = (Dictionary<string, int>)result["class_font_sizes"];
+            Assert.That(classFontSizes.ContainsKey("large-text"), "Class should have a font size.");
+            Assert.AreEqual(24, classFontSizes["large-text"], "Class 'large-text' should have a font size of 24px.");
+        }
+        [Test]
+        public void TagInlineFontSize()
+        {
+            // Inline font size
+            string htmlContent = @"<h2 style='font-size: 30px;'>Big Heading</h2>";
+            List<string> externalCss = new List<string>();
+            var result = _colorService.ExtractHtmlElements(htmlContent, externalCss);
+            var tagFontSizes = (Dictionary<string, int>)result["tag_font_sizes"];
+            Assert.That(tagFontSizes.ContainsKey("h2"), "Inline font size should be detected.");
+            // Should contain inline size
+            Assert.AreEqual(30, tagFontSizes["h2"], "Inline font size for <h2> should override default.");
+        }
+        [Test]
+        public void InlineOverClassFontsize()
+        {
+            // Class with inline and overidden by inline
+            string htmlContent = @"
+                <style>
+                    .medium-text { font-size: 22px; }
+                </style>
+                <h3 class='medium-text' style='font-size: 28px;'>Larger Text</h3>";
+            List<string> externalCss = new List<string>();
+            var result = _colorService.ExtractHtmlElements(htmlContent, externalCss);
+            var tagFontSizes = (Dictionary<string, int>)result["tag_font_sizes"];
+            var classFontSizes = (Dictionary<string, int>)result["class_font_sizes"];
+            // Should still contain class font
+            Assert.That(classFontSizes.ContainsKey("medium-text"), "Class font size should be detected.");
+            Assert.AreEqual(22, classFontSizes["medium-text"], "Class 'medium-text' should have 22px.");
+            // However it should add to inline
+            Assert.That(tagFontSizes.ContainsKey("h3"), "Tag font size should be detected.");
+            Assert.AreEqual(28, tagFontSizes["h3"], "Inline font size (28px) should override class size.");
+        }
+        [Test]
+        public void NoFontSizeChangeInClass()
+        {
+            string htmlContent = @"
+                <style>
+                    .no-size { color: red; }
+                </style>
+                <h4 class='no-size'>Small Header</h4>";
+            List<string> externalCss = new List<string>();
+            var result = _colorService.ExtractHtmlElements(htmlContent, externalCss);
+            var tagFontSizes = (Dictionary<string, int>)result["tag_font_sizes"];
+            // Should set for default
+            Assert.That(tagFontSizes.ContainsKey("h4"), "Default font size should be assigned.");
+            Assert.AreEqual(16, tagFontSizes["h4"], "Default size for <h4> should be 16px if not explicitly set.");
+        }
+        [Test]
+        public void CountCharactersWithFontSizes()
+        {
+            string htmlContent = @"
+                <style>
+                    .big { font-size: 30px; }
+                </style>
+                <h1 class='big'>Huge</h1>
+                <p style='font-size: 12px;'>Small</p>";
+            List<string> externalCss = new List<string>();
+            var result = _colorService.ExtractHtmlElements(htmlContent, externalCss);
+            // Setup for counting characters
+            var tagFontSizes = (Dictionary<string, int>)result["tag_font_sizes"];
+            var classFontSizes = (Dictionary<string, int>)result["class_font_sizes"];
+            var tagCharacterCount = (Dictionary<string, int>)result["character_count_per_tag"];
+            var classCharacterCount = (Dictionary<string, int>)result["character_count_per_class"];
+            // Checking each match with size and character amount
+            Assert.AreEqual(30, classFontSizes["big"], "Class 'big' should have font size 30px.");
+            Assert.AreEqual(12, tagFontSizes["p"], "Paragraph should have an inline font size of 12px.");
+            Assert.That(classCharacterCount.ContainsKey("big"), "Class 'big' should have character count.");
+            Assert.AreEqual(4, classCharacterCount["big"], "Class 'big' should count 4 characters from <h1>.");
+            Assert.That(tagCharacterCount.ContainsKey("p"), "Paragraph should count characters.");
+            Assert.AreEqual(5, tagCharacterCount["p"], "Paragraph should count 5 characters.");
+        }
     }
 }
