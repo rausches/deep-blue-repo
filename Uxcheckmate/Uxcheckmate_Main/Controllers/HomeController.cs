@@ -15,12 +15,16 @@ public class HomeController : Controller
     private readonly IOpenAiService _openAiService; 
     private readonly IReportService _reportService;
 
-    public HomeController(ILogger<HomeController> logger, HttpClient httpClient, UxCheckmateDbContext dbContext, IOpenAiService openAiService, IPa11yService pa11yService, IReportService reportService)
+    private readonly PdfExportService _pdfExportService;
+
+    public HomeController(ILogger<HomeController> logger, HttpClient httpClient, UxCheckmateDbContext dbContext, 
+        IOpenAiService openAiService, IPa11yService pa11yService, IReportService reportService, PdfExportService pdfExportService)
     {
         _logger = logger;
         _httpClient = httpClient;
         _context = dbContext;
         _reportService = reportService;
+        _pdfExportService = pdfExportService;
     }
 
     [HttpGet]
@@ -40,6 +44,28 @@ public class HomeController : Controller
 
        try
         {
+            // Check if the URL is reachable
+            using (var httpClient = new HttpClient())
+            {
+                var request = new HttpRequestMessage(HttpMethod.Head, url);
+                // Sending a HEAD request to the URL to check if it is reachable
+                HttpResponseMessage response;
+                try{
+                    response = await httpClient.SendAsync(request);
+                }
+                catch (HttpRequestException ex)
+                {
+                    _logger.LogError(ex, "The URL is unreachable: {Url}", url);
+                    TempData["UrlUnreachable"] = "The URL you entered seems incorrect or no longer exists. Please try again.";
+                    return RedirectToAction("Index");
+                }
+                if (!response.IsSuccessStatusCode)
+                {
+                    _logger.LogError("The URL is unreachable: {Url}", url);
+                    TempData["UrlUnreachable"] = "The URL you entered seems incorrect or no longer exists. Please try again.";
+                    return RedirectToAction("Index");
+                }
+            }
             // Create and save the report record.
             var report = new Report
             {
@@ -110,5 +136,22 @@ public class HomeController : Controller
     public IActionResult Error()
     {
         return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> DownloadReport(int id)
+    {
+        var report = await _context.Reports
+            .Include(r => r.AccessibilityIssues)
+            .Include(r => r.DesignIssues)
+            .FirstOrDefaultAsync(r => r.Id == id);
+
+        if (report == null)
+        {
+            return NotFound("Report not found.");
+        }
+
+        var pdfBytes = _pdfExportService.GenerateReportPdf(report);
+        return File(pdfBytes, "application/pdf", $"UXCheckmate_Report_{report.Id}.pdf");
     }
 }

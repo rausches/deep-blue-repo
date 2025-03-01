@@ -7,6 +7,8 @@ using Uxcheckmate_Main.Services;
 using HtmlAgilityPack;
 using System.Net.Http;
 using Microsoft.Build.Framework;
+using QuestPDF;
+using QuestPDF.Infrastructure;
 
 namespace Uxcheckmate_Main;
 
@@ -14,6 +16,8 @@ public class Program
 {
     public static void Main(string[] args)
     {
+        QuestPDF.Settings.License = LicenseType.Community; // Add this line
+
         var builder = WebApplication.CreateBuilder(args);
 
         string openAiApiKey = builder.Configuration["OpenAiApiKey"];
@@ -48,6 +52,8 @@ public class Program
         builder.Services.AddScoped<IPa11yService, Pa11yService>();
         builder.Services.AddScoped<Pa11yUrlBasedService>();
         Console.WriteLine("Pa11yUrlBasedService registered");
+
+        builder.Services.AddScoped<PdfExportService>();
 
         // Register Report Services
         builder.Services.AddScoped<IReportService, ReportService>();
