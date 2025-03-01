@@ -10,6 +10,6 @@ namespace Uxcheckmate_Main.DAL.Abstract
 {
     public interface IReportRepository : IRepository<Report>
     {
-        
+
     }
 }
