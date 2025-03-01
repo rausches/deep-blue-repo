@@ -93,7 +93,7 @@ namespace Uxcheckmate_Main.Services
         private async Task<string> RunCustomAnalysisAsync(string url, string categoryName, string categoryDescription, Dictionary<string, object> scrapedData)
         {
             _logger.LogInformation("Running custom analysis for category: {CategoryName}", categoryName);
-            return categoryName switch
+            switch (categoryName)
             {
                 case "Broken Links":
                     _logger.LogDebug("Delegating Broken Links analysis for URL: {Url}", url);
