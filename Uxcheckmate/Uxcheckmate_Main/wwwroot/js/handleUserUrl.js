@@ -1,7 +1,7 @@
 ﻿// JavaScript file to handle user input URL
 // Function to validate the URL format
 function validateURL(urlInput) {
-    var urlRegex = /^(https?:\/\/)?([\w-]+\.)+[\w-]+(\/[\w-]*)*$/;
+    var urlRegex = /^(https?:\/\/)([\w-]+\.)+[\w-]+(\/[\w-]*)*$/;
     return urlRegex.test(urlInput);
 }
 
@@ -34,7 +34,7 @@ function handleUserUrl(event) {
     }
 
     //Check if domain extension is missing
-    if (!/\.[a-z]{2,}\/?$/.test(urlInput)) {
+    if (!/\.[a-z]{2,}($|\/)/.test(urlInput)) {
         responseMessage.innerHTML = `
         <div class='alert alert-danger'>
             <h5><strong>Missing or incorrect domain extension.</strong></h5>
