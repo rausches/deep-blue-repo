@@ -22,8 +22,9 @@ namespace Uxcheckmate_Main.Services
         private readonly IOpenAiService _openAiService; 
         private readonly IBrokenLinksService _brokenLinksService;
         private readonly IHeadingHierarchyService _headingHierarchyService;
+        private readonly IDynamicSizingService _dynamicSizingService;
 
-        public ReportService(HttpClient httpClient, ILogger<ReportService> logger, UxCheckmateDbContext context, IOpenAiService openAiService, IBrokenLinksService brokenLinksService, IHeadingHierarchyService headingHierarchyService)
+        public ReportService(HttpClient httpClient, ILogger<ReportService> logger, UxCheckmateDbContext context, IOpenAiService openAiService, IBrokenLinksService brokenLinksService, IHeadingHierarchyService headingHierarchyService, IDynamicSizingService dynamicSizingService)
         {
             _httpClient = httpClient;
             _dbContext = context;
@@ -31,6 +32,7 @@ namespace Uxcheckmate_Main.Services
             _logger = logger;
             _brokenLinksService = brokenLinksService;
             _headingHierarchyService = headingHierarchyService;
+            _dynamicSizingService = dynamicSizingService;
         }
 
         public async Task<ICollection<DesignIssue>> GenerateReportAsync(Report report)
@@ -101,11 +103,28 @@ namespace Uxcheckmate_Main.Services
                 case "Visual Hierarchy":
                     _logger.LogDebug("Delegating Visual Hierarchy analysis for URL: {Url}", url);
                     return await _headingHierarchyService.AnalyzeAsync(url);
-                // Add additional cases for other custom analyses here
+                case "Mobile Responsiveness":
+                    _logger.LogDebug("Delegating Dynamic Sizing analysis for URL: {Url}", url);
+                    var hasDynamicSizing = _dynamicSizingService.HasDynamicSizing(scrapedData["htmlContent"].ToString());
+
+                if (!hasDynamicSizing)
+                {
+                    string prompt = $"The website at {url} is missing dynamic sizing elements (e.g., media queries, viewport meta tag, flexbox/grid layout). Please provide a recommendation on how to implement dynamic sizing.";
+                    return await _openAiService.AnalyzeWithOpenAI(url, "Dynamic Sizing", "Check if the website has proper dynamic sizing elemenst", scrapedData);
+
+                }
+                else
+                {
+                    _logger.LogDebug("Dynamic sizing elements are present. No recommendations needed.");
+                    return string.Empty;
+                }
+
                 default:
                     _logger.LogDebug("No custom analysis implemented for category: {CategoryName}", categoryName);
                     return string.Empty;
             }
+                // Add additional cases for other custom analyses here
+
         }
 
         private int DetermineSeverity(string aiText)

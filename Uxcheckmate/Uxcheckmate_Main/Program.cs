@@ -59,6 +59,7 @@ public class Program
         builder.Services.AddScoped<IReportService, ReportService>();
         builder.Services.AddScoped<IBrokenLinksService, BrokenLinksService>();
         builder.Services.AddScoped<IHeadingHierarchyService, HeadingHierarchyService>();
+        builder.Services.AddScoped<IDynamicSizingService, DynamicSizingService>();
 
         var app = builder.Build();
 
