@@ -258,5 +258,68 @@ namespace Uxcheckmate_Tests
             var backgroundColor = (string)result["background_color"];
             Assert.That(backgroundColor, Is.EqualTo("#FFFFFF"), "Background color should default to white if unspecified.");
         }
+        [Test]
+        public void CalculatePixelUsage()
+        {
+            var extractedData = new Dictionary<string, object>
+            {
+                { "character_count_per_tag", new Dictionary<string, int> { { "p", 50 }, { "h1", 20 } } },
+                { "character_count_per_class", new Dictionary<string, int> { { "classClass", 30 } } },
+                { "tag_font_sizes", new Dictionary<string, int> { { "p", 16 }, { "h1", 32 } } },
+                { "class_font_sizes", new Dictionary<string, int> { { "classClass", 24 } } },
+                { "tag_colors", new Dictionary<string, string> { { "p", "#000000" }, { "h1", "#FF0000" } } },
+                { "class_colors", new Dictionary<string, string> { { "classClass", "#00FF00" } } }
+            };
+            var result = _colorService.EstimateColorPixelUsage(extractedData);
+            Assert.That(result["#000000"], Is.EqualTo(50 * (16 * 0.5) * 16), "Pixel area for <p> should be correctly calculated.");
+            Assert.That(result["#FF0000"], Is.EqualTo(20 * (32 * 0.5) * 32), "Pixel area for <h1> should be correctly calculated.");
+            Assert.That(result["#00FF00"], Is.EqualTo(30 * (24 * 0.5) * 24), "Pixel area for 'classClass' should be correctly calculated.");
+        }
+        [Test]
+        public void ColorPixelDefaultFontSize()
+        {
+            var extractedData = new Dictionary<string, object>
+            {
+                { "character_count_per_tag", new Dictionary<string, int> { { "p", 40 } } },
+                { "character_count_per_class", new Dictionary<string, int>() },
+                { "tag_font_sizes", new Dictionary<string, int>() },
+                { "class_font_sizes", new Dictionary<string, int>() },
+                { "tag_colors", new Dictionary<string, string> { { "p", "#000000" } } },
+                { "class_colors", new Dictionary<string, string>() }
+            };
+            var result = _colorService.EstimateColorPixelUsage(extractedData);
+            int expectedPixels = (int)(40 * (16 * 0.5) * 16);
+            Assert.That(result["#000000"], Is.EqualTo(expectedPixels), "Should use default font size of 16px for <p> when missing.");
+        }
+        [Test]
+        public void EmptyColorPixelInput()
+        {
+            var extractedData = new Dictionary<string, object>
+            {
+                { "character_count_per_tag", new Dictionary<string, int>() },
+                { "character_count_per_class", new Dictionary<string, int>() },
+                { "tag_font_sizes", new Dictionary<string, int>() },
+                { "class_font_sizes", new Dictionary<string, int>() },
+                { "tag_colors", new Dictionary<string, string>() },
+                { "class_colors", new Dictionary<string, string>() }
+            };
+            var result = _colorService.EstimateColorPixelUsage(extractedData);
+            Assert.That(result, Is.Empty, "Function should return an empty dictionary for empty inputs.");
+        }
+        [Test]
+        public void ColorPixelLargeValues()
+        {
+            var extractedData = new Dictionary<string, object>
+            {
+                { "character_count_per_tag", new Dictionary<string, int> { { "h1", 10000 } } },
+                { "character_count_per_class", new Dictionary<string, int>() },
+                { "tag_font_sizes", new Dictionary<string, int> { { "h1", 32 } } },
+                { "class_font_sizes", new Dictionary<string, int>() },
+                { "tag_colors", new Dictionary<string, string> { { "h1", "#FF0000" } } },
+                { "class_colors", new Dictionary<string, string>() }
+            };
+            var result = _colorService.EstimateColorPixelUsage(extractedData);
+            Assert.That(result["#FF0000"], Is.EqualTo(10000 * (32 * 0.5) * 32), "Should correctly compute large pixel values.");
+        }
     }
 }
