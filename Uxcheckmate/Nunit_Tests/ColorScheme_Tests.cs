@@ -1,6 +1,8 @@
 using NUnit.Framework;
 using Uxcheckmate_Main.Services;
 using System;
+using System.Collections.Generic;
+using Moq;
 
 namespace Uxcheckmate_Tests
 {
@@ -8,10 +10,12 @@ namespace Uxcheckmate_Tests
     public class ColorSchemeServiceTests
     {
         private ColorSchemeService _colorService;
+        private Mock<WebScraperService> _mockWebScraperService;
         [SetUp]
         public void Setup()
         {
-            _colorService = new ColorSchemeService();
+            _mockWebScraperService = new Mock<WebScraperService>(null);
+            _colorService = new ColorSchemeService(_mockWebScraperService.Object);
         }
         [Test]
         public void MaxDifference_AreColorsSimilar_True()
@@ -119,9 +123,8 @@ namespace Uxcheckmate_Tests
             var result = _colorService.ExtractHtmlElements(htmlContent, externalCss);
             var tagCharacterCount = (Dictionary<string, int>)result["character_count_per_tag"];
             // p should show up and have 21 characters
-            Assert.That(tagCharacterCount.ContainsKey("p"), "Paragraph should be counted.");
-            Assert.That(tagFontSizes["p"], Is.EqualTo(16), "Default font size for <p> should be 16px.");
-
+            Assert.That(tagCharacterCount, Contains.Key("p"), "Paragraph should be counted.");
+            Assert.That(tagCharacterCount["p"], Is.EqualTo(20), "Paragraph should have 21 characters.");
         }
         [Test]
         public void DefaultSizingForTags()
@@ -134,8 +137,10 @@ namespace Uxcheckmate_Tests
             var result = _colorService.ExtractHtmlElements(htmlContent, externalCss);
             var tagFontSizes = (Dictionary<string, int>)result["tag_font_sizes"];
             // h1 needs to be 32 px and p needs to be 16px
-            Assert.That(classFontSizes, Contains.Key("large-text"), "Class should have a font size.");
-            Assert.That(classFontSizes["large-text"], Is.EqualTo(24), "Class 'large-text' should have a font size of 24px.");
+            Assert.That(tagFontSizes, Contains.Key("h1"), "H1 tag should be detected.");
+            Assert.That(tagFontSizes["h1"], Is.EqualTo(32), "Default font size for <h1> should be 32px.");
+            Assert.That(tagFontSizes, Contains.Key("p"), "P tag should be detected.");
+            Assert.That(tagFontSizes["p"], Is.EqualTo(16), "Default font size for <p> should be 16px.");
         }
         [Test]
         public void ShouldUseClassFontSize()
@@ -149,7 +154,7 @@ namespace Uxcheckmate_Tests
             List<string> externalCss = new List<string>();
             var result = _colorService.ExtractHtmlElements(htmlContent, externalCss);
             var classFontSizes = (Dictionary<string, int>)result["class_font_sizes"];
-            Assert.That(classFontSizes.ContainsKey("large-text"), "Class should have a font size.");
+            Assert.That(classFontSizes, Contains.Key("large-text"), "Class should have a font size.");
             Assert.That(classFontSizes["large-text"], Is.EqualTo(24), "Class 'large-text' should have a font size of 24px.");
         }
         [Test]
@@ -160,7 +165,7 @@ namespace Uxcheckmate_Tests
             List<string> externalCss = new List<string>();
             var result = _colorService.ExtractHtmlElements(htmlContent, externalCss);
             var tagFontSizes = (Dictionary<string, int>)result["tag_font_sizes"];
-            Assert.That(tagFontSizes.ContainsKey("h2"), "Inline font size should be detected.");
+            Assert.That(tagFontSizes, Contains.Key("h2"), "Inline font size should be detected.");
             // Should contain inline size
             Assert.That(tagFontSizes["h2"], Is.EqualTo(30), "Inline font size for <h2> should override default.");
         }

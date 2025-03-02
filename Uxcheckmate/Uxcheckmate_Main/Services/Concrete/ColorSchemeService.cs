@@ -24,7 +24,7 @@ namespace Uxcheckmate_Main.Services
             int diffB = color1.B - color2.B;
             //Grabbing overall difference
             double distance = Math.Sqrt(diffR * diffR + diffG * diffG + diffB * diffB);
-            return distance < threshold;
+            return distance <= threshold;
         }
         public static (int R, int G, int B) HexToRgb(string hex)
         {
@@ -34,10 +34,14 @@ namespace Uxcheckmate_Main.Services
             }
             // Taking hex and converting to RGB
             if (hex.Length == 6){
-                int r = int.Parse(hex.Substring(0, 2), NumberStyles.HexNumber);
-                int g = int.Parse(hex.Substring(2, 2), NumberStyles.HexNumber);
-                int b = int.Parse(hex.Substring(4, 2), NumberStyles.HexNumber);
-                return (r, g, b);
+               try{
+                    int r = int.Parse(hex.Substring(0, 2), NumberStyles.HexNumber);
+                    int g = int.Parse(hex.Substring(2, 2), NumberStyles.HexNumber);
+                    int b = int.Parse(hex.Substring(4, 2), NumberStyles.HexNumber);
+                    return (r, g, b);
+                }catch (FormatException){
+                    throw new ArgumentException("Invalid hex color format. Use #RRGGBB or RRGGBB.");
+                }
             }else{
                 throw new ArgumentException("Invalid hex color format. Use #RRGGBB or RRGGBB.");
             }
@@ -46,12 +50,10 @@ namespace Uxcheckmate_Main.Services
         {
             var scrapedData = await _webScraperService.ScrapeAsync(url);
             var colorUsage = (Dictionary<string, int>)scrapedData["colors_used"];
-
             var colorAnalysis = colorUsage
                 .Select(c => new { Hex = c.Key, RGB = HexToRgb(c.Key), Count = c.Value })
                 .OrderByDescending(c => c.Count)
                 .ToList();
-
             return new Dictionary<string, object>
             {
                 { "dominant_colors", colorAnalysis },
@@ -64,13 +66,34 @@ namespace Uxcheckmate_Main.Services
             doc.LoadHtml(htmlContent);
             var tagColors = new Dictionary<string, string>();  // Tag colors [black default]
             var classColors = new Dictionary<string, string>(); // Class Colors
-            var tagCharacterCount = new Dictionary<string, int>(); // Tag Count
-            var classCharacterCount = new Dictionary<string, int>(); // Class count
+            var tagCharacterCount = new Dictionary<string, int>(); // Tag Characters Count
+            var classCharacterCount = new Dictionary<string, int>(); // Class Characters count
+            var tagFontSizes = new Dictionary<string, int>();  // Tag Sizes
+            var classFontSizes = new Dictionary<string, int>(); // Class Sizes
+            string backgroundColor = "#FFFFFF";
+            var defaultFontSizes = new Dictionary<string, int>
+            {
+                { "h1", 32 }, { "h2", 24 }, { "h3", 18 }, { "h4", 16 }, { "h5", 14 }, { "h6", 12 }, { "p", 16 }
+            };
             // Hex/Color setup checks
             var colorRegex = new Regex(@"(color|background(?:-color)?|border-color):\s*(#[0-9a-fA-F]{3,6}|rgba?\([^)]+\));", RegexOptions.IgnoreCase);
+            var fontSizeRegex = new Regex(@"font-size:\s*(\d+)px;", RegexOptions.IgnoreCase);
+            var backgroundColorRegex = new Regex(@"body\s*\{[^}]*background-color:\s*(#[0-9a-fA-F]{3,6});", RegexOptions.IgnoreCase);
             var styleBlocks = doc.DocumentNode.SelectNodes("//style") ?? new HtmlNodeCollection(null);
+            var bodyNode = doc.DocumentNode.SelectSingleNode("//body");
+            if (bodyNode != null){
+                string bodyStyle = bodyNode.GetAttributeValue("style", "");
+                Match bgColorMatch = colorRegex.Match(bodyStyle);
+                if (bgColorMatch.Success){
+                    backgroundColor = bgColorMatch.Groups[2].Value;
+                }
+            }
             foreach (var styleNode in styleBlocks){
                 var styleText = styleNode.InnerText;
+                Match bgMatch = backgroundColorRegex.Match(styleText);
+                if (bgMatch.Success){
+                    backgroundColor = bgMatch.Groups[1].Value;
+                }
                 // Checking for color match
                 var matches = Regex.Matches(styleText, @"\.([\w-]+)\s*\{[^}]*color:\s*(#[0-9a-fA-F]{3,6});", RegexOptions.IgnoreCase);
                 foreach (Match match in matches){
@@ -80,43 +103,56 @@ namespace Uxcheckmate_Main.Services
                         classColors[className] = color;
                     }
                 }
+                var fontMatches = Regex.Matches(styleText, @"\.([\w-]+)\s*\{[^}]*font-size:\s*(\d+)px;", RegexOptions.IgnoreCase);
+                foreach (Match match in fontMatches){
+                    string className = match.Groups[1].Value.Trim();
+                    int fontSize = int.Parse(match.Groups[2].Value);
+                    if (!classFontSizes.ContainsKey(className)) classFontSizes[className] = fontSize;
+                }
             }
-            foreach (var tag in new[] { "h1", "h2", "h3", "h4", "h5", "h6", "p", "a", "span", "div" }){
+            foreach (var tag in defaultFontSizes.Keys){
                 var elements = doc.DocumentNode.SelectNodes($"//{tag}") ?? new HtmlNodeCollection(null);
                 foreach (var element in elements){
-                    string assignedColor = "#000000"; // Black default
-                    bool countedUnderClass = false; // Bool for need of class count or tag count
-                    // Checking for class counts
+                    string assignedColor = "#000000"; // Default to black
+                    int fontSize = defaultFontSizes[tag]; // Default font size
+                    bool countedUnderClass = false;
                     var classAttr = element.GetAttributeValue("class", "").Split(' ');
                     foreach (var cls in classAttr){
                         if (classColors.ContainsKey(cls)){
                             assignedColor = classColors[cls];
-                            // Setup for class count
-                            if (!classCharacterCount.ContainsKey(cls)){
-                                classCharacterCount[cls] = 0;
+                        }
+                        if (classFontSizes.ContainsKey(cls)){
+                            fontSize = classFontSizes[cls];
+                        }
+                    }
+                    // Extract inline styles (color and font-size)
+                    string inlineStyle = element.GetAttributeValue("style", "");
+                    Match colorMatch = colorRegex.Match(inlineStyle);
+                    if (colorMatch.Success){
+                        assignedColor = colorMatch.Groups[2].Value;
+                    }
+                    Match fontSizeMatch = fontSizeRegex.Match(inlineStyle);
+                    if (fontSizeMatch.Success){
+                        fontSize = int.Parse(fontSizeMatch.Groups[1].Value);
+                    }
+                    // Counting characters
+                    string textContent = element.InnerText.Trim();
+                    if (!string.IsNullOrEmpty(textContent)){
+                        if (classAttr.Any(cls => classColors.ContainsKey(cls) || classFontSizes.ContainsKey(cls))){
+                            // Assign text to the class instead of the tag
+                            foreach (var cls in classAttr){
+                                if (!classCharacterCount.ContainsKey(cls)) classCharacterCount[cls] = 0;
+                                classCharacterCount[cls] += textContent.Length;
                             }
-                            classCharacterCount[cls] += element.InnerText.Trim().Length;
-                            countedUnderClass = true;
-                            break; // Was setup break
+                        }
+                        else{
+                            // Count text under the tag
+                            if (!tagCharacterCount.ContainsKey(tag)) tagCharacterCount[tag] = 0;
+                            tagCharacterCount[tag] += textContent.Length;
                         }
                     }
-                    // Inline check
-                    if (!countedUnderClass){
-                        string inlineStyle = element.GetAttributeValue("style", "");
-                        Match colorMatch = colorRegex.Match(inlineStyle);
-                        if (colorMatch.Success){
-                            assignedColor = colorMatch.Groups[2].Value;
-                        }
-                        // Tag check
-                        if (!tagCharacterCount.ContainsKey(tag)){
-                            tagCharacterCount[tag] = 0;
-                        }
-                        tagCharacterCount[tag] += element.InnerText.Trim().Length;
-                    }
-                    // Store color if it hasn't been added
-                    if (!tagColors.ContainsKey(tag)){
-                        tagColors[tag] = assignedColor;
-                    }
+                    if (!tagFontSizes.ContainsKey(tag)) tagFontSizes[tag] = fontSize;
+                    if (!tagColors.ContainsKey(tag)) tagColors[tag] = assignedColor;
                 }
             }
             return new Dictionary<string, object>
@@ -124,7 +160,10 @@ namespace Uxcheckmate_Main.Services
                 { "tag_colors", tagColors },
                 { "class_colors", classColors },
                 { "character_count_per_tag", tagCharacterCount },
-                { "character_count_per_class", classCharacterCount }
+                { "character_count_per_class", classCharacterCount },
+                { "tag_font_sizes", tagFontSizes ?? new Dictionary<string, int>() },
+                { "class_font_sizes", classFontSizes ?? new Dictionary<string, int>() },
+                { "background_color", backgroundColor }
             };
         }
     }
