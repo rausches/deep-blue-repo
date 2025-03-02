@@ -6,6 +6,8 @@ using System.Text.RegularExpressions;
 using Microsoft.DotNet.Scaffolding.Shared.Messaging;
 using Microsoft.EntityFrameworkCore;
 using Uxcheckmate_Main.Models;
+using Uxcheckmate_Main.Services;
+
 
 namespace Uxcheckmate_Main.Services
 {
@@ -122,6 +124,8 @@ namespace Uxcheckmate_Main.Services
                 default:
                     _logger.LogDebug("No custom analysis implemented for category: {CategoryName}", categoryName);
                     return string.Empty;
+
+
             }
                 // Add additional cases for other custom analyses here
 
