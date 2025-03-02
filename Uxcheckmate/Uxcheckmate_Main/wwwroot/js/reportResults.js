@@ -1,6 +1,6 @@
-document.addEventListener("DOMContentLoaded", function() {
+document.addEventListener("DOMContentLoaded", function () {
     // Get the URL from the hidden input
-    const url = document.getElementById("analyzed-url").value; 
+    const url = document.getElementById("analyzed-url").value;
 
     // Ensure URL is valid before making the API call
     if (url) {
@@ -52,6 +52,6 @@ document.addEventListener("DOMContentLoaded", function() {
                     </table>
                 `;
             })
-            .catch(error => console.error('Error fetching analysis data:', error));
+            .catch(error => console.error("Error fetching analysis data:", error));
     }
 });

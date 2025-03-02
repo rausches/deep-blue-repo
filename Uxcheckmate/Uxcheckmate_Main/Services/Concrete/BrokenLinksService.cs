@@ -68,7 +68,7 @@ namespace Uxcheckmate_Main.Services
             return relativeUrl; // Return as is if conversion fails.
         }
 
-        private async Task<List<string>> CheckBrokenLinksAsync(List<string> links)
+        public async Task<List<string>> CheckBrokenLinksAsync(List<string> links)
         {
             var brokenLinks = new List<string>();
 
