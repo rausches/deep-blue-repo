@@ -49,20 +49,26 @@ namespace Uxcheckmate_Main.Services
         public async Task<string> AnalyzeWebsiteColorsAsync(string url)
         {
             var scrapedData = await _webScraperService.ScrapeAsync(url);
+            if (scrapedData == null){
+                Console.WriteLine("[DEBUG] Scraped data is NULL!");
+                return "Error: Unable to retrieve page content.";
+            }
+            if (!scrapedData.ContainsKey("html_content")){
+                Console.WriteLine("[DEBUG] Scraped data does not contain 'html_content'. Keys found: " + string.Join(", ", scrapedData.Keys));
+                return "Error: Unable to retrieve page content.";
+            }
             string htmlContent = (string)scrapedData["html_content"];
-            var externalCss = (List<string>)scrapedData["external_css"];
+            var externalCss = scrapedData.ContainsKey("external_css") ? (List<string>)scrapedData["external_css"] : new List<string>();
+            Console.WriteLine($"[DEBUG] HTML content length: {htmlContent.Length}");
             var extractedElements = ExtractHtmlElements(htmlContent, externalCss);
-            // Legibility Info Grab
             var legibilityIssues = CheckLegibility(extractedElements);
-            // 60-30-10 Issues Grab
             var colorPixelUsage = EstimateColorPixelUsage(extractedElements);
             var colorProportions = CalculateColorProportions(colorPixelUsage);
             var colorBalanceIssues = CheckColorBalanceIssues(colorProportions);
-            // Combining
             var allIssues = legibilityIssues.Concat(colorBalanceIssues).ToList();
-            // Returning issues
             return allIssues.Any() ? string.Join("\n", allIssues) : string.Empty;
         }
+
         public Dictionary<string, object> ExtractHtmlElements(string htmlContent, List<string> externalCss)
         {
             var doc = new HtmlDocument();
