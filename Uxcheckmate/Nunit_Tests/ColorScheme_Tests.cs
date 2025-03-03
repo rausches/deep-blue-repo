@@ -292,21 +292,6 @@ namespace Uxcheckmate_Tests
             Assert.That(result["#000000"], Is.EqualTo(expectedPixels), "Should use default font size of 16px for <p> when missing.");
         }
         [Test]
-        public void EmptyColorPixelInput()
-        {
-            var extractedData = new Dictionary<string, object>
-            {
-                { "character_count_per_tag", new Dictionary<string, int>() },
-                { "character_count_per_class", new Dictionary<string, int>() },
-                { "tag_font_sizes", new Dictionary<string, int>() },
-                { "class_font_sizes", new Dictionary<string, int>() },
-                { "tag_colors", new Dictionary<string, string>() },
-                { "class_colors", new Dictionary<string, string>() }
-            };
-            var result = _colorService.EstimateColorPixelUsage(extractedData);
-            Assert.That(result, Is.Empty, "Function should return an empty dictionary for empty inputs.");
-        }
-        [Test]
         public void ColorPixelLargeValues()
         {
             var extractedData = new Dictionary<string, object>
@@ -320,6 +305,61 @@ namespace Uxcheckmate_Tests
             };
             var result = _colorService.EstimateColorPixelUsage(extractedData);
             Assert.That(result["#FF0000"], Is.EqualTo(10000 * (32 * 0.5) * 32), "Should correctly compute large pixel values.");
+        }
+        [Test]
+        public void TextSubtractsBackground()
+        {
+            var extractedData = new Dictionary<string, object>
+            {
+                { "character_count_per_tag", new Dictionary<string, int> { { "p", 40 } } },
+                { "character_count_per_class", new Dictionary<string, int>() },
+                { "tag_font_sizes", new Dictionary<string, int> { { "p", 16 } } },
+                { "class_font_sizes", new Dictionary<string, int>() },
+                { "tag_colors", new Dictionary<string, string> { { "p", "#000000" } } },
+                { "class_colors", new Dictionary<string, string>() },
+                { "background_color", "#FFFFFF" }
+            };
+            var result = _colorService.EstimateColorPixelUsage(extractedData);
+            int expectedTextPixels = (int)(40 * (16 * 0.5) * 16);
+            int expectedBackgroundPixels = 2_073_600 - expectedTextPixels;
+            Assert.That(result.ContainsKey("#000000"), "Text color should be included.");
+            Assert.That(result["#000000"], Is.EqualTo(expectedTextPixels), "Text pixels should be correctly calculated.");
+            Assert.That(result.ContainsKey("#FFFFFF"), "Background color should be included.");
+            Assert.That(result["#FFFFFF"], Is.EqualTo(expectedBackgroundPixels), "Background pixels should be correctly adjusted.");
+        }
+        [Test]
+        public void EmptyColorPixelInput()
+        {
+            var extractedData = new Dictionary<string, object>
+            {
+                { "character_count_per_tag", new Dictionary<string, int>() },
+                { "character_count_per_class", new Dictionary<string, int>() },
+                { "tag_font_sizes", new Dictionary<string, int>() },
+                { "class_font_sizes", new Dictionary<string, int>() },
+                { "tag_colors", new Dictionary<string, string>() },
+                { "class_colors", new Dictionary<string, string>() },
+                { "background_color", "#FFFFFF" }
+            };
+            var result = _colorService.EstimateColorPixelUsage(extractedData);
+            Assert.That(result.Count, Is.EqualTo(1), "Only background pixels should be counted.");
+            Assert.That(result.ContainsKey("#FFFFFF"), "Background color should be stored.");
+            Assert.That(result["#FFFFFF"], Is.EqualTo(2073600), "All pixels should be background color.");
+        }
+        [Test]
+        public void EmptyColorPixelInputWithNoBackground()
+        {
+            var extractedData = new Dictionary<string, object>
+            {
+                { "character_count_per_tag", new Dictionary<string, int>() },
+                { "character_count_per_class", new Dictionary<string, int>() },
+                { "tag_font_sizes", new Dictionary<string, int>() },
+                { "class_font_sizes", new Dictionary<string, int>() },
+                { "tag_colors", new Dictionary<string, string>() },
+                { "class_colors", new Dictionary<string, string>() }
+            };
+            var result = _colorService.EstimateColorPixelUsage(extractedData);
+            Assert.That(result.ContainsKey("#FFFFFF"), "Background color should be assigned when no text elements exist.");
+            Assert.That(result["#FFFFFF"], Is.EqualTo(2_073_600), "All pixels should be assigned to the background.");
         }
     }
 }

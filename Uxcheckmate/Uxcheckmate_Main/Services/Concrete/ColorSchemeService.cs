@@ -176,10 +176,13 @@ namespace Uxcheckmate_Main.Services
             var classFontSizes = (Dictionary<string, int>)extractedData["class_font_sizes"];
             var tagColors = (Dictionary<string, string>)extractedData["tag_colors"];
             var classColors = (Dictionary<string, string>)extractedData["class_colors"];
+            string backgroundColor = extractedData.ContainsKey("background_color") ? (string)extractedData["background_color"] : "#FFFFFF";
             var defaultFontSizes = new Dictionary<string, int>
             {
                 { "h1", 32 }, { "h2", 24 }, { "h3", 18 }, { "h4", 16 }, { "h5", 13 }, { "h6", 11 }, { "p", 16 }
             };
+            int totalPixels = 2_073_600;
+            int totalUsedPixels = 0;
             // Tag color pixels
             foreach (var tag in tagCharacterCount.Keys){
                 int fontSize = tagFontSizes.ContainsKey(tag) ? tagFontSizes[tag] : (defaultFontSizes.ContainsKey(tag) ? defaultFontSizes[tag] : 16);
@@ -190,6 +193,7 @@ namespace Uxcheckmate_Main.Services
                         estimatedPixelUsage[color] = 0;
                     }
                     estimatedPixelUsage[color] += pixelArea;
+                    totalUsedPixels += pixelArea;
                 }
             }
             // Class color pixels
@@ -202,8 +206,14 @@ namespace Uxcheckmate_Main.Services
                         estimatedPixelUsage[color] = 0;
                     }
                     estimatedPixelUsage[color] += pixelArea;
+                    totalUsedPixels += pixelArea;
                 }
             }
+            int backgroundRemaining = Math.Max(totalPixels - totalUsedPixels, 0);
+            if (!estimatedPixelUsage.ContainsKey(backgroundColor)){
+                estimatedPixelUsage[backgroundColor] = 0;
+            }
+            estimatedPixelUsage[backgroundColor] = backgroundRemaining;
             return estimatedPixelUsage;
         }  
     }
