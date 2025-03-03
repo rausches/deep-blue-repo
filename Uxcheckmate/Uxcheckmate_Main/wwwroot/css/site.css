@@ -108,3 +108,9 @@ footer {
   border-radius: 8px;
   text-align: center;
 }
+.locationColumn {
+  max-width: 300px;  /* ✅ Set a fixed width for the column */
+  word-wrap: break-word;  /* ✅ Break long words to the next line */
+  white-space: normal;  /* ✅ Allow multi-line wrapping */
+  overflow-wrap: break-word; /* ✅ Ensures long words break properly */
+}

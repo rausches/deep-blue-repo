@@ -74,18 +74,13 @@ else
                          .OrderBy(g => g.Key == "Other" ? 1 : 0)
                          .ThenBy(g => g.Key))
             {
-                <tr class="table-secondary">
-                    <td colspan="4">
-                        <strong>@categoryGroup.Key</strong>
-                    </td>
-                </tr>
                 @foreach (var issue in categoryGroup)
                 {
                     <tr>
                         <td>@issue.Category?.Name</td>
                         <td>@issue.Message</td>
                         <td>@issue.Details</td>
-                        <td>@issue.Selector</td>
+                        <td class="locationColumn">@issue.Selector</td>
                         <td>
                             @if (issue.Severity == 4)
                             {
@@ -109,15 +104,11 @@ else
             }
         </tbody>
     </table>
-
-
-
 }
 
 <a asp-action="DownloadReport" asp-route-id="@Model.Id" class="btn btn-primary">
     Download PDF Report
 </a>
-
 
 @section Scripts {
     <script src="~/js/reportResults.js"></script>
