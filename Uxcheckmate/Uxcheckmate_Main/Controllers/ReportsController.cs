@@ -14,7 +14,7 @@ public class ReportsController : ControllerBase
         _reportService = reportService;
     }
 
-    [HttpGet("download")]
+  /*  [HttpGet("download")]
     public async Task<IActionResult> DownloadReport([FromQuery] string url)
     {
         if (string.IsNullOrEmpty(url))
@@ -31,6 +31,6 @@ public class ReportsController : ControllerBase
         }
 
         return File(pdfBytes, "application/pdf", "UX_Report.pdf");
-    }
+    }*/
 }
 */
