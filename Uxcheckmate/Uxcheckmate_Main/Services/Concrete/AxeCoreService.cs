@@ -69,8 +69,8 @@ namespace Uxcheckmate_Main.Services
                         let results = await axe.run();
                         results.violations.forEach(violation => {
                             violation.nodes.forEach(node => {
-                                if (node.target && node.target.length > 0) {
-                                    let element = document.querySelector(node.target[0]); // Use the first selector
+                                if (node.target.length > 0) {
+                                    let element = document.querySelector(node.target[0]);
                                     node.html = element ? element.outerHTML : 'Element not found';
                                 } else {
                                     node.html = 'No target selector available';
@@ -80,7 +80,6 @@ namespace Uxcheckmate_Main.Services
                         return results;
                     }
                 ");
-
 
                 string jsonString = axeResultsJson.ToString();
                 _logger.LogDebug("Raw axe-core JSON output: {JsonString}", jsonString);
@@ -112,42 +111,62 @@ namespace Uxcheckmate_Main.Services
                 {
                     foreach (var node in violation.Nodes)
                     {
+                        string categoryName = AccessibilityCategoryMapping.TryGetValue(violation.Id, out var mappedCategory) 
+                            ? mappedCategory 
+                            : "Other";
+
+                        var category = _dbContext.AccessibilityCategories.FirstOrDefault(c => c.Name == categoryName) 
+                            ?? _dbContext.AccessibilityCategories.FirstOrDefault(c => c.Name == "Other");
+
+                        string details = node.FailureSummary ?? "No additional details available";
+
                         var issue = new AccessibilityIssue
                         {
                             ReportId = report.Id,
-                            Message = violation.Description ?? "No description provided",
-                            Selector = node.Html ?? "No HTML available", // Use extracted outerHTML
+                            Message = violation.Help ?? violation.Description ?? "No description available",
+                            Details = details,  // 
+                            Selector = node.Html ?? "No HTML available",
                             Severity = DetermineSeverity(violation.Impact),
                             WCAG = violation.WcagTags?.Any() == true 
                                 ? string.Join(", ", violation.WcagTags) 
                                 : "Unknown WCAG Rule",
-                            CategoryId = defaultCategory.Id
+                            CategoryId = category?.Id ?? 0
                         };
 
                         issues.Add(issue);
-
-                        _logger.LogDebug("Issue detected - Message: {Message}, WCAG: {WCAG}, HTML: {HTML}, Severity: {Severity}, Category: {CategoryId}",
-                            issue.Message, issue.WCAG, issue.Selector, issue.Severity, issue.CategoryId);
                     }
                 }
 
-                // Save identified issues to the database
                 _logger.LogInformation("Saving {Count} accessibility issues to the database.", issues.Count);
                 _dbContext.AccessibilityIssues.AddRange(issues);
                 await _dbContext.SaveChangesAsync();
-                _logger.LogInformation("Successfully saved {Count} accessibility issues to the database.", issues.Count);
-            }
-            catch (FileNotFoundException fnfEx)
-            {
-                _logger.LogError("File error during accessibility analysis: {Message}", fnfEx.Message);
+                _logger.LogInformation("All issues saved successfully!");
+
             }
             catch (Exception ex)
             {
-                _logger.LogError("Unexpected error during Playwright accessibility test: {Message}", ex.Message);
+                _logger.LogError("Error during accessibility analysis: {Message}", ex.Message);
             }
 
             return issues;
         }
+
+        private static readonly Dictionary<string, string> AccessibilityCategoryMapping = new()
+        {
+            { "color-contrast", "Color & Contrast" },
+            { "focus-order", "Keyboard & Focus" },
+            { "bypass", "Page Structure & Landmarks" },
+            { "landmark-one-main", "Page Structure & Landmarks" },
+            { "label", "Forms & Inputs" },
+            { "button-name", "Link & Buttons" },
+            { "link-name", "Link & Buttons" },
+            { "audio-caption", "Multimedia & Animations" },
+            { "video-caption", "Multimedia & Animations" },
+            { "meta-refresh", "Timeouts & Auto-Refresh" },
+            { "scrollable-region-focusable", "Motion & Interaction" },
+            { "aria-allowed-attr", "ARIA & Semantic HTML" },
+            { "aria-hidden-focus", "ARIA & Semantic HTML" }
+        };
 
         private int DetermineSeverity(string impact)
         {

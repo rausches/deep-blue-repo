@@ -63,7 +63,8 @@ else
             <tr>
                 <th>Category</th>
                 <th>Issue</th>
-                <th>Selector</th>
+                <th>Details</th>
+                <th>Location</th>
                 <th>Severity</th>
             </tr>
         </thead>
@@ -83,19 +84,24 @@ else
                     <tr>
                         <td>@issue.Category?.Name</td>
                         <td>@issue.Message</td>
+                        <td>@issue.Details</td>
                         <td>@issue.Selector</td>
                         <td>
-                            @if (issue.Severity == 3)
+                            @if (issue.Severity == 4)
                             {
-                                <span class="badge bg-danger">High</span>
+                                <span class="badge bg-danger">Critical</span>
+                            }
+                            else if (issue.Severity == 3)
+                            {
+                                <span class="badge bg-warning">Severe</span>
                             }
                             else if (issue.Severity == 2)
                             {
-                                <span class="badge bg-warning">Medium</span>
+                                <span class="badge bg-info">Moderate</span>
                             }
                             else
                             {
-                                <span class="badge bg-info">Low</span>
+                                <span class="badge bg-light text-dark">Low</span>
                             }
                         </td>
                     </tr>

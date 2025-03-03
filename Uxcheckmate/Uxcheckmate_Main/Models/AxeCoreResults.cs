@@ -24,6 +24,8 @@ namespace Uxcheckmate_Main.Models
         public List<string> Target { get; set; }
 
         public string Html { get; set; }  
+
+        public string FailureSummary { get; set; }
     }
 
 }

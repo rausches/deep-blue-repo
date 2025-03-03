@@ -22,6 +22,9 @@ public partial class AccessibilityIssue
     [Column(TypeName = "text")]
     public string Message { get; set; } = null!;
 
+    [Column(TypeName= "varchar(max)")]
+    public string Details {get; set; }
+
     [Column(TypeName = "varchar(max)")]
     [Unicode(false)]
     public string Selector { get; set; } = null!;

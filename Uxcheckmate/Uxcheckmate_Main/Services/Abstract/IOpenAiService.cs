@@ -6,5 +6,6 @@ namespace Uxcheckmate_Main.Services
 
     { 
         Task<string> AnalyzeWithOpenAI(string url, string categoryName, string categoryDescription, Dictionary<string, object> scrapedData);
+        Task<string> RephraseAccessibilityMessage(string message, string categoryName);
     }
 }
