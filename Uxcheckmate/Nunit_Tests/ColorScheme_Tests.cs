@@ -361,5 +361,110 @@ namespace Uxcheckmate_Tests
             Assert.That(result.ContainsKey("#FFFFFF"), "Background color should be assigned when no text elements exist.");
             Assert.That(result["#FFFFFF"], Is.EqualTo(2_073_600), "All pixels should be assigned to the background.");
         }
+        [Test]
+        public void EmptyColorProportions()
+        {
+            var result = _colorService.CalculateColorProportions(new Dictionary<string, int>());
+            Assert.That(result, Is.Empty, "Should return an empty dictionary when there are no colors.");
+        }
+        [Test]
+        public void CalculateColorProportionsCorrect()
+        {
+            var colorPixelUsage = new Dictionary<string, int>
+            {
+                { "#FF0000", 500 },
+                { "#00FF00", 300 },
+                { "#0000FF", 200 }
+            };
+            var result = _colorService.CalculateColorProportions(colorPixelUsage);
+            Assert.That(result["#FF0000"], Is.EqualTo(50.00).Within(0.01), "Red should be 50%.");
+            Assert.That(result["#00FF00"], Is.EqualTo(30.00).Within(0.01), "Green should be 30%.");
+            Assert.That(result["#0000FF"], Is.EqualTo(20.00).Within(0.01), "Blue should be 20%.");
+        }
+        [Test]
+        public void ColorProportionsOneColorOneHundredPercent()
+        {
+            var colorPixelUsage = new Dictionary<string, int> { { "#FFFFFF", 1000 } };
+            var result = _colorService.CalculateColorProportions(colorPixelUsage);
+            Assert.That(result["#FFFFFF"], Is.EqualTo(100.00).Within(0.01), "Single color should take 100%.");
+        }
+        [Test]
+        public void ColorBalanceEmpty()
+        {
+            var result = _colorService.CheckColorBalance(new Dictionary<string, double>());
+            Assert.That(result, Is.Empty, "Should return an empty dictionary when no colors are provided.");
+        }
+        [Test]
+        public void ColorBalanceGrouped()
+        {
+            var colorProportions = new Dictionary<string, double>
+            {
+                { "#FF5733", 40.0 },
+                { "#E65230", 20.0 }, // Similar to one above
+                { "#0000FF", 40.0 }
+            };
+            var result = _colorService.CheckColorBalance(colorProportions);
+            Assert.That(result.Count, Is.EqualTo(2), "Should group similar colors together.");
+            Assert.That(result.ContainsKey("#FF5733"), "The dominant red should be the grouped key.");
+            Assert.That(result["#FF5733"], Is.EqualTo(60.0).Within(0.01), "Similar red shades should be grouped.");
+            Assert.That(result["#0000FF"], Is.EqualTo(40.0).Within(0.01), "Blue should remain unchanged.");
+        }
+        [Test]
+        public void ColorBalanceNoGrouping()
+        {
+            var colorProportions = new Dictionary<string, double>
+            {
+                { "#FF0000", 40.0 },
+                { "#00FF00", 30.0 },
+                { "#0000FF", 30.0 }
+            };
+            var result = _colorService.CheckColorBalance(colorProportions);
+            Assert.That(result.Count, Is.EqualTo(3), "Should not group distinct colors.");
+            Assert.That(result["#FF0000"], Is.EqualTo(40.0).Within(0.01));
+            Assert.That(result["#00FF00"], Is.EqualTo(30.0).Within(0.01));
+            Assert.That(result["#0000FF"], Is.EqualTo(30.0).Within(0.01));
+        }
+        [Test]
+        public void ColorBalancedEmptyInputReturnsFalse()
+        {
+            var result = _colorService.IsColorBalanced(new Dictionary<string, double>());
+            Assert.That(result, Is.False, "Should return false when no colors are present.");
+        }
+        [Test]
+        public void IsColorBalancedReturnsTrue()
+        {
+            var colorBalance = new Dictionary<string, double>
+            {
+                { "#FF5733", 60.0 },
+                { "#B2B2B2", 30.0 },
+                { "#FFFFFF", 10.0 }
+            };
+            var result = _colorService.IsColorBalanced(colorBalance);
+            Assert.That(result, Is.True, "Should return true for a valid 60-30-10 balance.");
+        }
+        [Test]
+        public void IsColorBalancedVarianceReturnsTrue()
+        {
+            var colorBalance = new Dictionary<string, double>
+            {
+                { "#FF5733", 70.0 },
+                { "#B2B2B2", 20.0 },
+                { "#FFFFFF", 5.0 }
+            };
+            var result = _colorService.IsColorBalanced(colorBalance);
+            Assert.That(result, Is.True, "Should return true for a valid 60-30-10 balance with 15% variance.");
+        }
+        [Test]
+        public void IsColorBalancedUnbalancedReturnsFalse()
+        {
+            var colorBalance = new Dictionary<string, double>
+            {
+                { "#E65230", 80.0 }, // Too Much
+                { "#B2B2B2", 10.0 }, // Too little
+                { "#FFFFFF", 5.0 }
+            };
+            var result = _colorService.IsColorBalanced(colorBalance);
+            Assert.That(result, Is.False, "Should return false when color balance is outside of the acceptable range.");
+        }
     }
 }

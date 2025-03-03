@@ -181,7 +181,7 @@ namespace Uxcheckmate_Main.Services
             {
                 { "h1", 32 }, { "h2", 24 }, { "h3", 18 }, { "h4", 16 }, { "h5", 13 }, { "h6", 11 }, { "p", 16 }
             };
-            int totalPixels = 2_073_600;
+            int totalPixels = 2_073_600; // Assumming 1080p
             int totalUsedPixels = 0;
             // Tag color pixels
             foreach (var tag in tagCharacterCount.Keys){
@@ -215,6 +215,67 @@ namespace Uxcheckmate_Main.Services
             }
             estimatedPixelUsage[backgroundColor] = backgroundRemaining;
             return estimatedPixelUsage;
-        }  
+        }
+        public Dictionary<string, double> CalculateColorProportions(Dictionary<string, int> colorPixelUsage)
+        {
+            int totalPixels = colorPixelUsage.Values.Sum();
+            var colorProportions = new Dictionary<string, double>();
+            // Empty check
+            if (totalPixels == 0){
+                return colorProportions;
+            }
+            foreach (var color in colorPixelUsage){
+                double percentage = (color.Value / (double)totalPixels) * 100.0;
+                colorProportions[color.Key] = Math.Round(percentage, 2);
+            }
+            return colorProportions;
+        }
+        public Dictionary<string, double> CheckColorBalance(Dictionary<string, double> colorProportions, int similarityThreshold = 15)
+        {
+            // Going to group similar colors
+            var groupedColors = new Dictionary<string, double>();
+            // Go in order from most dominant color for similar color checks
+            var sortedColors = colorProportions.OrderByDescending(c => c.Value).ToList();
+            foreach (var (color, percentage) in sortedColors){
+                // Similar color compare
+                var color1 = HexToRgb(color);
+                string closestMatch = null;
+                foreach (var existingColor in groupedColors.Keys.ToList()){
+                    var color2 = HexToRgb(existingColor);
+                    if (AreColorsSimilar(color1, color2)){
+                        closestMatch = existingColor;
+                        break;  // Mergin color
+                    }
+                }
+                // Checking percentage matching
+                if (closestMatch != null){
+                    groupedColors[closestMatch] += percentage;
+                }
+                else{
+                    groupedColors[color] = percentage;
+                }
+            }
+            return groupedColors;
+        }
+        public bool IsColorBalanced(Dictionary<string, double> colorBalance)
+        {
+            if (colorBalance.Count == 0){
+                return false; 
+            }
+            // Sorting
+            var sortedColors = colorBalance.OrderByDescending(c => c.Value).ToList();
+            // Check top 3
+            double primary = sortedColors[0].Value; // Most used color
+            double secondary = sortedColors.Count > 1 ? sortedColors[1].Value : 0;
+            double accent = sortedColors.Count > 2 ? sortedColors[2].Value : 0;
+            // Check remaining
+            double remaining = sortedColors.Skip(3).Sum(c => c.Value);
+            // 15% variance on colors
+            bool primaryValid = primary >= 45 && primary <= 75;
+            bool secondaryValid = secondary >= 15 && secondary <= 45;
+            bool accentValid = accent >= 0 && accent <= 25;
+            bool extraValid = remaining <= 15;
+            return primaryValid && secondaryValid && accentValid && extraValid;
+        }
     }
 }
