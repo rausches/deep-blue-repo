@@ -50,14 +50,17 @@ namespace Uxcheckmate_Main.Services
         {
             var scrapedData = await _webScraperService.ScrapeAsync(url);
             if (scrapedData == null){
-                Console.WriteLine("[DEBUG] Scraped data is NULL!");
-                return "Error: Unable to retrieve page content.";
+                Console.WriteLine("[DEBUG] Scraped data is null");
+                return "[Error] Unable to retrieve page content.";
             }
-            if (!scrapedData.ContainsKey("html_content")){
-                Console.WriteLine("[DEBUG] Scraped data does not contain 'html_content'. Keys found: " + string.Join(", ", scrapedData.Keys));
-                return "Error: Unable to retrieve page content.";
+            string htmlContent;
+            if (scrapedData.ContainsKey("html_content")){
+                htmlContent = (string)scrapedData["html_content"];
+            }else{
+                Console.WriteLine("[DEBUG] 'html_content' missing, fetching manually...");
+                htmlContent = await _webScraperService.FetchHtmlAsync(url); // ✅ Fetch manually
+                scrapedData["html_content"] = htmlContent;
             }
-            string htmlContent = (string)scrapedData["html_content"];
             var externalCss = scrapedData.ContainsKey("external_css") ? (List<string>)scrapedData["external_css"] : new List<string>();
             Console.WriteLine($"[DEBUG] HTML content length: {htmlContent.Length}");
             var extractedElements = ExtractHtmlElements(htmlContent, externalCss);
@@ -68,7 +71,6 @@ namespace Uxcheckmate_Main.Services
             var allIssues = legibilityIssues.Concat(colorBalanceIssues).ToList();
             return allIssues.Any() ? string.Join("\n", allIssues) : string.Empty;
         }
-
         public Dictionary<string, object> ExtractHtmlElements(string htmlContent, List<string> externalCss)
         {
             var doc = new HtmlDocument();
