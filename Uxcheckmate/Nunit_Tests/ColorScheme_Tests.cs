@@ -511,5 +511,54 @@ namespace Uxcheckmate_Tests
             Assert.That(ColorSchemeService.AchromatopsiaIssue("#8B0000", "#800080"), Is.True, "Achromatopsia should struggle with similar luminosity colors.");
             Assert.That(ColorSchemeService.AchromatopsiaIssue("#FFFFFF", "#000000"), Is.False, "Achromatopsia should distinguish black and white.");
         }
+        [Test]
+        public void CheckLegibilityLowContrastIssue()
+        {
+            var extractedData = new Dictionary<string, object>
+            {
+                { "tag_colors", new Dictionary<string, string> { { "p", "#AAAAAA" } } }, // Light gray text
+                { "class_colors", new Dictionary<string, string>() }, // No class-specific colors
+                { "background_color", "#BBBBBB" } // Slightly different gray
+            };
+            var issues = _colorService.CheckLegibility(extractedData);
+            Assert.That(issues, Does.Contain("Low contrast in <p>: #AAAAAA on #BBBBBB"));
+        }
+        [Test]
+        public void CheckLegibilityProtanopiaIssueAdd()
+        {
+            // Adds protanopia color issue
+            var extractedData = new Dictionary<string, object>
+            {
+                { "tag_colors", new Dictionary<string, string> { { "h1", "#FF5733" } } }, // Red text
+                { "class_colors", new Dictionary<string, string>() },
+                { "background_color", "#E65230" }
+            };
+            var issues = _colorService.CheckLegibility(extractedData);
+            Assert.That(issues, Does.Contain("Protanopia issue in <h1>: #FF5733 on #E65230"));
+        }
+        [Test]
+        public void CheckLegibilityNoIssues()
+        {
+            var extractedData = new Dictionary<string, object>
+            {
+                { "tag_colors", new Dictionary<string, string> { { "button", "#000000" } } }, // Black text
+                { "class_colors", new Dictionary<string, string>() },
+                { "background_color", "#FFFFFF" }
+            };
+            var issues = _colorService.CheckLegibility(extractedData);
+            Assert.That(issues, Is.Empty);
+        }
+        [Test]
+        public void CheckLegibilityMultipleIssues()
+        {
+            var extractedData = new Dictionary<string, object>
+            {
+                { "tag_colors", new Dictionary<string, string> { { "span", "#CCCCCC" } } }, 
+                { "class_colors", new Dictionary<string, string>() }, 
+                { "background_color", "#DDDDDD" }
+            };
+            var issues = _colorService.CheckLegibility(extractedData);
+            Assert.That(issues, Does.Contain("Low contrast in <span>: #CCCCCC on #DDDDDD"));
+        }
     }
 }

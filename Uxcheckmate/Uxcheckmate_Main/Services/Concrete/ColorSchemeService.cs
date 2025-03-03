@@ -282,8 +282,8 @@ namespace Uxcheckmate_Main.Services
         {
             var color1 = HexToRgb(hex1);
             var color2 = HexToRgb(hex2);
-            var protanopia1 = (0, (int)(color1.G * 0.8), (int)(color1.B * 0.8));
-            var protanopia2 = (0, (int)(color2.G * 0.8), (int)(color2.B * 0.8));
+            var protanopia1 = ((int)(color1.R * 0.2), (int)(color1.G * 0.8), (int)(color1.B * 0.8));
+            var protanopia2 = ((int)(color2.R * 0.2), (int)(color2.G * 0.8), (int)(color2.B * 0.8));
             return AreColorsSimilar(protanopia1, protanopia2, 110);
         }
         // Protanomaly Slight Red Color issue
@@ -339,6 +339,49 @@ namespace Uxcheckmate_Main.Services
             int gray1 = (int)(color1.R * 0.299 + color1.G * 0.587 + color1.B * 0.114);
             int gray2 = (int)(color2.R * 0.299 + color2.G * 0.587 + color2.B * 0.114);
             return AreColorsSimilar((gray1, gray1, gray1), (gray2, gray2, gray2), 100);
+        }
+        public List<string> CheckLegibility(Dictionary<string, object> extractedData)
+        {
+            var issues = new List<string>();
+            var tagColors = (Dictionary<string, string>)extractedData["tag_colors"];
+            var classColors = (Dictionary<string, string>)extractedData["class_colors"];
+            var backgroundColor = (string)extractedData["background_color"];
+            foreach (var tag in tagColors){
+                string textColorHex = tag.Value;
+                string bgColorHex = backgroundColor;
+                // Use background if has one
+                if (classColors.TryGetValue(tag.Key, out string classBgColor) && !string.IsNullOrEmpty(classBgColor)){
+                    bgColorHex = classBgColor;
+                }
+                var textColor = HexToRgb(textColorHex);
+                var bgColor = HexToRgb(bgColorHex);
+                // Add to issues if 
+                if (AreColorsSimilar(textColor, bgColor)){
+                    issues.Add($"Low contrast in <{tag.Key}>: {textColorHex} on {bgColorHex}");
+                }
+                if (ProtanopiaIssue(textColorHex, bgColorHex)){
+                    issues.Add($"Protanopia issue in <{tag.Key}>: {textColorHex} on {bgColorHex}");
+                }
+                if (ProtanomalyIssue(textColorHex, bgColorHex)){
+                    issues.Add($"Protanomaly issue in <{tag.Key}>: {textColorHex} on {bgColorHex}");
+                }
+                if (DeuteranopiaIssue(textColorHex, bgColorHex)){
+                    issues.Add($"Deuteranopia issue in <{tag.Key}>: {textColorHex} on {bgColorHex}");
+                }
+                if (DeuteranomalyIssue(textColorHex, bgColorHex)){
+                    issues.Add($"Deuteranomaly issue in <{tag.Key}>: {textColorHex} on {bgColorHex}");
+                }
+                if (TritanopiaIssue(textColorHex, bgColorHex)){
+                    issues.Add($"Tritanopia issue in <{tag.Key}>: {textColorHex} on {bgColorHex}");
+                }
+                if (TritanomalyIssue(textColorHex, bgColorHex)){
+                    issues.Add($"Tritanomaly issue in <{tag.Key}>: {textColorHex} on {bgColorHex}");
+                }
+                if (AchromatopsiaIssue(textColorHex, bgColorHex)){
+                    issues.Add($"Achromatopsia issue in <{tag.Key}>: {textColorHex} on {bgColorHex}");
+                }
+            }
+            return issues;
         }
     }
 }
