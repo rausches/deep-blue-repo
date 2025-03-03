@@ -49,7 +49,7 @@ public class Program
         builder.Services.AddHttpClient<WebScraperService>();
 
         // Register Pa11yUrlBasedService and Pa11yService
-        builder.Services.AddScoped<IPa11yService, Pa11yService>();
+        builder.Services.AddScoped<IAxeCoreService, AxeCoreService>();
         builder.Services.AddScoped<Pa11yUrlBasedService>();
         Console.WriteLine("Pa11yUrlBasedService registered");
 
