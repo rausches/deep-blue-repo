@@ -90,6 +90,7 @@ public class HomeController : Controller
                 .FirstOrDefaultAsync(r => r.Id == report.Id);
 
 
+
             if (fullReport == null)
             {
                 _logger.LogError("Failed to fetch report with ID: {ReportId}", report.Id);

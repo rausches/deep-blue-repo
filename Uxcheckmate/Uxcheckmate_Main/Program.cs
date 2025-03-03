@@ -81,7 +81,6 @@ public class Program
 
         app.UseRouting();
         app.UseAuthorization();
-
         // Map default route
         app.MapControllerRoute(
             name: "default",

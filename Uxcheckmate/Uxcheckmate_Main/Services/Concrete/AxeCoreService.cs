@@ -7,185 +7,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Playwright;
 using Microsoft.AspNetCore.Hosting;
 
-/*namespace Uxcheckmate_Main.Services
-{
-   public class Pa11yService : IPa11yService
-    {
-        private readonly Pa11yUrlBasedService _pa11yUrlBasedService;
-        private readonly ILogger<Pa11yService> _logger;
-        private readonly UxCheckmateDbContext _dbContext;
-
-        public Pa11yService(Pa11yUrlBasedService pa11yUrlBasedService, ILogger<Pa11yService> logger, UxCheckmateDbContext dbContext)
-        {
-            _pa11yUrlBasedService = pa11yUrlBasedService;
-            _logger = logger;
-            _dbContext = dbContext;
-        }
-
-        public async Task<ICollection<AccessibilityIssue>> AnalyzeAndSaveAccessibilityReport(Report report)
-        {
-            var url = report.Url;
-                        
-            // Ensure the AccessibilityIssues collection is not null.
-            var scanResults = report.AccessibilityIssues ?? new List<AccessibilityIssue>();
-            _logger.LogInformation("Starting report generation for URL: {Url}", url);
-
-            // Run Pa11y using the existing service and get the result as a JSON string
-            var pa11yJsonResult = await Task.Run(() => _pa11yUrlBasedService.RunPa11y(url));
-
-            // Log the JSON result
-            _logger.LogError("Pa11y JSON Result: {Pa11yJsonResult}", pa11yJsonResult);
-            
-
-            // Deserialize the JSON result into a collection of dictionaries
-            var pa11yResultsCollection = JsonSerializer.Deserialize<List<Dictionary<string, object>>>(pa11yJsonResult, new JsonSerializerOptions
-            {
-                PropertyNameCaseInsensitive = true
-            }) ?? new List<Dictionary<string, object>>();
-
-            // Fetch all predefined categories from the database
-            var categories = await _dbContext.AccessibilityCategories.ToListAsync();
-
-            foreach (var issue in pa11yResultsCollection)
-            {
-                // Extract fields dynamically with null checks
-                string message = issue.ContainsKey("message") && issue["message"] != null
-                    ? issue["message"].ToString()
-                    : "Unknown issue";
-                string selector = issue.ContainsKey("selector") && issue["selector"] != null
-                    ? issue["selector"].ToString()
-                    : "Unknown element";
-                string wcagLabel = issue.ContainsKey("code") && issue["code"] != null
-                    ? issue["code"].ToString()
-                    : "Unknown WCAG Rule";
-                string type = issue.ContainsKey("type") && issue["type"] != null
-                    ? issue["type"].ToString()
-                    : "notice"; // Default to notice
-
-                // Call ExtractWCAGLabel() to clean message and extract WCAG (if possible)
-                var (cleanedMessage, extractedWCAG) = ExtractWCAGLabel(message);
-                if (extractedWCAG != "Unknown WCAG Rule" || !string.IsNullOrWhiteSpace(wcagLabel))
-                {
-                    wcagLabel = extractedWCAG != "Unknown WCAG Rule" ? extractedWCAG : wcagLabel;
-                }
-
-                // Assign severity based on Pa11y’s type
-                int severityLevel = type switch
-                {
-                    "error" => 3,
-                    "warning" => 2,
-                    _ => 1 // "notice" = low severity
-                };
-
-                // Categorize the issue dynamically
-                string catName = CategorizePa11yIssue(cleanedMessage, categories);
-                var category = categories.FirstOrDefault(c => c.Name == catName)
-                            ?? categories.FirstOrDefault(c => c.Name == "Other");
-
-
-                // Create a new AccessibilityIssue
-                var accessibilityIssue = new AccessibilityIssue
-                {
-                    CategoryId = category.Id,
-                    ReportId = report.Id,
-                    Message = cleanedMessage,
-                    WCAG = wcagLabel,
-                    Selector = selector,
-                    Severity = severityLevel,
-                    Category = category
-                };
-
-                scanResults.Add(accessibilityIssue);
-            }
-
-
-            // Save issues to the database
-            _dbContext.AccessibilityIssues.AddRange(scanResults);
-            await _dbContext.SaveChangesAsync();
-
-
-            return scanResults;
-        }
-
-        private string CategorizePa11yIssue(string message, List<AccessibilityCategory> categories)
-        {
-            var categoryMappings = new Dictionary<string, string>
-            {
-                { "contrast", "Color & Contrast" },
-                { "color", "Color & Contrast" },
-                { "keyboard", "Keyboard & Focus" },
-                { "focus", "Keyboard & Focus" },
-                { "tab", "Keyboard & Focus" },
-                { "input", "Forms & Inputs" },
-                { "form", "Forms & Inputs" },
-                { "label", "Forms & Inputs" },
-                { "button", "Link & Buttons" },
-                { "link", "Link & Buttons" },
-                { "alt text", "Multimedia & Animations" },
-                { "caption", "Multimedia & Animations" },
-                { "autoplay", "Multimedia & Animations" },
-                { "heading", "Page Structure & Landmarks" },
-                { "landmark", "Page Structure & Landmarks" },
-                { "title", "Page Structure & Landmarks" },
-                { "timeout", "Timeouts & Auto-Refresh" },
-                { "auto-refresh", "Timeouts & Auto-Refresh" },
-                { "motion", "Motion & Interaction" },
-                { "scroll", "Motion & Interaction" },
-                { "aria", "ARIA & Semantic HTML" }
-            };
-
-
-            // Match the message against category mappings
-            foreach (var mapping in categoryMappings)
-            {
-                if (message.Contains(mapping.Key, StringComparison.OrdinalIgnoreCase))
-                {
-                    return mapping.Value;
-                }
-            }
-
-
-            return "Other"; // Default category if no match
-        }
-        private static (string cleanedMessage, string wcagLabel) ExtractWCAGLabel(string message)
-        {
-            // Match WCAG label inside parentheses
-            var match = Regex.Match(message, @"\((WCAG [^\)]+)\)");
-
-
-            if (match.Success)
-            {
-                string wcagLabel = match.Groups[1].Value; // Extract WCAG label
-                string cleanedMessage = Regex.Replace(message, @"\s*\(WCAG.*?\)", "", RegexOptions.IgnoreCase).Trim(); // Remove WCAG reference
-                return (cleanedMessage, wcagLabel);
-            }
-
-
-            return (message, "Unknown WCAG Rule"); // If no match, assign "Unknown"
-        }
-
-        private List<Pa11yIssue> DeserializePa11yResult(string pa11yJsonResult)
-        {
-            try
-            {
-                // Deserialize the JSON result into a List of Pa11yIssue
-                var issues = JsonSerializer.Deserialize<List<Pa11yIssue>>(pa11yJsonResult);
-
-                return issues;
-            }
-            catch (JsonException ex)
-            {
-                // Log the exception
-                _logger.LogError(ex, "Error deserializing Pa11y JSON result");
-
-                // Handle any JSON deserialization errors
-                return new List<Pa11yIssue>();
-            }
-        }
-    }
-}*/
-
-
 namespace Uxcheckmate_Main.Services
 {
     public class AxeCoreService : IAxeCoreService
@@ -203,6 +24,7 @@ namespace Uxcheckmate_Main.Services
         {
             var issues = new List<AccessibilityIssue>();
 
+            // Initialize Playwright and launch a headless browser instance
             using var playwright = await Playwright.CreateAsync();
             await using var browser = await playwright.Chromium.LaunchAsync(new BrowserTypeLaunchOptions { Headless = true });
             var context = await browser.NewContextAsync();
@@ -210,26 +32,28 @@ namespace Uxcheckmate_Main.Services
 
             try
             {
-                _logger.LogInformation("Navigating to {Url}", report.Url);
+                _logger.LogInformation("Starting accessibility analysis for URL: {Url}", report.Url);
+
+                // Navigate to the target URL and wait until the page is fully loaded
                 await page.GotoAsync(report.Url, new PageGotoOptions { WaitUntil = WaitUntilState.Load });
+                _logger.LogInformation("Successfully loaded page: {Url}", report.Url);
 
-                // Inject axe-core script (downloaded locally)
-                // Get the absolute path to axe.min.js
+                // Construct the file path for the axe-core script
                 string axeScriptPath = Path.Combine(Directory.GetCurrentDirectory(), "axe-core", "axe.min.js");
-                _logger.LogInformation("Attempting to load axe-core script from: {Path}", axeScriptPath);
 
-                // Check if the file exists
+                // Verify that the axe-core script exists before injecting it
                 if (!File.Exists(axeScriptPath))
                 {
-                    _logger.LogError("axe-core script not found at path: {Path}", axeScriptPath);
-                    throw new FileNotFoundException("axe-core script not found", axeScriptPath);
+                    _logger.LogError("Axe-core script not found at path: {Path}", axeScriptPath);
+                    throw new FileNotFoundException("Axe-core script not found", axeScriptPath);
                 }
 
+                // Read and inject the axe-core script into the page
                 string axeScript = await File.ReadAllTextAsync(axeScriptPath);
                 await page.EvaluateAsync(axeScript);
-                _logger.LogInformation("Successfully injected axe-core script.");
+                _logger.LogInformation("Injected axe-core script successfully.");
 
-                // Run axe-core test and check for errors
+                // Verify that the axe-core script is properly loaded
                 var axeCheck = await page.EvaluateAsync<bool>("() => typeof axe !== 'undefined'");
                 if (!axeCheck)
                 {
@@ -237,106 +61,105 @@ namespace Uxcheckmate_Main.Services
                     throw new Exception("Axe-core script injection failed");
                 }
 
-                _logger.LogInformation("Axe-core script is successfully injected. Running analysis...");
+                _logger.LogInformation("Axe-core script is loaded. Running accessibility analysis...");
 
-                await page.EvaluateAsync(axeScript);
-
-                // Run accessibility scan
-                try
-                {
-                    var axeResultsJson = await page.EvaluateAsync<JsonElement>("() => axe.run()");
-                    string jsonString = axeResultsJson.ToString();
-
-                    _logger.LogInformation("Raw axe-core JSON output: {JsonString}", jsonString);
-                    
-                    var axeResults = JsonSerializer.Deserialize<AxeCoreResults>(jsonString, new JsonSerializerOptions
-                        {
-                            PropertyNameCaseInsensitive = true
+                // Execute axe.run() to analyze the page
+                var axeResultsJson = await page.EvaluateAsync<JsonElement>(@"
+                    async () => {
+                        let results = await axe.run();
+                        results.violations.forEach(violation => {
+                            violation.nodes.forEach(node => {
+                                if (node.target && node.target.length > 0) {
+                                    let element = document.querySelector(node.target[0]); // Use the first selector
+                                    node.html = element ? element.outerHTML : 'Element not found';
+                                } else {
+                                    node.html = 'No target selector available';
+                                }
+                            });
                         });
-
-                        if (axeResults?.Violations == null || !axeResults.Violations.Any())
-                        {
-                            _logger.LogError("Axe-core returned no violations after deserialization.");
-                        }
-                    if (axeResults == null || axeResults.Violations == null)
-                    {
-                        _logger.LogError("Axe-core returned no results or deserialization failed.");
+                        return results;
                     }
+                ");
 
-                    if (axeResults?.Violations != null)
-                    {
-                        foreach (var violation in axeResults.Violations)
-                        {
-                            var issue = new AccessibilityIssue
-                            {
-                                ReportId = report.Id,
-                                Message = violation.Description,
-                                Selector = string.Join(", ", violation.Nodes.Select(n => n.Target)),
-                                Severity = DetermineSeverity(violation.Impact),
-                                WCAG = string.Join(", ", violation.WcagTags)
-                            };
 
-                            issues.Add(issue);
-                        }
+                string jsonString = axeResultsJson.ToString();
+                _logger.LogDebug("Raw axe-core JSON output: {JsonString}", jsonString);
 
-                        // Save issues to database (Just like Pa11yService does)
-                        _dbContext.AccessibilityIssues.AddRange(issues);
-                        await _dbContext.SaveChangesAsync();
-                        _logger.LogInformation("Saved {Count} accessibility issues to the database.", issues.Count);
-                    }
-                }
-                catch (Exception ex)
+                // Deserialize the JSON result into an AxeCoreResults object
+                var axeResults = JsonSerializer.Deserialize<AxeCoreResults>(jsonString, new JsonSerializerOptions
                 {
-                    _logger.LogError("Error executing axe.run(): {Message}", ex.Message);
+                    PropertyNameCaseInsensitive = true
+                });
+
+                if (axeResults?.Violations == null || !axeResults.Violations.Any())
+                {
+                    _logger.LogInformation("No accessibility violations found for {Url}.", report.Url);
+                    return issues;
                 }
+
+                _logger.LogInformation("Found {Count} accessibility violations for {Url}.", axeResults.Violations.Count(), report.Url);
+
+                // Ensure that the default "Other" category exists
+                var defaultCategory = _dbContext.AccessibilityCategories.FirstOrDefault(c => c.Name == "Other");
+                if (defaultCategory == null)
+                {
+                    _logger.LogError("Default accessibility category not found! Cannot categorize issues.");
+                    return issues;
+                }
+
+                // Process each accessibility violation and create issue records
+                foreach (var violation in axeResults.Violations)
+                {
+                    foreach (var node in violation.Nodes)
+                    {
+                        var issue = new AccessibilityIssue
+                        {
+                            ReportId = report.Id,
+                            Message = violation.Description ?? "No description provided",
+                            Selector = node.Html ?? "No HTML available", // Use extracted outerHTML
+                            Severity = DetermineSeverity(violation.Impact),
+                            WCAG = violation.WcagTags?.Any() == true 
+                                ? string.Join(", ", violation.WcagTags) 
+                                : "Unknown WCAG Rule",
+                            CategoryId = defaultCategory.Id
+                        };
+
+                        issues.Add(issue);
+
+                        _logger.LogDebug("Issue detected - Message: {Message}, WCAG: {WCAG}, HTML: {HTML}, Severity: {Severity}, Category: {CategoryId}",
+                            issue.Message, issue.WCAG, issue.Selector, issue.Severity, issue.CategoryId);
+                    }
+                }
+
+                // Save identified issues to the database
+                _logger.LogInformation("Saving {Count} accessibility issues to the database.", issues.Count);
+                _dbContext.AccessibilityIssues.AddRange(issues);
+                await _dbContext.SaveChangesAsync();
+                _logger.LogInformation("Successfully saved {Count} accessibility issues to the database.", issues.Count);
+            }
+            catch (FileNotFoundException fnfEx)
+            {
+                _logger.LogError("File error during accessibility analysis: {Message}", fnfEx.Message);
             }
             catch (Exception ex)
             {
-                _logger.LogError("Error running Playwright accessibility test: {Message}", ex.Message);
+                _logger.LogError("Unexpected error during Playwright accessibility test: {Message}", ex.Message);
             }
 
-            return issues; // Return accessibility issues just like Pa11yService
+            return issues;
         }
 
         private int DetermineSeverity(string impact)
         {
             return impact switch
             {
-                "critical" => 3,
-                "serious" => 2,
+                "critical" => 4,
+                "serious" => 3,
+                "moderate" => 2,
                 _ => 1
+
             };
         }
-        private class AxeCoreResults
-{
-    public List<AxeViolation> Violations { get; set; }
-}
-
-private class AxeViolation
-{
-    public string Id { get; set; }  // Matches "id" field in JSON
-    public string Impact { get; set; } // Matches "impact" field in JSON
-    public string Description { get; set; } // Matches "description" field
-    public string Help { get; set; } // Matches "help" field
-    public List<string> WcagTags { get; set; }
-    public List<AxeNode> Nodes { get; set; } // Matches "nodes" field
-}
-
-private class AxeNode
-{
-    public string Html { get; set; }  // Matches "html" field
-    public List<string> Target { get; set; }  // Matches "target" field (CSS selector)
-    public List<AxeCheck> Any { get; set; }  // Matches "any" field
-    public List<AxeCheck> All { get; set; }  // Matches "all" field
-    public List<AxeCheck> None { get; set; }  // Matches "none" field
-}
-
-private class AxeCheck
-{
-    public string Id { get; set; }  // Matches "id" inside "any", "all", "none"
-    public string Message { get; set; }  // Matches "message"
-}
-
     }
 }
 
