@@ -46,19 +46,22 @@ namespace Uxcheckmate_Main.Services
                 throw new ArgumentException("Invalid hex color format. Use #RRGGBB or RRGGBB.");
             }
         }
-        public async Task<Dictionary<string, object>> AnalyzeWebsiteColorsAsync(string url)
+        public async Task<string> AnalyzeWebsiteColorsAsync(string url)
         {
             var scrapedData = await _webScraperService.ScrapeAsync(url);
-            var colorUsage = (Dictionary<string, int>)scrapedData["colors_used"];
-            var colorAnalysis = colorUsage
-                .Select(c => new { Hex = c.Key, RGB = HexToRgb(c.Key), Count = c.Value })
-                .OrderByDescending(c => c.Count)
-                .ToList();
-            return new Dictionary<string, object>
-            {
-                { "dominant_colors", colorAnalysis },
-                { "tag_counts", scrapedData["tag_counts"] }
-            };
+            string htmlContent = (string)scrapedData["html_content"];
+            var externalCss = (List<string>)scrapedData["external_css"];
+            var extractedElements = ExtractHtmlElements(htmlContent, externalCss);
+            // Legibility Info Grab
+            var legibilityIssues = CheckLegibility(extractedElements);
+            // 60-30-10 Issues Grab
+            var colorPixelUsage = EstimateColorPixelUsage(extractedElements);
+            var colorProportions = CalculateColorProportions(colorPixelUsage);
+            var colorBalanceIssues = CheckColorBalanceIssues(colorProportions);
+            // Combining
+            var allIssues = legibilityIssues.Concat(colorBalanceIssues).ToList();
+            // Returning issues
+            return allIssues.Any() ? string.Join("\n", allIssues) : string.Empty;
         }
         public Dictionary<string, object> ExtractHtmlElements(string htmlContent, List<string> externalCss)
         {
@@ -379,6 +382,18 @@ namespace Uxcheckmate_Main.Services
                 }
                 if (AchromatopsiaIssue(textColorHex, bgColorHex)){
                     issues.Add($"Achromatopsia issue in <{tag.Key}>: {textColorHex} on {bgColorHex}");
+                }
+            }
+            return issues;
+        }
+        public List<string> CheckColorBalanceIssues(Dictionary<string, double> colorProportions)
+        {
+            var issues = new List<string>();
+            var colorBalance = CheckColorBalance(colorProportions);
+            if (!IsColorBalanced(colorBalance)){
+                issues.Add("Color balance issue: The proportions of primary, secondary, and accent colors are not within recommended ranges.");
+                foreach (var color in colorBalance.OrderByDescending(c => c.Value)){
+                    issues.Add($"Color {color.Key}: {color.Value}%");
                 }
             }
             return issues;
