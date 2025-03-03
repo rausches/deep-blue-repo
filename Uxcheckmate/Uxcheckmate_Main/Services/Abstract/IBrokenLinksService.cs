@@ -4,6 +4,7 @@ namespace Uxcheckmate_Main.Services
 {
     public interface IBrokenLinksService
     {
-        public Task<string> BrokenLinkAnalysis(string Url, Dictionary<string, object> scrapedData);
+        Task<string> BrokenLinkAnalysis(string Url, Dictionary<string, object> scrapedData);
+        Task<List<string>> CheckBrokenLinksAsync(List<string> links);
     }
 }

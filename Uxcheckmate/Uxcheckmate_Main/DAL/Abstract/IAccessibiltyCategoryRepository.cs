@@ -8,8 +8,7 @@ using Uxcheckmate_Main.Models;
 
 namespace Uxcheckmate_Main.DAL.Abstract
 {
-    public interface IReportRepository : IRepository<Report>
+    public interface IAccessibilityCategoryRepository : IRepository<AccessibilityCategory>
     {
-        
     }
 }
