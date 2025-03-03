@@ -16,7 +16,7 @@ namespace Uxcheckmate_Main.Services
         {
             _webScraperService = webScraperService;
         }
-        public bool AreColorsSimilar((int R, int G, int B) color1, (int R, int G, int B) color2, int threshold = 50)
+        public static bool AreColorsSimilar((int R, int G, int B) color1, (int R, int G, int B) color2, int threshold = 50)
         {
             //Grabbing differences
             int diffR = color1.R - color2.R;
@@ -276,6 +276,69 @@ namespace Uxcheckmate_Main.Services
             bool accentValid = accent >= 0 && accent <= 25;
             bool extraValid = remaining <= 15;
             return primaryValid && secondaryValid && accentValid && extraValid;
+        }
+        // Protanopia Red Color Issues 
+        public static bool ProtanopiaIssue(string hex1, string hex2)
+        {
+            var color1 = HexToRgb(hex1);
+            var color2 = HexToRgb(hex2);
+            var protanopia1 = (0, (int)(color1.G * 0.8), (int)(color1.B * 0.8));
+            var protanopia2 = (0, (int)(color2.G * 0.8), (int)(color2.B * 0.8));
+            return AreColorsSimilar(protanopia1, protanopia2, 110);
+        }
+        // Protanomaly Slight Red Color issue
+        public static bool ProtanomalyIssue(string hex1, string hex2)
+        {
+            var color1 = HexToRgb(hex1);
+            var color2 = HexToRgb(hex2);
+            var protanomaly1 = ((int)(color1.R * 0.3), color1.G, color1.B);
+            var protanomaly2 = ((int)(color2.R * 0.3), color2.G, color2.B);
+            return AreColorsSimilar(protanomaly1, protanomaly2, 110);
+        }
+        // Deuteranopia Green Color Issues
+        public static bool DeuteranopiaIssue(string hex1, string hex2)
+        {
+            var color1 = HexToRgb(hex1);
+            var color2 = HexToRgb(hex2);
+            var deuteranopia1 = ((int)(color1.R * 0.9), 0, (int)(color1.B * 0.7));
+            var deuteranopia2 = ((int)(color2.R * 0.9), 0, (int)(color2.B * 0.7));
+            return AreColorsSimilar(deuteranopia1, deuteranopia2, 120);
+        }
+        // Deuteranomaly Slight Green Color issue
+        public static bool DeuteranomalyIssue(string hex1, string hex2)
+        {
+            var color1 = HexToRgb(hex1);
+            var color2 = HexToRgb(hex2);
+            var deuteranomaly1 = (color1.R, (int)(color1.G * 0.2), color1.B);
+            var deuteranomaly2 = (color2.R, (int)(color2.G * 0.2), color2.B);
+            return AreColorsSimilar(deuteranomaly1, deuteranomaly2, 120);
+        }
+        // Tritanopia Blue Color Issues
+        public static bool TritanopiaIssue(string hex1, string hex2)
+        {
+            var color1 = HexToRgb(hex1);
+            var color2 = HexToRgb(hex2);
+            var tritanopia1 = ((int)(color1.R * 0.7), (int)(color1.G * 0.9), 0);
+            var tritanopia2 = ((int)(color2.R * 0.7), (int)(color2.G * 0.9), 0);
+            return AreColorsSimilar(tritanopia1, tritanopia2, 130);
+        }
+        // Tritanomaly  Slight blue issue
+        public static bool TritanomalyIssue(string hex1, string hex2)
+        {
+            var color1 = HexToRgb(hex1);
+            var color2 = HexToRgb(hex2);
+            var tritanomaly1 = (color1.R, color1.G, (int)(color1.B * 0.2));
+            var tritanomaly2 = (color2.R, color2.G, (int)(color2.B * 0.2));
+            return AreColorsSimilar(tritanomaly1, tritanomaly2, 130);
+        }
+        // Achromatopsia [Complete Color Blindness]
+        public static bool AchromatopsiaIssue(string hex1, string hex2)
+        {
+            var color1 = HexToRgb(hex1);
+            var color2 = HexToRgb(hex2);
+            int gray1 = (int)(color1.R * 0.299 + color1.G * 0.587 + color1.B * 0.114);
+            int gray2 = (int)(color2.R * 0.299 + color2.G * 0.587 + color2.B * 0.114);
+            return AreColorsSimilar((gray1, gray1, gray1), (gray2, gray2, gray2), 100);
         }
     }
 }

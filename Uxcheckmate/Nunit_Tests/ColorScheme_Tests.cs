@@ -23,7 +23,7 @@ namespace Uxcheckmate_Tests
             // Setting Max 
             var color1 = (255, 100, 50);
             var color2 = (205, 100, 50);
-            bool result = _colorService.AreColorsSimilar(color1, color2);
+            bool result = ColorSchemeService.AreColorsSimilar(color1, color2);
             Assert.That(result, Is.True, "Colors should be considered similar.");
         }
 
@@ -32,7 +32,7 @@ namespace Uxcheckmate_Tests
         {
             var color1 = (255, 255, 255);
             var color2 = (0, 0, 0);
-            bool result = _colorService.AreColorsSimilar(color1, color2);
+            bool result = ColorSchemeService.AreColorsSimilar(color1, color2);
             Assert.That(result, Is.False, "Colors should be considered different.");
         }
 
@@ -465,6 +465,51 @@ namespace Uxcheckmate_Tests
             };
             var result = _colorService.IsColorBalanced(colorBalance);
             Assert.That(result, Is.False, "Should return false when color balance is outside of the acceptable range.");
+        }
+        [Test]
+        public void ProtanopiaIssueTest()
+        {
+            Assert.That(ColorSchemeService.ProtanopiaIssue("#FF5733", "#E65230"), Is.True, "Protanopia should struggle with red shades.");
+            Assert.That(ColorSchemeService.ProtanopiaIssue("#00FF00", "#0000FF"), Is.False, "Protanopia should not struggle with distinct green and blue.");
+        }
+        [Test]
+        public void ProtanomalyIssueTest()
+        {
+            Assert.That(ColorSchemeService.ProtanomalyIssue("#FF5733", "#E65230"), Is.True, "Protanomaly should struggle with similar red shades.");
+            Assert.That(ColorSchemeService.ProtanomalyIssue("#FFD700", "#008000"), Is.False, "Protanomaly should distinguish yellow and green.");
+        }
+        [Test]
+        public void DeuteranopiaIssueTest()
+        {
+            Assert.That(ColorSchemeService.DeuteranopiaIssue("#4CAF50", "#A8E6A3"), Is.True, "Deuteranopia should struggle with green shades.");
+            Assert.That(ColorSchemeService.DeuteranopiaIssue("#FF5733", "#1E90FF"), Is.False, "Deuteranopia should distinguish red and blue.");
+        }
+
+        [Test]
+        public void DeuteranomalyIssueTest()
+        {
+            Assert.That(ColorSchemeService.DeuteranomalyIssue("#2E8B57", "#8FBC8F"), Is.True, "Deuteranomaly should struggle with green shades.");
+            Assert.That(ColorSchemeService.DeuteranomalyIssue("#FFD700", "#8B0000"), Is.False, "Deuteranomaly should distinguish yellow and red.");
+        }
+
+        [Test]
+        public void TritanopiaIssueTest()
+        {
+            Assert.That(ColorSchemeService.TritanopiaIssue("#4682B4", "#00CED1"), Is.True, "Tritanopia should struggle with blue shades.");
+            Assert.That(ColorSchemeService.TritanopiaIssue("#FF4500", "#32CD32"), Is.False, "Tritanopia should distinguish red and green.");
+        }
+
+        [Test]
+        public void TritanomalyIssueTest()
+        {
+            Assert.That(ColorSchemeService.TritanomalyIssue("#4169E1", "#87CEEB"), Is.True, "Tritanomaly should struggle with blue shades.");
+            Assert.That(ColorSchemeService.TritanomalyIssue("#8B0000", "#FFFF00"), Is.False, "Tritanomaly should distinguish dark red and yellow.");
+        }
+        [Test]
+        public void AchromatopsiaIssueTest()
+        {
+            Assert.That(ColorSchemeService.AchromatopsiaIssue("#8B0000", "#800080"), Is.True, "Achromatopsia should struggle with similar luminosity colors.");
+            Assert.That(ColorSchemeService.AchromatopsiaIssue("#FFFFFF", "#000000"), Is.False, "Achromatopsia should distinguish black and white.");
         }
     }
 }
