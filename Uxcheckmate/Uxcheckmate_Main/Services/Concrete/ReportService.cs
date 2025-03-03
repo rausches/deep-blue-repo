@@ -6,6 +6,14 @@ using System.Text.RegularExpressions;
 using Microsoft.DotNet.Scaffolding.Shared.Messaging;
 using Microsoft.EntityFrameworkCore;
 using Uxcheckmate_Main.Models;
+using iText.Kernel.Pdf;
+using iText.Layout;
+using iText.Layout.Element;
+using iText.Kernel.Font;
+using iText.IO.Font;
+using iText.IO.Font.Constants;
+
+
 
 namespace Uxcheckmate_Main.Services
 {
@@ -17,9 +25,10 @@ namespace Uxcheckmate_Main.Services
         private readonly IOpenAiService _openAiService; 
         private readonly IBrokenLinksService _brokenLinksService;
         private readonly IHeadingHierarchyService _headingHierarchyService;
+        private readonly IColorSchemeService _colorSchemeService;
         private readonly IDynamicSizingService _dynamicSizingService;
 
-        public ReportService(HttpClient httpClient, ILogger<ReportService> logger, UxCheckmateDbContext context, IOpenAiService openAiService, IBrokenLinksService brokenLinksService, IHeadingHierarchyService headingHierarchyService, IDynamicSizingService dynamicSizingService)
+        public ReportService(HttpClient httpClient, ILogger<ReportService> logger, UxCheckmateDbContext context, IOpenAiService openAiService, IBrokenLinksService brokenLinksService, IHeadingHierarchyService headingHierarchyService, IColorSchemeService colorSchemeService, IDynamicSizingService dynamicSizingService)
         {
             _httpClient = httpClient;
             _dbContext = context;
@@ -27,6 +36,7 @@ namespace Uxcheckmate_Main.Services
             _logger = logger;
             _brokenLinksService = brokenLinksService;
             _headingHierarchyService = headingHierarchyService;
+            _colorSchemeService = colorSchemeService;
             _dynamicSizingService = dynamicSizingService;
         }
 
@@ -98,9 +108,13 @@ namespace Uxcheckmate_Main.Services
                 case "Visual Hierarchy":
                     _logger.LogDebug("Delegating Visual Hierarchy analysis for URL: {Url}", url);
                     return await _headingHierarchyService.AnalyzeAsync(url);
+                case "Color Scheme":
+                    _logger.LogDebug("Delegating Color Scheme analysis for URL: {Url}", url);
+                    return await _colorSchemeService.AnalyzeWebsiteColorsAsync(url);
                 case "Mobile Responsiveness":
                     _logger.LogDebug("Delegating Dynamic Sizing analysis for URL: {Url}", url);
                     var hasDynamicSizing = _dynamicSizingService.HasDynamicSizing(scrapedData["htmlContent"].ToString());
+                    
 
                 if (!hasDynamicSizing)
                 {
