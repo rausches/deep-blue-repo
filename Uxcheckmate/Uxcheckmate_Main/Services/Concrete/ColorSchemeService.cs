@@ -166,5 +166,45 @@ namespace Uxcheckmate_Main.Services
                 { "background_color", backgroundColor }
             };
         }
+        // Pixel formula: characterCount*(fontSize*0.5)*fontSize [Estimating how many pixels characters take up to be half probably an overestimate since spaces]
+        public Dictionary<string, int> EstimateColorPixelUsage(Dictionary<string, object> extractedData)
+        {
+            var estimatedPixelUsage = new Dictionary<string, int>();
+            var tagCharacterCount = (Dictionary<string, int>)extractedData["character_count_per_tag"];
+            var classCharacterCount = (Dictionary<string, int>)extractedData["character_count_per_class"];
+            var tagFontSizes = (Dictionary<string, int>)extractedData["tag_font_sizes"];
+            var classFontSizes = (Dictionary<string, int>)extractedData["class_font_sizes"];
+            var tagColors = (Dictionary<string, string>)extractedData["tag_colors"];
+            var classColors = (Dictionary<string, string>)extractedData["class_colors"];
+            var defaultFontSizes = new Dictionary<string, int>
+            {
+                { "h1", 32 }, { "h2", 24 }, { "h3", 18 }, { "h4", 16 }, { "h5", 13 }, { "h6", 11 }, { "p", 16 }
+            };
+            // Tag color pixels
+            foreach (var tag in tagCharacterCount.Keys){
+                int fontSize = tagFontSizes.ContainsKey(tag) ? tagFontSizes[tag] : (defaultFontSizes.ContainsKey(tag) ? defaultFontSizes[tag] : 16);
+                if (tagColors.TryGetValue(tag, out string color)){
+                    int charCount = tagCharacterCount[tag];
+                    int pixelArea = (int)(charCount * (fontSize * 0.5) * fontSize);
+                    if (!estimatedPixelUsage.ContainsKey(color)){
+                        estimatedPixelUsage[color] = 0;
+                    }
+                    estimatedPixelUsage[color] += pixelArea;
+                }
+            }
+            // Class color pixels
+            foreach (var className in classCharacterCount.Keys){
+                int fontSize = classFontSizes.ContainsKey(className) ? classFontSizes[className] : 16;
+                if (classColors.TryGetValue(className, out string color)){
+                    int charCount = classCharacterCount[className];
+                    int pixelArea = (int)(charCount * (fontSize * 0.5) * fontSize);
+                    if (!estimatedPixelUsage.ContainsKey(color)){
+                        estimatedPixelUsage[color] = 0;
+                    }
+                    estimatedPixelUsage[color] += pixelArea;
+                }
+            }
+            return estimatedPixelUsage;
+        }  
     }
 }
