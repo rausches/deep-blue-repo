@@ -23,7 +23,7 @@ namespace Uxcheckmate_Tests
             // Setting Max 
             var color1 = (255, 100, 50);
             var color2 = (205, 100, 50);
-            bool result = _colorService.AreColorsSimilar(color1, color2);
+            bool result = ColorSchemeService.AreColorsSimilar(color1, color2);
             Assert.That(result, Is.True, "Colors should be considered similar.");
         }
 
@@ -32,7 +32,7 @@ namespace Uxcheckmate_Tests
         {
             var color1 = (255, 255, 255);
             var color2 = (0, 0, 0);
-            bool result = _colorService.AreColorsSimilar(color1, color2);
+            bool result = ColorSchemeService.AreColorsSimilar(color1, color2);
             Assert.That(result, Is.False, "Colors should be considered different.");
         }
 
@@ -257,6 +257,308 @@ namespace Uxcheckmate_Tests
             var result = _colorService.ExtractHtmlElements(htmlContent, externalCss);
             var backgroundColor = (string)result["background_color"];
             Assert.That(backgroundColor, Is.EqualTo("#FFFFFF"), "Background color should default to white if unspecified.");
+        }
+        [Test]
+        public void CalculatePixelUsage()
+        {
+            var extractedData = new Dictionary<string, object>
+            {
+                { "character_count_per_tag", new Dictionary<string, int> { { "p", 50 }, { "h1", 20 } } },
+                { "character_count_per_class", new Dictionary<string, int> { { "classClass", 30 } } },
+                { "tag_font_sizes", new Dictionary<string, int> { { "p", 16 }, { "h1", 32 } } },
+                { "class_font_sizes", new Dictionary<string, int> { { "classClass", 24 } } },
+                { "tag_colors", new Dictionary<string, string> { { "p", "#000000" }, { "h1", "#FF0000" } } },
+                { "class_colors", new Dictionary<string, string> { { "classClass", "#00FF00" } } }
+            };
+            var result = _colorService.EstimateColorPixelUsage(extractedData);
+            Assert.That(result["#000000"], Is.EqualTo(50 * (16 * 0.5) * 16), "Pixel area for <p> should be correctly calculated.");
+            Assert.That(result["#FF0000"], Is.EqualTo(20 * (32 * 0.5) * 32), "Pixel area for <h1> should be correctly calculated.");
+            Assert.That(result["#00FF00"], Is.EqualTo(30 * (24 * 0.5) * 24), "Pixel area for 'classClass' should be correctly calculated.");
+        }
+        [Test]
+        public void ColorPixelDefaultFontSize()
+        {
+            var extractedData = new Dictionary<string, object>
+            {
+                { "character_count_per_tag", new Dictionary<string, int> { { "p", 40 } } },
+                { "character_count_per_class", new Dictionary<string, int>() },
+                { "tag_font_sizes", new Dictionary<string, int>() },
+                { "class_font_sizes", new Dictionary<string, int>() },
+                { "tag_colors", new Dictionary<string, string> { { "p", "#000000" } } },
+                { "class_colors", new Dictionary<string, string>() }
+            };
+            var result = _colorService.EstimateColorPixelUsage(extractedData);
+            int expectedPixels = (int)(40 * (16 * 0.5) * 16);
+            Assert.That(result["#000000"], Is.EqualTo(expectedPixels), "Should use default font size of 16px for <p> when missing.");
+        }
+        [Test]
+        public void ColorPixelLargeValues()
+        {
+            var extractedData = new Dictionary<string, object>
+            {
+                { "character_count_per_tag", new Dictionary<string, int> { { "h1", 10000 } } },
+                { "character_count_per_class", new Dictionary<string, int>() },
+                { "tag_font_sizes", new Dictionary<string, int> { { "h1", 32 } } },
+                { "class_font_sizes", new Dictionary<string, int>() },
+                { "tag_colors", new Dictionary<string, string> { { "h1", "#FF0000" } } },
+                { "class_colors", new Dictionary<string, string>() }
+            };
+            var result = _colorService.EstimateColorPixelUsage(extractedData);
+            Assert.That(result["#FF0000"], Is.EqualTo(10000 * (32 * 0.5) * 32), "Should correctly compute large pixel values.");
+        }
+        [Test]
+        public void TextSubtractsBackground()
+        {
+            var extractedData = new Dictionary<string, object>
+            {
+                { "character_count_per_tag", new Dictionary<string, int> { { "p", 40 } } },
+                { "character_count_per_class", new Dictionary<string, int>() },
+                { "tag_font_sizes", new Dictionary<string, int> { { "p", 16 } } },
+                { "class_font_sizes", new Dictionary<string, int>() },
+                { "tag_colors", new Dictionary<string, string> { { "p", "#000000" } } },
+                { "class_colors", new Dictionary<string, string>() },
+                { "background_color", "#FFFFFF" }
+            };
+            var result = _colorService.EstimateColorPixelUsage(extractedData);
+            int expectedTextPixels = (int)(40 * (16 * 0.5) * 16);
+            int expectedBackgroundPixels = 2_073_600 - expectedTextPixels;
+            Assert.That(result.ContainsKey("#000000"), "Text color should be included.");
+            Assert.That(result["#000000"], Is.EqualTo(expectedTextPixels), "Text pixels should be correctly calculated.");
+            Assert.That(result.ContainsKey("#FFFFFF"), "Background color should be included.");
+            Assert.That(result["#FFFFFF"], Is.EqualTo(expectedBackgroundPixels), "Background pixels should be correctly adjusted.");
+        }
+        [Test]
+        public void EmptyColorPixelInput()
+        {
+            var extractedData = new Dictionary<string, object>
+            {
+                { "character_count_per_tag", new Dictionary<string, int>() },
+                { "character_count_per_class", new Dictionary<string, int>() },
+                { "tag_font_sizes", new Dictionary<string, int>() },
+                { "class_font_sizes", new Dictionary<string, int>() },
+                { "tag_colors", new Dictionary<string, string>() },
+                { "class_colors", new Dictionary<string, string>() },
+                { "background_color", "#FFFFFF" }
+            };
+            var result = _colorService.EstimateColorPixelUsage(extractedData);
+            Assert.That(result.Count, Is.EqualTo(1), "Only background pixels should be counted.");
+            Assert.That(result.ContainsKey("#FFFFFF"), "Background color should be stored.");
+            Assert.That(result["#FFFFFF"], Is.EqualTo(2073600), "All pixels should be background color.");
+        }
+        [Test]
+        public void EmptyColorPixelInputWithNoBackground()
+        {
+            var extractedData = new Dictionary<string, object>
+            {
+                { "character_count_per_tag", new Dictionary<string, int>() },
+                { "character_count_per_class", new Dictionary<string, int>() },
+                { "tag_font_sizes", new Dictionary<string, int>() },
+                { "class_font_sizes", new Dictionary<string, int>() },
+                { "tag_colors", new Dictionary<string, string>() },
+                { "class_colors", new Dictionary<string, string>() }
+            };
+            var result = _colorService.EstimateColorPixelUsage(extractedData);
+            Assert.That(result.ContainsKey("#FFFFFF"), "Background color should be assigned when no text elements exist.");
+            Assert.That(result["#FFFFFF"], Is.EqualTo(2_073_600), "All pixels should be assigned to the background.");
+        }
+        [Test]
+        public void EmptyColorProportions()
+        {
+            var result = _colorService.CalculateColorProportions(new Dictionary<string, int>());
+            Assert.That(result, Is.Empty, "Should return an empty dictionary when there are no colors.");
+        }
+        [Test]
+        public void CalculateColorProportionsCorrect()
+        {
+            var colorPixelUsage = new Dictionary<string, int>
+            {
+                { "#FF0000", 500 },
+                { "#00FF00", 300 },
+                { "#0000FF", 200 }
+            };
+            var result = _colorService.CalculateColorProportions(colorPixelUsage);
+            Assert.That(result["#FF0000"], Is.EqualTo(50.00).Within(0.01), "Red should be 50%.");
+            Assert.That(result["#00FF00"], Is.EqualTo(30.00).Within(0.01), "Green should be 30%.");
+            Assert.That(result["#0000FF"], Is.EqualTo(20.00).Within(0.01), "Blue should be 20%.");
+        }
+        [Test]
+        public void ColorProportionsOneColorOneHundredPercent()
+        {
+            var colorPixelUsage = new Dictionary<string, int> { { "#FFFFFF", 1000 } };
+            var result = _colorService.CalculateColorProportions(colorPixelUsage);
+            Assert.That(result["#FFFFFF"], Is.EqualTo(100.00).Within(0.01), "Single color should take 100%.");
+        }
+        [Test]
+        public void ColorBalanceEmpty()
+        {
+            var result = _colorService.CheckColorBalance(new Dictionary<string, double>());
+            Assert.That(result, Is.Empty, "Should return an empty dictionary when no colors are provided.");
+        }
+        [Test]
+        public void ColorBalanceGrouped()
+        {
+            var colorProportions = new Dictionary<string, double>
+            {
+                { "#FF5733", 40.0 },
+                { "#E65230", 20.0 }, // Similar to one above
+                { "#0000FF", 40.0 }
+            };
+            var result = _colorService.CheckColorBalance(colorProportions);
+            Assert.That(result.Count, Is.EqualTo(2), "Should group similar colors together.");
+            Assert.That(result.ContainsKey("#FF5733"), "The dominant red should be the grouped key.");
+            Assert.That(result["#FF5733"], Is.EqualTo(60.0).Within(0.01), "Similar red shades should be grouped.");
+            Assert.That(result["#0000FF"], Is.EqualTo(40.0).Within(0.01), "Blue should remain unchanged.");
+        }
+        [Test]
+        public void ColorBalanceNoGrouping()
+        {
+            var colorProportions = new Dictionary<string, double>
+            {
+                { "#FF0000", 40.0 },
+                { "#00FF00", 30.0 },
+                { "#0000FF", 30.0 }
+            };
+            var result = _colorService.CheckColorBalance(colorProportions);
+            Assert.That(result.Count, Is.EqualTo(3), "Should not group distinct colors.");
+            Assert.That(result["#FF0000"], Is.EqualTo(40.0).Within(0.01));
+            Assert.That(result["#00FF00"], Is.EqualTo(30.0).Within(0.01));
+            Assert.That(result["#0000FF"], Is.EqualTo(30.0).Within(0.01));
+        }
+        [Test]
+        public void ColorBalancedEmptyInputReturnsFalse()
+        {
+            var result = _colorService.IsColorBalanced(new Dictionary<string, double>());
+            Assert.That(result, Is.False, "Should return false when no colors are present.");
+        }
+        [Test]
+        public void IsColorBalancedReturnsTrue()
+        {
+            var colorBalance = new Dictionary<string, double>
+            {
+                { "#FF5733", 60.0 },
+                { "#B2B2B2", 30.0 },
+                { "#FFFFFF", 10.0 }
+            };
+            var result = _colorService.IsColorBalanced(colorBalance);
+            Assert.That(result, Is.True, "Should return true for a valid 60-30-10 balance.");
+        }
+        [Test]
+        public void IsColorBalancedVarianceReturnsTrue()
+        {
+            var colorBalance = new Dictionary<string, double>
+            {
+                { "#FF5733", 70.0 },
+                { "#B2B2B2", 20.0 },
+                { "#FFFFFF", 5.0 }
+            };
+            var result = _colorService.IsColorBalanced(colorBalance);
+            Assert.That(result, Is.True, "Should return true for a valid 60-30-10 balance with 15% variance.");
+        }
+        [Test]
+        public void IsColorBalancedUnbalancedReturnsFalse()
+        {
+            var colorBalance = new Dictionary<string, double>
+            {
+                { "#E65230", 80.0 }, // Too Much
+                { "#B2B2B2", 10.0 }, // Too little
+                { "#FFFFFF", 5.0 }
+            };
+            var result = _colorService.IsColorBalanced(colorBalance);
+            Assert.That(result, Is.False, "Should return false when color balance is outside of the acceptable range.");
+        }
+        [Test]
+        public void ProtanopiaIssueTest()
+        {
+            Assert.That(ColorSchemeService.ProtanopiaIssue("#FF5733", "#E65230"), Is.True, "Protanopia should struggle with red shades.");
+            Assert.That(ColorSchemeService.ProtanopiaIssue("#00FF00", "#0000FF"), Is.False, "Protanopia should not struggle with distinct green and blue.");
+        }
+        [Test]
+        public void ProtanomalyIssueTest()
+        {
+            Assert.That(ColorSchemeService.ProtanomalyIssue("#FF5733", "#E65230"), Is.True, "Protanomaly should struggle with similar red shades.");
+            Assert.That(ColorSchemeService.ProtanomalyIssue("#FFD700", "#008000"), Is.False, "Protanomaly should distinguish yellow and green.");
+        }
+        [Test]
+        public void DeuteranopiaIssueTest()
+        {
+            Assert.That(ColorSchemeService.DeuteranopiaIssue("#4CAF50", "#A8E6A3"), Is.True, "Deuteranopia should struggle with green shades.");
+            Assert.That(ColorSchemeService.DeuteranopiaIssue("#FF5733", "#1E90FF"), Is.False, "Deuteranopia should distinguish red and blue.");
+        }
+
+        [Test]
+        public void DeuteranomalyIssueTest()
+        {
+            Assert.That(ColorSchemeService.DeuteranomalyIssue("#2E8B57", "#8FBC8F"), Is.True, "Deuteranomaly should struggle with green shades.");
+            Assert.That(ColorSchemeService.DeuteranomalyIssue("#FFD700", "#8B0000"), Is.False, "Deuteranomaly should distinguish yellow and red.");
+        }
+
+        [Test]
+        public void TritanopiaIssueTest()
+        {
+            Assert.That(ColorSchemeService.TritanopiaIssue("#4682B4", "#00CED1"), Is.True, "Tritanopia should struggle with blue shades.");
+            Assert.That(ColorSchemeService.TritanopiaIssue("#FF4500", "#32CD32"), Is.False, "Tritanopia should distinguish red and green.");
+        }
+
+        [Test]
+        public void TritanomalyIssueTest()
+        {
+            Assert.That(ColorSchemeService.TritanomalyIssue("#4169E1", "#87CEEB"), Is.True, "Tritanomaly should struggle with blue shades.");
+            Assert.That(ColorSchemeService.TritanomalyIssue("#8B0000", "#FFFF00"), Is.False, "Tritanomaly should distinguish dark red and yellow.");
+        }
+        [Test]
+        public void AchromatopsiaIssueTest()
+        {
+            Assert.That(ColorSchemeService.AchromatopsiaIssue("#8B0000", "#800080"), Is.True, "Achromatopsia should struggle with similar luminosity colors.");
+            Assert.That(ColorSchemeService.AchromatopsiaIssue("#FFFFFF", "#000000"), Is.False, "Achromatopsia should distinguish black and white.");
+        }
+        [Test]
+        public void CheckLegibilityLowContrastIssue()
+        {
+            var extractedData = new Dictionary<string, object>
+            {
+                { "tag_colors", new Dictionary<string, string> { { "p", "#AAAAAA" } } }, // Light gray text
+                { "class_colors", new Dictionary<string, string>() }, // No class-specific colors
+                { "background_color", "#BBBBBB" } // Slightly different gray
+            };
+            var issues = _colorService.CheckLegibility(extractedData);
+            Assert.That(issues, Does.Contain("Low contrast in <p>: #AAAAAA on #BBBBBB"));
+        }
+        [Test]
+        public void CheckLegibilityProtanopiaIssueAdd()
+        {
+            // Adds protanopia color issue
+            var extractedData = new Dictionary<string, object>
+            {
+                { "tag_colors", new Dictionary<string, string> { { "h1", "#FF5733" } } }, // Red text
+                { "class_colors", new Dictionary<string, string>() },
+                { "background_color", "#E65230" }
+            };
+            var issues = _colorService.CheckLegibility(extractedData);
+            Assert.That(issues, Does.Contain("Protanopia issue in <h1>: #FF5733 on #E65230"));
+        }
+        [Test]
+        public void CheckLegibilityNoIssues()
+        {
+            var extractedData = new Dictionary<string, object>
+            {
+                { "tag_colors", new Dictionary<string, string> { { "button", "#000000" } } }, // Black text
+                { "class_colors", new Dictionary<string, string>() },
+                { "background_color", "#FFFFFF" }
+            };
+            var issues = _colorService.CheckLegibility(extractedData);
+            Assert.That(issues, Is.Empty);
+        }
+        [Test]
+        public void CheckLegibilityMultipleIssues()
+        {
+            var extractedData = new Dictionary<string, object>
+            {
+                { "tag_colors", new Dictionary<string, string> { { "span", "#CCCCCC" } } }, 
+                { "class_colors", new Dictionary<string, string>() }, 
+                { "background_color", "#DDDDDD" }
+            };
+            var issues = _colorService.CheckLegibility(extractedData);
+            Assert.That(issues, Does.Contain("Low contrast in <span>: #CCCCCC on #DDDDDD"));
         }
     }
 }

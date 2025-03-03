@@ -16,7 +16,7 @@ namespace Uxcheckmate_Main.Services
         {
             _webScraperService = webScraperService;
         }
-        public bool AreColorsSimilar((int R, int G, int B) color1, (int R, int G, int B) color2, int threshold = 50)
+        public static bool AreColorsSimilar((int R, int G, int B) color1, (int R, int G, int B) color2, int threshold = 50)
         {
             //Grabbing differences
             int diffR = color1.R - color2.R;
@@ -46,19 +46,22 @@ namespace Uxcheckmate_Main.Services
                 throw new ArgumentException("Invalid hex color format. Use #RRGGBB or RRGGBB.");
             }
         }
-        public async Task<Dictionary<string, object>> AnalyzeWebsiteColorsAsync(string url)
+        public async Task<string> AnalyzeWebsiteColorsAsync(string url)
         {
             var scrapedData = await _webScraperService.ScrapeAsync(url);
-            var colorUsage = (Dictionary<string, int>)scrapedData["colors_used"];
-            var colorAnalysis = colorUsage
-                .Select(c => new { Hex = c.Key, RGB = HexToRgb(c.Key), Count = c.Value })
-                .OrderByDescending(c => c.Count)
-                .ToList();
-            return new Dictionary<string, object>
-            {
-                { "dominant_colors", colorAnalysis },
-                { "tag_counts", scrapedData["tag_counts"] }
-            };
+            string htmlContent = (string)scrapedData["html_content"];
+            var externalCss = (List<string>)scrapedData["external_css"];
+            var extractedElements = ExtractHtmlElements(htmlContent, externalCss);
+            // Legibility Info Grab
+            var legibilityIssues = CheckLegibility(extractedElements);
+            // 60-30-10 Issues Grab
+            var colorPixelUsage = EstimateColorPixelUsage(extractedElements);
+            var colorProportions = CalculateColorProportions(colorPixelUsage);
+            var colorBalanceIssues = CheckColorBalanceIssues(colorProportions);
+            // Combining
+            var allIssues = legibilityIssues.Concat(colorBalanceIssues).ToList();
+            // Returning issues
+            return allIssues.Any() ? string.Join("\n", allIssues) : string.Empty;
         }
         public Dictionary<string, object> ExtractHtmlElements(string htmlContent, List<string> externalCss)
         {
@@ -165,6 +168,235 @@ namespace Uxcheckmate_Main.Services
                 { "class_font_sizes", classFontSizes ?? new Dictionary<string, int>() },
                 { "background_color", backgroundColor }
             };
+        }
+        // Pixel formula: characterCount*(fontSize*0.5)*fontSize [Estimating how many pixels characters take up to be half probably an overestimate since spaces]
+        public Dictionary<string, int> EstimateColorPixelUsage(Dictionary<string, object> extractedData)
+        {
+            var estimatedPixelUsage = new Dictionary<string, int>();
+            var tagCharacterCount = (Dictionary<string, int>)extractedData["character_count_per_tag"];
+            var classCharacterCount = (Dictionary<string, int>)extractedData["character_count_per_class"];
+            var tagFontSizes = (Dictionary<string, int>)extractedData["tag_font_sizes"];
+            var classFontSizes = (Dictionary<string, int>)extractedData["class_font_sizes"];
+            var tagColors = (Dictionary<string, string>)extractedData["tag_colors"];
+            var classColors = (Dictionary<string, string>)extractedData["class_colors"];
+            string backgroundColor = extractedData.ContainsKey("background_color") ? (string)extractedData["background_color"] : "#FFFFFF";
+            var defaultFontSizes = new Dictionary<string, int>
+            {
+                { "h1", 32 }, { "h2", 24 }, { "h3", 18 }, { "h4", 16 }, { "h5", 13 }, { "h6", 11 }, { "p", 16 }
+            };
+            int totalPixels = 2_073_600; // Assumming 1080p
+            int totalUsedPixels = 0;
+            // Tag color pixels
+            foreach (var tag in tagCharacterCount.Keys){
+                int fontSize = tagFontSizes.ContainsKey(tag) ? tagFontSizes[tag] : (defaultFontSizes.ContainsKey(tag) ? defaultFontSizes[tag] : 16);
+                if (tagColors.TryGetValue(tag, out string color)){
+                    int charCount = tagCharacterCount[tag];
+                    int pixelArea = (int)(charCount * (fontSize * 0.5) * fontSize);
+                    if (!estimatedPixelUsage.ContainsKey(color)){
+                        estimatedPixelUsage[color] = 0;
+                    }
+                    estimatedPixelUsage[color] += pixelArea;
+                    totalUsedPixels += pixelArea;
+                }
+            }
+            // Class color pixels
+            foreach (var className in classCharacterCount.Keys){
+                int fontSize = classFontSizes.ContainsKey(className) ? classFontSizes[className] : 16;
+                if (classColors.TryGetValue(className, out string color)){
+                    int charCount = classCharacterCount[className];
+                    int pixelArea = (int)(charCount * (fontSize * 0.5) * fontSize);
+                    if (!estimatedPixelUsage.ContainsKey(color)){
+                        estimatedPixelUsage[color] = 0;
+                    }
+                    estimatedPixelUsage[color] += pixelArea;
+                    totalUsedPixels += pixelArea;
+                }
+            }
+            int backgroundRemaining = Math.Max(totalPixels - totalUsedPixels, 0);
+            if (!estimatedPixelUsage.ContainsKey(backgroundColor)){
+                estimatedPixelUsage[backgroundColor] = 0;
+            }
+            estimatedPixelUsage[backgroundColor] = backgroundRemaining;
+            return estimatedPixelUsage;
+        }
+        public Dictionary<string, double> CalculateColorProportions(Dictionary<string, int> colorPixelUsage)
+        {
+            int totalPixels = colorPixelUsage.Values.Sum();
+            var colorProportions = new Dictionary<string, double>();
+            // Empty check
+            if (totalPixels == 0){
+                return colorProportions;
+            }
+            foreach (var color in colorPixelUsage){
+                double percentage = (color.Value / (double)totalPixels) * 100.0;
+                colorProportions[color.Key] = Math.Round(percentage, 2);
+            }
+            return colorProportions;
+        }
+        public Dictionary<string, double> CheckColorBalance(Dictionary<string, double> colorProportions, int similarityThreshold = 15)
+        {
+            // Going to group similar colors
+            var groupedColors = new Dictionary<string, double>();
+            // Go in order from most dominant color for similar color checks
+            var sortedColors = colorProportions.OrderByDescending(c => c.Value).ToList();
+            foreach (var (color, percentage) in sortedColors){
+                // Similar color compare
+                var color1 = HexToRgb(color);
+                string closestMatch = null;
+                foreach (var existingColor in groupedColors.Keys.ToList()){
+                    var color2 = HexToRgb(existingColor);
+                    if (AreColorsSimilar(color1, color2)){
+                        closestMatch = existingColor;
+                        break;  // Mergin color
+                    }
+                }
+                // Checking percentage matching
+                if (closestMatch != null){
+                    groupedColors[closestMatch] += percentage;
+                }
+                else{
+                    groupedColors[color] = percentage;
+                }
+            }
+            return groupedColors;
+        }
+        public bool IsColorBalanced(Dictionary<string, double> colorBalance)
+        {
+            if (colorBalance.Count == 0){
+                return false; 
+            }
+            // Sorting
+            var sortedColors = colorBalance.OrderByDescending(c => c.Value).ToList();
+            // Check top 3
+            double primary = sortedColors[0].Value; // Most used color
+            double secondary = sortedColors.Count > 1 ? sortedColors[1].Value : 0;
+            double accent = sortedColors.Count > 2 ? sortedColors[2].Value : 0;
+            // Check remaining
+            double remaining = sortedColors.Skip(3).Sum(c => c.Value);
+            // 15% variance on colors
+            bool primaryValid = primary >= 45 && primary <= 75;
+            bool secondaryValid = secondary >= 15 && secondary <= 45;
+            bool accentValid = accent >= 0 && accent <= 25;
+            bool extraValid = remaining <= 15;
+            return primaryValid && secondaryValid && accentValid && extraValid;
+        }
+        // Protanopia Red Color Issues 
+        public static bool ProtanopiaIssue(string hex1, string hex2)
+        {
+            var color1 = HexToRgb(hex1);
+            var color2 = HexToRgb(hex2);
+            var protanopia1 = ((int)(color1.R * 0.2), (int)(color1.G * 0.8), (int)(color1.B * 0.8));
+            var protanopia2 = ((int)(color2.R * 0.2), (int)(color2.G * 0.8), (int)(color2.B * 0.8));
+            return AreColorsSimilar(protanopia1, protanopia2, 110);
+        }
+        // Protanomaly Slight Red Color issue
+        public static bool ProtanomalyIssue(string hex1, string hex2)
+        {
+            var color1 = HexToRgb(hex1);
+            var color2 = HexToRgb(hex2);
+            var protanomaly1 = ((int)(color1.R * 0.3), color1.G, color1.B);
+            var protanomaly2 = ((int)(color2.R * 0.3), color2.G, color2.B);
+            return AreColorsSimilar(protanomaly1, protanomaly2, 110);
+        }
+        // Deuteranopia Green Color Issues
+        public static bool DeuteranopiaIssue(string hex1, string hex2)
+        {
+            var color1 = HexToRgb(hex1);
+            var color2 = HexToRgb(hex2);
+            var deuteranopia1 = ((int)(color1.R * 0.9), 0, (int)(color1.B * 0.7));
+            var deuteranopia2 = ((int)(color2.R * 0.9), 0, (int)(color2.B * 0.7));
+            return AreColorsSimilar(deuteranopia1, deuteranopia2, 120);
+        }
+        // Deuteranomaly Slight Green Color issue
+        public static bool DeuteranomalyIssue(string hex1, string hex2)
+        {
+            var color1 = HexToRgb(hex1);
+            var color2 = HexToRgb(hex2);
+            var deuteranomaly1 = (color1.R, (int)(color1.G * 0.2), color1.B);
+            var deuteranomaly2 = (color2.R, (int)(color2.G * 0.2), color2.B);
+            return AreColorsSimilar(deuteranomaly1, deuteranomaly2, 120);
+        }
+        // Tritanopia Blue Color Issues
+        public static bool TritanopiaIssue(string hex1, string hex2)
+        {
+            var color1 = HexToRgb(hex1);
+            var color2 = HexToRgb(hex2);
+            var tritanopia1 = ((int)(color1.R * 0.7), (int)(color1.G * 0.9), 0);
+            var tritanopia2 = ((int)(color2.R * 0.7), (int)(color2.G * 0.9), 0);
+            return AreColorsSimilar(tritanopia1, tritanopia2, 130);
+        }
+        // Tritanomaly  Slight blue issue
+        public static bool TritanomalyIssue(string hex1, string hex2)
+        {
+            var color1 = HexToRgb(hex1);
+            var color2 = HexToRgb(hex2);
+            var tritanomaly1 = (color1.R, color1.G, (int)(color1.B * 0.2));
+            var tritanomaly2 = (color2.R, color2.G, (int)(color2.B * 0.2));
+            return AreColorsSimilar(tritanomaly1, tritanomaly2, 130);
+        }
+        // Achromatopsia [Complete Color Blindness]
+        public static bool AchromatopsiaIssue(string hex1, string hex2)
+        {
+            var color1 = HexToRgb(hex1);
+            var color2 = HexToRgb(hex2);
+            int gray1 = (int)(color1.R * 0.299 + color1.G * 0.587 + color1.B * 0.114);
+            int gray2 = (int)(color2.R * 0.299 + color2.G * 0.587 + color2.B * 0.114);
+            return AreColorsSimilar((gray1, gray1, gray1), (gray2, gray2, gray2), 100);
+        }
+        public List<string> CheckLegibility(Dictionary<string, object> extractedData)
+        {
+            var issues = new List<string>();
+            var tagColors = (Dictionary<string, string>)extractedData["tag_colors"];
+            var classColors = (Dictionary<string, string>)extractedData["class_colors"];
+            var backgroundColor = (string)extractedData["background_color"];
+            foreach (var tag in tagColors){
+                string textColorHex = tag.Value;
+                string bgColorHex = backgroundColor;
+                // Use background if has one
+                if (classColors.TryGetValue(tag.Key, out string classBgColor) && !string.IsNullOrEmpty(classBgColor)){
+                    bgColorHex = classBgColor;
+                }
+                var textColor = HexToRgb(textColorHex);
+                var bgColor = HexToRgb(bgColorHex);
+                // Add to issues if 
+                if (AreColorsSimilar(textColor, bgColor)){
+                    issues.Add($"Low contrast in <{tag.Key}>: {textColorHex} on {bgColorHex}");
+                }
+                if (ProtanopiaIssue(textColorHex, bgColorHex)){
+                    issues.Add($"Protanopia issue in <{tag.Key}>: {textColorHex} on {bgColorHex}");
+                }
+                if (ProtanomalyIssue(textColorHex, bgColorHex)){
+                    issues.Add($"Protanomaly issue in <{tag.Key}>: {textColorHex} on {bgColorHex}");
+                }
+                if (DeuteranopiaIssue(textColorHex, bgColorHex)){
+                    issues.Add($"Deuteranopia issue in <{tag.Key}>: {textColorHex} on {bgColorHex}");
+                }
+                if (DeuteranomalyIssue(textColorHex, bgColorHex)){
+                    issues.Add($"Deuteranomaly issue in <{tag.Key}>: {textColorHex} on {bgColorHex}");
+                }
+                if (TritanopiaIssue(textColorHex, bgColorHex)){
+                    issues.Add($"Tritanopia issue in <{tag.Key}>: {textColorHex} on {bgColorHex}");
+                }
+                if (TritanomalyIssue(textColorHex, bgColorHex)){
+                    issues.Add($"Tritanomaly issue in <{tag.Key}>: {textColorHex} on {bgColorHex}");
+                }
+                if (AchromatopsiaIssue(textColorHex, bgColorHex)){
+                    issues.Add($"Achromatopsia issue in <{tag.Key}>: {textColorHex} on {bgColorHex}");
+                }
+            }
+            return issues;
+        }
+        public List<string> CheckColorBalanceIssues(Dictionary<string, double> colorProportions)
+        {
+            var issues = new List<string>();
+            var colorBalance = CheckColorBalance(colorProportions);
+            if (!IsColorBalanced(colorBalance)){
+                issues.Add("Color balance issue: The proportions of primary, secondary, and accent colors are not within recommended ranges.");
+                foreach (var color in colorBalance.OrderByDescending(c => c.Value)){
+                    issues.Add($"Color {color.Key}: {color.Value}%");
+                }
+            }
+            return issues;
         }
     }
 }
