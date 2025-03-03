@@ -126,6 +126,12 @@ public class HomeController : Controller
     }
 
     [HttpGet]
+    public IActionResult TempBadPageExHeadersAndColors()
+    {
+        return View();
+    }
+
+    [HttpGet]
     public async Task<IActionResult> Guide()
     {
         var designCategories = await _context.DesignCategories.ToListAsync(); // Fetch Design Categories
