@@ -6,7 +6,7 @@ using Uxcheckmate_Main.Controllers;
 using Uxcheckmate_Main.Models;
 using Uxcheckmate_Main.Services; 
 
-namespace Moq_Tests.ErrorPage_Tests
+namespace ErrorPage_Tests
 {
     public class ErrorPage_Tests
     {
@@ -20,6 +20,8 @@ namespace Moq_Tests.ErrorPage_Tests
         private Mock<IReportService> _mockReportService;
         private Mock<HttpClient> _mockHttpClient; 
 
+        private Mock<PdfExportService> _mockpdfExportService;
+
         [SetUp]
         public void Setup()
         {
@@ -29,6 +31,7 @@ namespace Moq_Tests.ErrorPage_Tests
             _mockDbContext = new Mock<UxCheckmateDbContext>();
             _mockReportService = new Mock<IReportService>();
             _mockHttpClient = new Mock<HttpClient>();
+            _mockpdfExportService = new Mock<PdfExportService>();
 
         }
 
@@ -36,7 +39,7 @@ namespace Moq_Tests.ErrorPage_Tests
         public void Error404_ReturnsErrorPageView()
         {
             // Arrange
-           var controller = new HomeController(_mockLogger.Object, _mockHttpClient.Object, _mockDbContext.Object, _mockOpenAiService.Object, _mockPa11yService.Object, _mockReportService.Object);
+           var controller = new HomeController(_mockLogger.Object, _mockHttpClient.Object, _mockDbContext.Object, _mockOpenAiService.Object, _mockPa11yService.Object, _mockReportService.Object, _mockpdfExportService.Object);
 
             // Act
             var result = controller.ErrorPage() as ViewResult;

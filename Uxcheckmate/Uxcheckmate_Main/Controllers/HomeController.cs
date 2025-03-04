@@ -13,16 +13,18 @@ public class HomeController : Controller
     private readonly HttpClient _httpClient; 
     private readonly UxCheckmateDbContext _context;
     private readonly IOpenAiService _openAiService; 
-    private readonly IPa11yService _pa11yService;
     private readonly IReportService _reportService;
 
-    public HomeController(ILogger<HomeController> logger, HttpClient httpClient, UxCheckmateDbContext dbContext, IOpenAiService openAiService, IPa11yService pa11yService, IReportService reportService)
+    private readonly PdfExportService _pdfExportService;
+
+    public HomeController(ILogger<HomeController> logger, HttpClient httpClient, UxCheckmateDbContext dbContext, 
+        IOpenAiService openAiService, IPa11yService pa11yService, IReportService reportService, PdfExportService pdfExportService)
     {
         _logger = logger;
         _httpClient = httpClient;
         _context = dbContext;
         _reportService = reportService;
-        _pa11yService = pa11yService;
+        _pdfExportService = pdfExportService;
     }
 
     [HttpGet]
@@ -76,12 +78,10 @@ public class HomeController : Controller
             await _context.SaveChangesAsync();
             _logger.LogInformation("Report record created with ID: {ReportId}", report.Id);
            
-            await _pa11yService.AnalyzeAndSaveAccessibilityReport(report);
             await _reportService.GenerateReportAsync(report);
 
             // Fetch the full report 
             var fullReport = await _context.Reports
-                .Include(r => r.AccessibilityIssues) // Load accessibility issues
                 .Include(r => r.DesignIssues) // Load design issues
                 .FirstOrDefaultAsync(r => r.Id == report.Id);
 
@@ -136,5 +136,22 @@ public class HomeController : Controller
     public IActionResult Error()
     {
         return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> DownloadReport(int id)
+    {
+        var report = await _context.Reports
+            .Include(r => r.AccessibilityIssues)
+            .Include(r => r.DesignIssues)
+            .FirstOrDefaultAsync(r => r.Id == id);
+
+        if (report == null)
+        {
+            return NotFound("Report not found.");
+        }
+
+        var pdfBytes = _pdfExportService.GenerateReportPdf(report);
+        return File(pdfBytes, "application/pdf", $"UXCheckmate_Report_{report.Id}.pdf");
     }
 }
