@@ -18,10 +18,10 @@ namespace Uxcheckmate_Main.Services
         private readonly IHeadingHierarchyService _headingHierarchyService;
         private readonly IColorSchemeService _colorSchemeService;
         private readonly IDynamicSizingService _dynamicSizingService;
-        private readonly IFaviconDetectionService _faviconDetectionService;
+        private readonly ILogger<WebScraperService> _webScraperLogger;
+        // private readonly IFaviconDetectionService _faviconDetectionService; // Commented out
 
-        public ReportService(HttpClient httpClient, ILogger<ReportService> logger, UxCheckmateDbContext context, IOpenAiService openAiService, IBrokenLinksService brokenLinksService, IHeadingHierarchyService headingHierarchyService, IColorSchemeService colorSchemeService, IDynamicSizingService dynamicSizingService, IFaviconDetectionService faviconDetectionService)
-
+        public ReportService(HttpClient httpClient, ILogger<ReportService> logger, UxCheckmateDbContext context, IOpenAiService openAiService, IBrokenLinksService brokenLinksService, IHeadingHierarchyService headingHierarchyService, IColorSchemeService colorSchemeService, IDynamicSizingService dynamicSizingService, ILogger<WebScraperService> webScraperLogger) /*, IFaviconDetectionService faviconDetectionService*/
         {
             _httpClient = httpClient;
             _dbContext = context;
@@ -31,7 +31,8 @@ namespace Uxcheckmate_Main.Services
             _headingHierarchyService = headingHierarchyService;
             _colorSchemeService = colorSchemeService;
             _dynamicSizingService = dynamicSizingService;
-            _faviconDetectionService = faviconDetectionService; // Assigned here
+            _webScraperLogger = webScraperLogger;
+            // _faviconDetectionService = faviconDetectionService; // Commented out
         }
 
         public async Task<ICollection<DesignIssue>> GenerateReportAsync(Report report)
@@ -45,7 +46,7 @@ namespace Uxcheckmate_Main.Services
                 throw new ArgumentException("URL cannot be empty.", nameof(url));
             }
 
-            var scraper = new WebScraperService(_httpClient);
+            var scraper = new WebScraperService(_httpClient, _webScraperLogger);
             _logger.LogDebug("Scraping content from URL: {Url}", url);
             var scrapedData = await scraper.ScrapeAsync(url);
             _logger.LogDebug("Scraping completed for URL: {Url}", url);
@@ -110,7 +111,6 @@ namespace Uxcheckmate_Main.Services
                     _logger.LogDebug("Delegating Dynamic Sizing analysis for URL: {Url}", url);
                     var hasDynamicSizing = _dynamicSizingService.HasDynamicSizing(scrapedData["htmlContent"].ToString());
                     
-
                     if (!hasDynamicSizing)
                     {
                         string prompt = $"The website at {url} is missing dynamic sizing elements (e.g., media queries, viewport meta tag, flexbox/grid layout). Please provide a recommendation on how to implement dynamic sizing.";
@@ -122,19 +122,66 @@ namespace Uxcheckmate_Main.Services
                         return string.Empty;
                     }
 
-                case "Favicon Check":
+                case "Favicon":
                     _logger.LogDebug("Checking for favicon on URL: {Url}", url);
-                    var (hasFavicon, faviconUrl) = await _faviconDetectionService.DetectFaviconAsync(url);
+                    bool hasFavicon = scrapedData.ContainsKey("hasFavicon") && scrapedData["hasFavicon"] is bool value && value;
 
                     if (!hasFavicon)
                     {
-                        _logger.LogWarning("No favicon detected for URL: {Url}", url);
+                        _logger.LogWarning("❌ No favicon detected for URL: {Url}", url);
                         return "No favicon found on this website. Consider adding a favicon for better branding and user recognition.";
                     }
                     else
                     {
-                        _logger.LogInformation("Favicon found: {FaviconUrl}", faviconUrl);
+                        _logger.LogInformation("✅ Favicon detected for URL: {Url}", url);
                         return string.Empty;
+                    }
+                case "Font Legibility":
+                    if (scrapedData.TryGetValue("fonts", out var fontsObj) && fontsObj is List<string> fontsUsed)
+                    {
+                        _logger.LogInformation("Extracted fonts: {@Fonts}", fontsUsed); // Log extracted fonts
+
+                        // Normalize both lists to lowercase for case-insensitive comparison
+                        var illegibleFontsNormalized = FontLegibilityModel.IllegibleFonts
+                            .Select(f => f.ToLowerInvariant().Trim())
+                            .ToList();
+
+                        var fontsUsedNormalized = fontsUsed
+                            .Select(f => f.ToLowerInvariant().Trim().Trim('"'))
+                            .ToList();
+
+                        _logger.LogInformation("Normalized Illegible Fonts: {@IllegibleFonts}", illegibleFontsNormalized);
+                        _logger.LogInformation("Normalized Extracted Fonts: {@FontsUsed}", fontsUsedNormalized);
+
+                        // Debug log: Check EXACTLY what's in both lists
+                        _logger.LogInformation("Comparing extracted fonts with illegible fonts...");
+
+                        foreach (var font in fontsUsedNormalized)
+                        {
+                            if (illegibleFontsNormalized.Contains(font))
+                            {
+                                _logger.LogInformation("Match found: {Font} is illegible!", font);
+                            }
+                        }
+
+                        var illegibleFontsFound = fontsUsedNormalized.Intersect(illegibleFontsNormalized).ToList();
+
+                        if (illegibleFontsFound.Any())
+                        {
+                            string issueMessage = $"The following fonts are considered illegible: {string.Join(", ", illegibleFontsFound)}. Consider using more readable fonts for better accessibility.";
+                            _logger.LogInformation("Issue detected: {IssueMessage}", issueMessage);
+                            return issueMessage;
+                        }
+                        else
+                        {
+                            _logger.LogInformation("✅ No illegible fonts detected for URL: {Url}", url);
+                            return string.Empty;
+                        }
+                    }
+                    else
+                    {
+                        _logger.LogWarning("❌ Font extraction failed or no fonts found for URL: {Url}", url);
+                        return "No fonts were detected on this website. Ensure that text elements specify a font-family.";
                     }
 
                 default:

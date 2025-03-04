@@ -17,7 +17,7 @@ namespace Uxcheckmate_Main.Services
             _logger = logger;
         }
 
-        public async Task<(bool hasFavicon, string faviconUrl)> DetectFaviconAsync(string url)
+        public async Task<bool> DetectFaviconAsync(string url)
         {
             _logger.LogInformation("Starting favicon detection for URL: {Url}", url);
 
@@ -27,59 +27,56 @@ namespace Uxcheckmate_Main.Services
                 var doc = new HtmlDocument();
                 doc.LoadHtml(htmlContent);
 
-                var faviconUrl = ExtractFaviconUrl(doc, url);
-                bool hasFavicon = !string.IsNullOrEmpty(faviconUrl);
+                bool hasFavicon = await HasFaviconAsync(doc, url);
 
                 if (hasFavicon)
                 {
-                    _logger.LogInformation("Favicon found: {FaviconUrl}", faviconUrl);
+                    _logger.LogInformation("✅ Favicon found for URL: {Url}", url);
                 }
                 else
                 {
-                    _logger.LogWarning("No favicon found for URL: {Url}", url);
+                    _logger.LogWarning("❌ No favicon found for URL: {Url}", url);
                 }
 
-                return (hasFavicon, faviconUrl);
+                return hasFavicon;
             }
             catch (HttpRequestException ex)
             {
                 _logger.LogError(ex, "Error fetching HTML content for {Url}", url);
-                return (false, string.Empty);
+                return false;
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Unexpected error during favicon detection for {Url}", url);
-                return (false, string.Empty);
+                return false;
             }
         }
 
-        private string ExtractFaviconUrl(HtmlDocument doc, string baseUrl)
+        private async Task<bool> HasFaviconAsync(HtmlDocument doc, string baseUrl)
         {
+            // Check if a <link rel="icon"> exists in HTML
             var faviconNode = doc.DocumentNode.SelectSingleNode("//link[contains(@rel, 'icon')]");
-
             if (faviconNode != null)
             {
-                var href = faviconNode.GetAttributeValue("href", "").Trim();
-                
-                if (!string.IsNullOrEmpty(href))
-                {
-                    return MakeAbsoluteUrl(baseUrl, href);
-                }
+                return true; // Favicon found in HTML
             }
 
-            return string.Empty;
+            // Check if /favicon.ico exists
+            string defaultFaviconUrl = $"{baseUrl.TrimEnd('/')}/favicon.ico";
+            return await FaviconExistsAsync(defaultFaviconUrl);
         }
 
-        private string MakeAbsoluteUrl(string baseUrl, string relativeUrl)
+        private async Task<bool> FaviconExistsAsync(string url)
         {
-            if (Uri.TryCreate(baseUrl, UriKind.Absolute, out Uri baseUri) &&
-                Uri.TryCreate(baseUri, relativeUrl, out Uri absoluteUri))
+            try
             {
-                return absoluteUri.ToString();
+                var response = await _httpClient.GetAsync(url);
+                return response.IsSuccessStatusCode;
             }
-
-            _logger.LogWarning("Failed to convert relative URL '{RelativeUrl}' using base URL '{BaseUrl}'", relativeUrl, baseUrl);
-            return relativeUrl;
+            catch
+            {
+                return false;
+            }
         }
     }
 }

@@ -26,6 +26,8 @@ public partial class UxCheckmateDbContext : DbContext
     public virtual DbSet<DesignIssue> DesignIssues { get; set; }
 
     public virtual DbSet<Report> Reports { get; set; }
+    public virtual DbSet<FontLegibility> FontLegibility { get; set; }
+
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder){
             if (!optionsBuilder.IsConfigured){
@@ -70,6 +72,28 @@ public partial class UxCheckmateDbContext : DbContext
             entity.HasKey(e => e.Id).HasName("PK__Report__3214EC27DC95E762");
         });
 
+                    // Font Legibility
+        modelBuilder.Entity<FontLegibility>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK_FontLegibility");
+            entity.Property(e => e.FontName).IsRequired();
+            entity.Property(e => e.IsLegible).HasDefaultValue(true);
+        });
+
+        // Seeding Illegible Fonts
+        modelBuilder.Entity<FontLegibility>().HasData(
+            new FontLegibility { Id = 1, FontName = "Chiller", IsLegible = false },
+            new FontLegibility { Id = 2, FontName = "Vivaldi", IsLegible = false },
+            new FontLegibility { Id = 3, FontName = "Old English Text", IsLegible = false },
+            new FontLegibility { Id = 4, FontName = "Jokerman", IsLegible = false },
+            new FontLegibility { Id = 5, FontName = "Brush Script", IsLegible = false },
+            new FontLegibility { Id = 6, FontName = "Bleeding Cowboys", IsLegible = false },
+            new FontLegibility { Id = 7, FontName = "Curlz MT", IsLegible = false },
+            new FontLegibility { Id = 8, FontName = "Wingdings", IsLegible = false },
+            new FontLegibility { Id = 9, FontName = "Zapfino", IsLegible = false },
+            new FontLegibility { Id = 10, FontName = "TrashHand", IsLegible = false },
+            new FontLegibility { Id= 11, FontName = "Comic Sans", IsLegible = false }
+        );
 
         OnModelCreatingPartial(modelBuilder);
     }
