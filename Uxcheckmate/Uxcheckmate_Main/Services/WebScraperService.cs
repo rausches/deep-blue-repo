@@ -4,16 +4,19 @@ using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
 using HtmlAgilityPack;
+using Microsoft.Extensions.Logging;
 
 namespace Uxcheckmate_Main.Services
 {
     public class WebScraperService
     {
         private readonly HttpClient _httpClient;
+        private readonly ILogger<WebScraperService> _logger;
 
-        public WebScraperService(HttpClient httpClient)
+        public WebScraperService(HttpClient httpClient, ILogger<WebScraperService> logger)
         {
             _httpClient = httpClient;
+            _logger = logger;
         }
 
         public async Task<string> FetchHtmlAsync(string url)
@@ -24,6 +27,7 @@ namespace Uxcheckmate_Main.Services
             }
             catch (HttpRequestException ex)
             {
+                _logger.LogError("Error fetching HTML content: {Message}", ex.Message);
                 throw new Exception($"Error fetching HTML content: {ex.Message}");
             }
         }
@@ -45,7 +49,6 @@ namespace Uxcheckmate_Main.Services
                     .ToList()
                 : new List<string>();
 
-            // Extract font-family styles from <style> and inline elements
             var fontStyles = doc.DocumentNode.SelectNodes("//style | //*[@style]") ?? new HtmlNodeCollection(null);
             var fontsUsed = new HashSet<string>();
 
@@ -60,9 +63,10 @@ namespace Uxcheckmate_Main.Services
                 }
             }
 
-            // Extract favicon details
             string faviconUrl = ExtractFaviconUrl(doc, url);
             bool hasFavicon = !string.IsNullOrEmpty(faviconUrl);
+
+            _logger.LogInformation("Favicon detection complete. Has favicon: {HasFavicon}, Favicon URL: {FaviconUrl}", hasFavicon, faviconUrl);
 
             return new Dictionary<string, object>
             {
@@ -80,40 +84,52 @@ namespace Uxcheckmate_Main.Services
 
         private string ExtractFaviconUrl(HtmlDocument doc, string baseUrl)
         {
+            string faviconUrl = string.Empty;
             var faviconNode = doc.DocumentNode.SelectSingleNode("//link[contains(@rel, 'icon')]");
 
             if (faviconNode != null)
             {
                 var href = faviconNode.GetAttributeValue("href", "").Trim();
+                _logger.LogDebug("Favicon node found. Extracted href: {Href}", href);
 
                 if (!string.IsNullOrEmpty(href))
                 {
-                    // If href is relative, ensure baseUrl is valid before constructing an absolute URL
-                    if (!href.StartsWith("http"))
+                    if (!href.StartsWith("http", StringComparison.OrdinalIgnoreCase))
                     {
-                        if (!string.IsNullOrEmpty(baseUrl))
+                        try
                         {
-                            try
-                            {
-                                return new Uri(new Uri(baseUrl), href).ToString();
-                            }
-                            catch (UriFormatException)
-                            {
-                                Console.WriteLine($"Invalid URI: Base '{baseUrl}' or href '{href}'");
-                                return string.Empty;
-                            }
+                            faviconUrl = new Uri(new Uri(baseUrl), href).ToString();
+                            _logger.LogDebug("Resolved absolute favicon URL: {AbsoluteUrl}", faviconUrl);
                         }
-                        else
+                        catch (UriFormatException ex)
                         {
-                            Console.WriteLine("Base URL is empty, cannot resolve relative favicon path.");
-                            return string.Empty;
+                            _logger.LogWarning("Invalid URI when resolving favicon. Base: {BaseUrl}, Href: {Href}, Error: {Error}", baseUrl, href, ex.Message);
                         }
                     }
-                    return href;
+                    else
+                    {
+                        faviconUrl = href;
+                    }
                 }
             }
 
-            return string.Empty;
+            /*// Check for default "/favicon.ico"
+            if (string.IsNullOrEmpty(faviconUrl) && Uri.IsWellFormedUriString(baseUrl, UriKind.Absolute))
+            {
+                try
+                {
+                    Uri baseUri = new Uri(baseUrl);
+                    string defaultFavicon = $"{baseUri.Scheme}://{baseUri.Host}/favicon.ico";
+                    faviconUrl = defaultFavicon;
+                    _logger.LogDebug("Default favicon assumed: {DefaultFavicon}", faviconUrl);
+                }
+                catch (UriFormatException ex)
+                {
+                    _logger.LogWarning("Invalid base URL for favicon assumption: {BaseUrl}, Error: {Error}", baseUrl, ex.Message);
+                }
+            }*/
+
+            return faviconUrl;
         }
 
         public async Task<Dictionary<string, object>> ScrapeAsync(string url)
