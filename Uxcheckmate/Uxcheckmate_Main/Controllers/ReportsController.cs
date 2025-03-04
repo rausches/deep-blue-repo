@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
 using Uxcheckmate_Main.Models;
 using Uxcheckmate_Main.Services;
-
+/*
 [Route("api/reports")]
 [ApiController]
 public class ReportsController : ControllerBase
@@ -33,3 +33,4 @@ public class ReportsController : ControllerBase
         return File(pdfBytes, "application/pdf", "UX_Report.pdf");
     }
 }
+*/

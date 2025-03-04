@@ -28,7 +28,7 @@ namespace Uxcheckmate_Main.Services
             }
         }
 
-        public Dictionary<string, object> ExtractHtmlElements(string htmlContent)
+        public Dictionary<string, object> ExtractHtmlElements(string htmlContent, string url)
         {
             var doc = new HtmlDocument();
             doc.LoadHtml(htmlContent);
@@ -60,6 +60,10 @@ namespace Uxcheckmate_Main.Services
                 }
             }
 
+            // Extract favicon details
+            string faviconUrl = ExtractFaviconUrl(doc, url);
+            bool hasFavicon = !string.IsNullOrEmpty(faviconUrl);
+
             return new Dictionary<string, object>
             {
                 { "headings", headings.Count },
@@ -67,14 +71,54 @@ namespace Uxcheckmate_Main.Services
                 { "images", images.Count },
                 { "links", links },
                 { "text_content", string.Join("\n", paragraphs.Select(p => p.InnerText.Trim()).Where(text => !string.IsNullOrEmpty(text))) },
-                { "fonts", fontsUsed.ToList() }
+                { "fonts", fontsUsed.ToList() },
+                { "hasFavicon", hasFavicon },
+                { "faviconUrl", faviconUrl }
             };
+        }
+
+        private string ExtractFaviconUrl(HtmlDocument doc, string baseUrl)
+        {
+            var faviconNode = doc.DocumentNode.SelectSingleNode("//link[contains(@rel, 'icon')]");
+
+            if (faviconNode != null)
+            {
+                var href = faviconNode.GetAttributeValue("href", "").Trim();
+
+                if (!string.IsNullOrEmpty(href))
+                {
+                    // If href is relative, ensure baseUrl is valid before constructing an absolute URL
+                    if (!href.StartsWith("http"))
+                    {
+                        if (!string.IsNullOrEmpty(baseUrl))
+                        {
+                            try
+                            {
+                                return new Uri(new Uri(baseUrl), href).ToString();
+                            }
+                            catch (UriFormatException)
+                            {
+                                Console.WriteLine($"Invalid URI: Base '{baseUrl}' or href '{href}'");
+                                return string.Empty;
+                            }
+                        }
+                        else
+                        {
+                            Console.WriteLine("Base URL is empty, cannot resolve relative favicon path.");
+                            return string.Empty;
+                        }
+                    }
+                    return href;
+                }
+            }
+
+            return string.Empty;
         }
 
         public async Task<Dictionary<string, object>> ScrapeAsync(string url)
         {
             var htmlContent = await FetchHtmlAsync(url);
-            return ExtractHtmlElements(htmlContent);
+            return ExtractHtmlElements(htmlContent, url);
         }
     }
 }
