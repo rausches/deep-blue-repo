@@ -66,6 +66,7 @@ namespace Uxcheckmate_Main.Services
 
             return new Dictionary<string, object>
             {
+                { "htmlContent", htmlContent },
                 { "headings", headings.Count },
                 { "paragraphs", paragraphs.Count },
                 { "images", images.Count },
