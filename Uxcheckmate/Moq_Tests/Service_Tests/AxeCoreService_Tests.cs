@@ -53,9 +53,14 @@ namespace Uxcheckmate_Tests.Services
             var fakeReport = new Report { Id = 2, Url = "https://example.com" };
 
             // Simulate empty Axe-core results
-            var fakeAxeResults = new AxeCoreResults { Violations = new List<AxeViolation>() };
+            var fakeAxeResults = new AxeCoreResults { Violations = new List<AxeViolation>()};
             // TO DO: Create Fake results
-            
+            /*        public string Id { get; set; }
+        public string Impact { get; set; }
+        public string Description { get; set; }
+        public string Help { get; set; }
+        public List<AxeNode> Nodes { get; set; }
+        public List<string> WcagTags { get; set; }*/
             // Act
             var result = await _service.AnalyzeAndSaveAccessibilityReport(fakeReport);
 
