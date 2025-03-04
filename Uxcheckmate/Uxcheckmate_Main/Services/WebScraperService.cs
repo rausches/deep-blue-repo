@@ -59,7 +59,8 @@ namespace Uxcheckmate_Main.Services
                 
                 foreach (System.Text.RegularExpressions.Match match in matches)
                 {
-                    fontsUsed.Add(match.Groups[1].Value.Trim());
+                    var fontName = match.Groups[1].Value.Split(',')[0].Trim().ToLower(); // Normalize font name
+                    fontsUsed.Add(fontName);
                 }
             }
 
@@ -112,22 +113,6 @@ namespace Uxcheckmate_Main.Services
                     }
                 }
             }
-
-            /*// Check for default "/favicon.ico"
-            if (string.IsNullOrEmpty(faviconUrl) && Uri.IsWellFormedUriString(baseUrl, UriKind.Absolute))
-            {
-                try
-                {
-                    Uri baseUri = new Uri(baseUrl);
-                    string defaultFavicon = $"{baseUri.Scheme}://{baseUri.Host}/favicon.ico";
-                    faviconUrl = defaultFavicon;
-                    _logger.LogDebug("Default favicon assumed: {DefaultFavicon}", faviconUrl);
-                }
-                catch (UriFormatException ex)
-                {
-                    _logger.LogWarning("Invalid base URL for favicon assumption: {BaseUrl}, Error: {Error}", baseUrl, ex.Message);
-                }
-            }*/
 
             return faviconUrl;
         }

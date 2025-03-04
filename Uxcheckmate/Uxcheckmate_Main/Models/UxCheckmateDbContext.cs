@@ -26,6 +26,8 @@ public partial class UxCheckmateDbContext : DbContext
     public virtual DbSet<DesignIssue> DesignIssues { get; set; }
 
     public virtual DbSet<Report> Reports { get; set; }
+    public virtual DbSet<FontLegibility> FontLegibility { get; set; }
+
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder){
             if (!optionsBuilder.IsConfigured){

@@ -136,6 +136,53 @@ namespace Uxcheckmate_Main.Services
                         _logger.LogInformation("✅ Favicon detected for URL: {Url}", url);
                         return string.Empty;
                     }
+                case "Font Legibility":
+                    if (scrapedData.TryGetValue("fonts", out var fontsObj) && fontsObj is List<string> fontsUsed)
+                    {
+                        _logger.LogInformation("Extracted fonts: {@Fonts}", fontsUsed); // Log extracted fonts
+
+                        // Normalize both lists to lowercase for case-insensitive comparison
+                        var illegibleFontsNormalized = FontLegibilityModel.IllegibleFonts
+                            .Select(f => f.ToLowerInvariant().Trim())
+                            .ToList();
+
+                        var fontsUsedNormalized = fontsUsed
+                            .Select(f => f.ToLowerInvariant().Trim().Trim('"'))
+                            .ToList();
+
+                        _logger.LogInformation("Normalized Illegible Fonts: {@IllegibleFonts}", illegibleFontsNormalized);
+                        _logger.LogInformation("Normalized Extracted Fonts: {@FontsUsed}", fontsUsedNormalized);
+
+                        // Debug log: Check EXACTLY what's in both lists
+                        _logger.LogInformation("Comparing extracted fonts with illegible fonts...");
+
+                        foreach (var font in fontsUsedNormalized)
+                        {
+                            if (illegibleFontsNormalized.Contains(font))
+                            {
+                                _logger.LogInformation("Match found: {Font} is illegible!", font);
+                            }
+                        }
+
+                        var illegibleFontsFound = fontsUsedNormalized.Intersect(illegibleFontsNormalized).ToList();
+
+                        if (illegibleFontsFound.Any())
+                        {
+                            string issueMessage = $"The following fonts are considered illegible: {string.Join(", ", illegibleFontsFound)}. Consider using more readable fonts for better accessibility.";
+                            _logger.LogInformation("Issue detected: {IssueMessage}", issueMessage);
+                            return issueMessage;
+                        }
+                        else
+                        {
+                            _logger.LogInformation("✅ No illegible fonts detected for URL: {Url}", url);
+                            return string.Empty;
+                        }
+                    }
+                    else
+                    {
+                        _logger.LogWarning("❌ Font extraction failed or no fonts found for URL: {Url}", url);
+                        return "No fonts were detected on this website. Ensure that text elements specify a font-family.";
+                    }
 
                 default:
                     _logger.LogDebug("No custom analysis implemented for category: {CategoryName}", categoryName);
