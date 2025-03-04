@@ -14,15 +14,16 @@ public class HomeController : Controller
     private readonly UxCheckmateDbContext _context;
     private readonly IOpenAiService _openAiService; 
     private readonly IReportService _reportService;
-
+    private readonly IAxeCoreService _axeCoreService;
     private readonly PdfExportService _pdfExportService;
 
     public HomeController(ILogger<HomeController> logger, HttpClient httpClient, UxCheckmateDbContext dbContext, 
-        IOpenAiService openAiService, IPa11yService pa11yService, IReportService reportService, PdfExportService pdfExportService)
+        IOpenAiService openAiService, IAxeCoreService axeCoreService, IReportService reportService, PdfExportService pdfExportService)
     {
         _logger = logger;
         _httpClient = httpClient;
         _context = dbContext;
+        _axeCoreService = axeCoreService;
         _reportService = reportService;
         _pdfExportService = pdfExportService;
     }
@@ -77,11 +78,13 @@ public class HomeController : Controller
             _context.Reports.Add(report);
             await _context.SaveChangesAsync();
             _logger.LogInformation("Report record created with ID: {ReportId}", report.Id);
-           
+            
+            await _axeCoreService.AnalyzeAndSaveAccessibilityReport(report);
             await _reportService.GenerateReportAsync(report);
 
             // Fetch the full report 
             var fullReport = await _context.Reports
+                .Include(r => r.AccessibilityIssues)
                 .Include(r => r.DesignIssues) // Load design issues
                 .FirstOrDefaultAsync(r => r.Id == report.Id);
 
