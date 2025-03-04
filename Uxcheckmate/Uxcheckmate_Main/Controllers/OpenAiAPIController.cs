@@ -27,4 +27,3 @@ public class AnalyzeRequest
 {
     public string Url { get; set; }
 }   
-

@@ -10,7 +10,7 @@ using Uxcheckmate_Main.Models;
 namespace Uxcheckmate_Main.Services
 {
     public class PdfService
-    {
+    {/*
         public async Task<byte[]> GenerateReportPdfAsync(ICollection<DesignIssue> issues, string url)
         {
             using var memoryStream = new MemoryStream();
@@ -44,5 +44,5 @@ namespace Uxcheckmate_Main.Services
             document.Close();
             return memoryStream.ToArray();
         }
-    }
+    */}
 }
