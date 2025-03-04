@@ -1,6 +1,4 @@
-
-
-const { validateURL } = require('../UxCheckmate_Main/wwwroot/js/handleUserUrl.js');
+const { validateURL } = require("../Uxcheckmate_Main/wwwroot/js/handleUserUrl.js");
 
 
 test('Should return true for valid URL', () => {
@@ -16,4 +14,8 @@ test('Should return false for invalid URL', () => {
     expect(validateURL('http:/example.com')).toBeFalsy();
     expect(validateURL('http://example')).toBeFalsy();
     expect(validateURL('http://example .com')).toBeFalsy();
+});
+
+test('Should return false for missing protocol (http or https)', () => {
+    expect(validateURL('example.com')).toBeFalsy(); 
 });
