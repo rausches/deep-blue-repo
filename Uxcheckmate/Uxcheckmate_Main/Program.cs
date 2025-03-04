@@ -7,6 +7,8 @@ using Uxcheckmate_Main.Services;
 using HtmlAgilityPack;
 using System.Net.Http;
 using Microsoft.Build.Framework;
+using QuestPDF;
+using QuestPDF.Infrastructure;
 
 namespace Uxcheckmate_Main;
 
@@ -14,6 +16,8 @@ public class Program
 {
     public static void Main(string[] args)
     {
+        QuestPDF.Settings.License = LicenseType.Community; // Add this line
+
         var builder = WebApplication.CreateBuilder(args);
 
         string openAiApiKey = builder.Configuration["OpenAiApiKey"];
@@ -34,8 +38,7 @@ public class Program
             
                 return new OpenAiService(
                     httpClient,
-                    services.GetRequiredService<ILogger<OpenAiService>>(),
-                    services.GetRequiredService<UxCheckmateDbContext>()
+                    services.GetRequiredService<ILogger<OpenAiService>>()
                 );
             });
 
@@ -46,9 +49,20 @@ public class Program
         builder.Services.AddHttpClient<WebScraperService>();
 
         // Register Pa11yUrlBasedService and Pa11yService
-        builder.Services.AddScoped<IPa11yService, Pa11yService>();
+        builder.Services.AddScoped<IAxeCoreService, AxeCoreService>();
         builder.Services.AddScoped<Pa11yUrlBasedService>();
         Console.WriteLine("Pa11yUrlBasedService registered");
+
+        builder.Services.AddScoped<PdfExportService>();
+
+        // Register Report Services
+        builder.Services.AddScoped<IReportService, ReportService>();
+        builder.Services.AddScoped<IBrokenLinksService, BrokenLinksService>();
+        builder.Services.AddScoped<IHeadingHierarchyService, HeadingHierarchyService>();
+        builder.Services.AddScoped<IColorSchemeService, ColorSchemeService>();
+        builder.Services.AddScoped<IDynamicSizingService, DynamicSizingService>();
+        builder.Services.AddHttpClient<IFaviconDetectionService, FaviconDetectionService>();
+
 
         var app = builder.Build();
 
@@ -67,7 +81,6 @@ public class Program
 
         app.UseRouting();
         app.UseAuthorization();
-
         // Map default route
         app.MapControllerRoute(
             name: "default",

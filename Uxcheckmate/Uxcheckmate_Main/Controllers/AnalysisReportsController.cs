@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Mvc;
+/*using Microsoft.AspNetCore.Mvc;
 using Uxcheckmate_Main.Models;
 using Uxcheckmate_Main.Services;
 using System.Collections.Generic;
@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 
 namespace Uxcheckmate_Main.Controllers
 {
-    [Route("api/analysis")]
+    [Route("analysis")]
     [ApiController]
-    public class AnalysisReportsController : ControllerBase
+    public class AnalysisReportsController : Controller
     {
         private readonly IOpenAiService _openAiService;
         private readonly IPa11yService _pa11yService;
@@ -19,7 +19,7 @@ namespace Uxcheckmate_Main.Controllers
             _pa11yService = pa11yService;
         }
 
-        // Endpoint to get both UX and Pa11y reports
+        // Change return type from JSON to ViewResult
         [HttpGet("all-reports/{url}")]
         public async Task<IActionResult> GetAnalysisReports(string url)
         {
@@ -29,7 +29,7 @@ namespace Uxcheckmate_Main.Controllers
             }
 
             // Call OpenAiApiService for UX analysis
-            var uxReports = await _openAiService.AnalyzeAndSaveUxReports(url);
+            var uxReports = await _openAiService.AnalyzeAndSaveDesignIssues(url);
 
             // Call Pa11yService for accessibility analysis
             var pa11yReports = await _pa11yService.AnalyzeAndSaveAccessibilityReport(url);
@@ -37,4 +37,4 @@ namespace Uxcheckmate_Main.Controllers
             return Ok(new { Item1 = uxReports, Item2 = pa11yReports });
         }
     }
-}
+}*/

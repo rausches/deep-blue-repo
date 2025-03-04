@@ -17,7 +17,7 @@ namespace Uxcheckmate_Main.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "9.0.1")
+                .HasAnnotation("ProductVersion", "9.0.2")
                 .HasAnnotation("Proxies:ChangeTracking", false)
                 .HasAnnotation("Proxies:CheckEquality", false)
                 .HasAnnotation("Proxies:LazyLoading", true)
@@ -25,167 +25,305 @@ namespace Uxcheckmate_Main.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            modelBuilder.Entity("Uxcheckmate_Main.Models.Report", b =>
+            modelBuilder.Entity("Uxcheckmate_Main.Models.AccessibilityCategory", b =>
                 {
-                    b.Property<int>("ReportId")
+                    b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("ID");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Description")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(128)");
+
+                    b.HasKey("Id")
+                        .HasName("PK__Accessib__3214EC274D88B479");
+
+                    b.ToTable("AccessibilityCategory");
+                });
+
+            modelBuilder.Entity("Uxcheckmate_Main.Models.AccessibilityIssue", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("ID");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("CategoryId")
+                        .HasColumnType("int")
+                        .HasColumnName("CategoryID");
+
+                    b.Property<string>("Details")
+                        .IsRequired()
+                        .HasColumnType("varchar(max)");
+
+                    b.Property<string>("Message")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int>("ReportId")
                         .HasColumnType("int")
                         .HasColumnName("ReportID");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ReportId"));
+                    b.Property<string>("Selector")
+                        .IsRequired()
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(max)");
 
-                    b.Property<int>("CategoryId")
-                        .HasColumnType("int")
-                        .HasColumnName("CategoryID");
+                    b.Property<int>("Severity")
+                        .HasColumnType("int");
 
-                    b.Property<DateTime>("Date")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("datetime2")
-                        .HasDefaultValueSql("(sysdatetime())");
-
-                    b.Property<string>("Recommendations")
+                    b.Property<string>("WCAG")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int?>("UserId")
-                        .HasColumnType("int")
-                        .HasColumnName("UserID");
-
-                    b.HasKey("ReportId")
-                        .HasName("PK__Reports__D5BD48E55537F96D");
+                    b.HasKey("Id")
+                        .HasName("PK__Accessib__3214EC2759D39646");
 
                     b.HasIndex("CategoryId");
 
-                    b.HasIndex("UserId");
+                    b.HasIndex("ReportId");
 
-                    b.ToTable("Reports");
+                    b.ToTable("AccessibilityIssue");
                 });
 
-            modelBuilder.Entity("Uxcheckmate_Main.Models.ReportCategory", b =>
+            modelBuilder.Entity("Uxcheckmate_Main.Models.DesignCategory", b =>
                 {
-                    b.Property<int>("CategoryId")
+                    b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("ID");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Description")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(128)");
+
+                    b.Property<string>("ScanMethod")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id")
+                        .HasName("PK__DesignCa__3214EC27E2402227");
+
+                    b.ToTable("DesignCategory");
+                });
+
+            modelBuilder.Entity("Uxcheckmate_Main.Models.DesignIssue", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("ID");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("CategoryId")
                         .HasColumnType("int")
                         .HasColumnName("CategoryID");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("CategoryId"));
+                    b.Property<string>("Message")
+                        .IsRequired()
+                        .HasColumnType("varchar(max)");
 
-                    b.Property<string>("Description")
+                    b.Property<int>("ReportId")
+                        .HasColumnType("int")
+                        .HasColumnName("ReportID");
+
+                    b.Property<int>("Severity")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id")
+                        .HasName("PK__DesignIs__3214EC277C5F35C0");
+
+                    b.HasIndex("CategoryId");
+
+                    b.HasIndex("ReportId");
+
+                    b.ToTable("DesignIssue");
+                });
+
+            modelBuilder.Entity("Uxcheckmate_Main.Models.FontLegibility", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("FontName")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)");
-
-                    b.Property<string>("OpenAiprompt")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)")
-                        .HasColumnName("OpenAIPrompt");
-
-                    b.HasKey("CategoryId")
-                        .HasName("PK__ReportCa__19093A2BAE98F34D");
-
-                    b.HasIndex(new[] { "Name" }, "UQ__ReportCa__737584F6260F4374")
-                        .IsUnique();
-
-                    b.ToTable("ReportCategories");
-                });
-
-            modelBuilder.Entity("Uxcheckmate_Main.Models.Role", b =>
-                {
-                    b.Property<int>("RoleId")
+                    b.Property<bool>("IsLegible")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasColumnName("RoleID");
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("RoleId"));
+                    b.HasKey("Id")
+                        .HasName("PK_FontLegibility");
 
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
+                    b.ToTable("FontLegibility");
 
-                    b.HasKey("RoleId")
-                        .HasName("PK__Roles__8AFACE3A9F76FFA0");
-
-                    b.HasIndex(new[] { "Name" }, "UQ__Roles__737584F6A7C2AD59")
-                        .IsUnique();
-
-                    b.ToTable("Roles");
-                });
-
-            modelBuilder.Entity("Uxcheckmate_Main.Models.UserAccount", b =>
-                {
-                    b.Property<int>("UserId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasColumnName("UserID");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("UserId"));
-
-                    b.Property<string>("Email")
-                        .IsRequired()
-                        .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)");
-
-                    b.Property<int?>("RoleId")
-                        .HasColumnType("int")
-                        .HasColumnName("RoleID");
-
-                    b.HasKey("UserId")
-                        .HasName("PK__UserAcco__1788CCACA92BB876");
-
-                    b.HasIndex("RoleId");
-
-                    b.HasIndex(new[] { "Email" }, "UQ__UserAcco__A9D10534985556DE")
-                        .IsUnique();
-
-                    b.ToTable("UserAccounts");
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            FontName = "Chiller",
+                            IsLegible = false
+                        },
+                        new
+                        {
+                            Id = 2,
+                            FontName = "Vivaldi",
+                            IsLegible = false
+                        },
+                        new
+                        {
+                            Id = 3,
+                            FontName = "Old English Text",
+                            IsLegible = false
+                        },
+                        new
+                        {
+                            Id = 4,
+                            FontName = "Jokerman",
+                            IsLegible = false
+                        },
+                        new
+                        {
+                            Id = 5,
+                            FontName = "Brush Script",
+                            IsLegible = false
+                        },
+                        new
+                        {
+                            Id = 6,
+                            FontName = "Bleeding Cowboys",
+                            IsLegible = false
+                        },
+                        new
+                        {
+                            Id = 7,
+                            FontName = "Curlz MT",
+                            IsLegible = false
+                        },
+                        new
+                        {
+                            Id = 8,
+                            FontName = "Wingdings",
+                            IsLegible = false
+                        },
+                        new
+                        {
+                            Id = 9,
+                            FontName = "Zapfino",
+                            IsLegible = false
+                        },
+                        new
+                        {
+                            Id = 10,
+                            FontName = "TrashHand",
+                            IsLegible = false
+                        });
                 });
 
             modelBuilder.Entity("Uxcheckmate_Main.Models.Report", b =>
                 {
-                    b.HasOne("Uxcheckmate_Main.Models.ReportCategory", "Category")
-                        .WithMany("Reports")
-                        .HasForeignKey("CategoryId")
-                        .IsRequired()
-                        .HasConstraintName("FK_Reports_CategoryID");
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("ID");
 
-                    b.HasOne("Uxcheckmate_Main.Models.UserAccount", "User")
-                        .WithMany("Reports")
-                        .HasForeignKey("UserId")
-                        .HasConstraintName("FK_Reports_UserID");
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateOnly>("Date")
+                        .HasColumnType("date");
+
+                    b.Property<string>("Url")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(128)")
+                        .HasColumnName("URL");
+
+                    b.HasKey("Id")
+                        .HasName("PK__Report__3214EC27DC95E762");
+
+                    b.ToTable("Report");
+                });
+
+            modelBuilder.Entity("Uxcheckmate_Main.Models.AccessibilityIssue", b =>
+                {
+                    b.HasOne("Uxcheckmate_Main.Models.AccessibilityCategory", "Category")
+                        .WithMany("AccessibilityIssues")
+                        .HasForeignKey("CategoryId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("FK_AccessibilityIssue_CategoryID");
+
+                    b.HasOne("Uxcheckmate_Main.Models.Report", "Report")
+                        .WithMany("AccessibilityIssues")
+                        .HasForeignKey("ReportId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("FK_AccessibilityIssue_ReportID");
 
                     b.Navigation("Category");
 
-                    b.Navigation("User");
+                    b.Navigation("Report");
                 });
 
-            modelBuilder.Entity("Uxcheckmate_Main.Models.UserAccount", b =>
+            modelBuilder.Entity("Uxcheckmate_Main.Models.DesignIssue", b =>
                 {
-                    b.HasOne("Uxcheckmate_Main.Models.Role", "Role")
-                        .WithMany("UserAccounts")
-                        .HasForeignKey("RoleId")
-                        .HasConstraintName("FK_UserAccounts_RoleID");
+                    b.HasOne("Uxcheckmate_Main.Models.DesignCategory", "Category")
+                        .WithMany("DesignIssues")
+                        .HasForeignKey("CategoryId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("FK_DesignIssue_CategoryID");
 
-                    b.Navigation("Role");
+                    b.HasOne("Uxcheckmate_Main.Models.Report", "Report")
+                        .WithMany("DesignIssues")
+                        .HasForeignKey("ReportId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("FK_DesignIssue_ReportID");
+
+                    b.Navigation("Category");
+
+                    b.Navigation("Report");
                 });
 
-            modelBuilder.Entity("Uxcheckmate_Main.Models.ReportCategory", b =>
+            modelBuilder.Entity("Uxcheckmate_Main.Models.AccessibilityCategory", b =>
                 {
-                    b.Navigation("Reports");
+                    b.Navigation("AccessibilityIssues");
                 });
 
-            modelBuilder.Entity("Uxcheckmate_Main.Models.Role", b =>
+            modelBuilder.Entity("Uxcheckmate_Main.Models.DesignCategory", b =>
                 {
-                    b.Navigation("UserAccounts");
+                    b.Navigation("DesignIssues");
                 });
 
-            modelBuilder.Entity("Uxcheckmate_Main.Models.UserAccount", b =>
+            modelBuilder.Entity("Uxcheckmate_Main.Models.Report", b =>
                 {
-                    b.Navigation("Reports");
+                    b.Navigation("AccessibilityIssues");
+
+                    b.Navigation("DesignIssues");
                 });
 #pragma warning restore 612, 618
         }

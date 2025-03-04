@@ -15,15 +15,15 @@ public class OpenAiApiController : Controller
         _OpenAiService = OpenAIService;
     }
 
-    [HttpGet("analyze")]
-    public async Task<IActionResult> AnalyzeUx([FromQuery] string url)
+   /* [HttpPost("analyze")]
+    public async Task<IActionResult> Analyze([FromBody] AnalyzeRequest request)
     {
-        if (string.IsNullOrEmpty(url))
-        {
-            return BadRequest(new { error = "URL is required." });
-        }
-
-        var result = await _OpenAiService.AnalyzeAndSaveUxReports(url);
-        return Ok(result);
-    }
+        var issues = await _OpenAiService.AnalyzeWithOpenAI(request.Url);
+        return Ok(issues);
+    }*/
 }
+
+public class AnalyzeRequest
+{
+    public string Url { get; set; }
+}   
