@@ -1,0 +1,9 @@
+{
+  "dependencies": {
+    "express": "^4.21.2",
+    "get-port": "^7.1.0",
+    "node-fetch": "^3.3.2",
+    "pa11y": "^8.0.0",
+    "puppeteer": "^24.3.0"
+  }
+}
