@@ -134,7 +134,8 @@ public class HomeController : Controller
     [HttpGet]
     public async Task<IActionResult> Guide()
     {
-        var designCategories = await _context.DesignCategories.ToListAsync(); // Fetch Design Categories
+        // Grabing only ones with ScanMethod Custom for now
+        var designCategories = await _context.DesignCategories.Where(dc => dc.ScanMethod == "Custom").ToListAsync();
         return View(designCategories);
     }
 
