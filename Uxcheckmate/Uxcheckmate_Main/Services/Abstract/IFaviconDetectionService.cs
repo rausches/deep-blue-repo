@@ -7,4 +7,3 @@ namespace Uxcheckmate_Main.Services
         Task<(bool hasFavicon, string faviconUrl)> DetectFaviconAsync(string url);
     }
 }
-
