@@ -20,6 +20,12 @@ namespace Uxcheckmate_Main.Services
             _dbContext = dbContext;
         }
 
+        public AxeCoreService(UxCheckmateDbContext object1, ILogger<AxeCoreService> object2)
+        {
+            Object1 = object1;
+            Object2 = object2;
+        }
+
         public async Task<ICollection<AccessibilityIssue>> AnalyzeAndSaveAccessibilityReport(Report report)
         {
             var issues = new List<AccessibilityIssue>();
@@ -171,6 +177,9 @@ namespace Uxcheckmate_Main.Services
             { "aria-allowed-attr", "ARIA & Semantic HTML" },
             { "aria-hidden-focus", "ARIA & Semantic HTML" }
         };
+
+        public UxCheckmateDbContext Object1 { get; }
+        public ILogger<AxeCoreService> Object2 { get; }
 
         private int DetermineSeverity(string impact)
         {
