@@ -19,11 +19,6 @@ namespace Uxcheckmate_Main.Services
             _logger = logger;
         }
 
-        public WebScraperService(HttpClient httpClient)
-        {
-            _httpClient = httpClient;
-        }
-
         public async Task<string> FetchHtmlAsync(string url)
         {
             try

@@ -4,37 +4,42 @@
     ViewData["Title"] = "Home Page";
 }
 
-<div class="home-container">
-    <div class="text-center">
-        <h1 class="display-4" style="font-weight: bold;">Ensure your site is inclusive!</h1>
-        <h4 class="display-4">We'll analyze it for you.</h4>
+<div class="container">
+    <div class="row" id="landingRowOne">
+        <div class="col-md-6">
+            <h1 id="landingHeader">Your Design Companion</h1>
+            <h2 id="landingSubheader">AI-Powered Insights for a Better, More Accessible Web.</h2>
+            <br><br>
+            <h3 id="landingCallToAction">Try it now!</h3>
+            <form method="post" asp-action="Report" id="urlForm">
+                <div class="form-group">
+                    <div class="input-container">
+                        <input type="text" id="urlInput" name="Url" asp-for="Url" placeholder="https://uxcheckmate.com">
+                        <button type="submit">GET AUDIT →</button>
+                    </div>
+                    <span asp-validation-for="Url" class="text-danger"></span>
+                </div>
+            </form>
+            <div id="responseMessage" class="mt-3"></div>
 
-        <form method="post" asp-action="Report" id="urlForm">
-            <div class="form-group">
-                <label for="url">Enter the URL below for a comprehensive audit</label>
-                <input type="text" class="form-control" id="urlInput" name="Url" asp-for="Url" placeholder="https://uxcheckmate.com">
-                <span asp-validation-for="Url" class="text-danger"></span>
+            @* Adding Logo Loader if url is valid *@
+            <div id="loaderWrapper" style="display: none;">
+                <div id="logoContainer">
+                    <img src="~/images/uxCheckmateLogo.png" alt="Loading" id="logo-img" />
+                    <div id="logoText">Analyzing...</div>
+                </div>
             </div>
-            <button type="submit" class="btn btn-primary">Start Audit</button>
-        </form>
-        <div id="responseMessage" class="mt-3"></div>
 
-        @* Adding Logo Loader if url is valid *@
-        <div id="loaderWrapper" style="display: none;">
-            <div id="logoContainer">
-                <img src="~/images/uxCheckmateLogo.png" alt="Loading" id="logo-img" />
-                <div id="logoText">Analyzing...</div>
+            @* Adding a pop up box message if the url is not reachable *@
+            <div id="customPopupMessage" class="customPopupBox" style="display: none;">
+                <div class="popupContent">
+                    <h5>Oops! URL Unreachable</h5>
+                    <p>The URL you entered seems incorrect or no longer exists. Please check and try again.</p>
+                    <button class="btn btn-primary" onclick="closePopup()">Close</button>
+                </div>
             </div>
         </div>
-
-        @* Adding a pop up box message if the url is not reachable *@
-        <div id="customPopupMessage" class="customPopupBox" style="display: none;">
-            <div class="popupContent">
-                <h5>Oops! URL Unreachable</h5>
-                <p>The URL you entered seems incorrect or no longer exists. Please check and try again.</p>
-                <button class="btn btn-primary" onclick="closePopup()">Close</button>
-            </div>
-        </div>
+        <div class="col-md-6"></div>
     </div>
 </div>
 
