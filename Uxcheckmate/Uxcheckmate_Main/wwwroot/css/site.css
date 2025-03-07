@@ -14,6 +14,9 @@
   --nav-text: #ffffff;
 }
 
+html{
+  background-color: rgba(255, 255, 255, 0);
+}
 /* Apply theme variables */
 body {
   color: var(--text-color);
@@ -24,13 +27,50 @@ body {
 }
 
 
-/* Navbar */
-.navbar {
-  background-color: var(--nav-bg) !important;
+/* navbar */
+
+/* Make the navbar background transparent */
+.transparent-navbar {
+  background: transparent !important;
+  border: none; /* Remove border shadow */
 }
 
-.navbar .nav-link {
-  color: var(--nav-text) !important;
+/* Center the navbar links while keeping the logo on the left */
+.navbar-nav {
+  margin: 0 auto; /* Centers the links */
+  display: flex;
+  justify-content: center;
+}
+
+/* Ensure the brand (logo) stays on the left */
+.navbar-brand {
+  font-weight: bold;
+  font-size: 1.5rem;
+  text-decoration: none;
+}
+
+/* Ensure theme switcher stays on the right */
+.theme-switcher {
+  min-width: 150px;
+}
+
+/* Style for better mobile responsiveness */
+@media (max-width: 768px) {
+  .navbar-collapse {
+      justify-content: start;
+  }
+  
+  .navbar-nav {
+      width: 100%;
+      flex-direction: column;
+      text-align: center;
+  }
+
+  .theme-switcher {
+      width: 100%;
+      text-align: center;
+      margin-top: 10px;
+  }
 }
 
 /* Middle section should follow theme */
@@ -41,9 +81,12 @@ body {
 
 /* Footer */
 footer {
-  background-color: var(--nav-bg);
-  color: var(--nav-text);
+  /* background-color: var(--nav-bg);*/
+  background-color: #001521;
+  /*color: var(--nav-text);*/
+  color: rgb(209, 209, 209);
 }
+
 
 
 
