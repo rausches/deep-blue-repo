@@ -40,6 +40,7 @@ body {
   margin: 0 auto; /* Centers the links */
   display: flex;
   justify-content: center;
+  font-family: "Gowun Dodum", sans-serif;
 }
 
 /* Ensure the brand (logo) stays on the left */
@@ -85,6 +86,7 @@ footer {
   background-color: #001521;
   /*color: var(--nav-text);*/
   color: rgb(209, 209, 209);
+  text-align: center;
 }
 
 
@@ -186,6 +188,7 @@ footer {
   flex: 1;
   border: none;
   padding: 12px 20px;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   font-size: 16px;
   outline: none;
   border-radius: 50px 0 0 50px; 
@@ -196,8 +199,9 @@ footer {
   color: white;
   border: none;
   padding: 12px 20px;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   font-size: 16px;
-  font-weight: bold;
+  font-weight: 600;
   cursor: pointer;
   transition: 0.3s ease;
 }
@@ -207,12 +211,12 @@ footer {
 }
 
 #landingHeader{
-  font-family:'Times New Roman', Times, serif;
+  font-family:"DM Serif Text", serif;
   font-size: 60px;
 }
 
 #landingSubheader{
-  font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-family:"Gowun Dodum", sans-serif;
 }
 
 #landingCallToAction{
