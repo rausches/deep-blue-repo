@@ -3,46 +3,77 @@
 @{
     ViewData["Title"] = "Home Page";
 }
-
-<div class="container">
-    <div class="row" id="landingRowOne">
-        <div class="col-md-6">
-            <h1 id="landingHeader">Your Design Companion</h1>
-            <h2 id="landingSubheader">AI-Powered Insights for a Better, More Accessible Web.</h2>
-            <br><br>
-            <h3 id="landingCallToAction">Try it now!</h3>
-            <form method="post" asp-action="Report" id="urlForm">
-                <div class="form-group">
-                    <div class="input-container">
-                        <input type="text" id="urlInput" name="Url" asp-for="Url" placeholder="https://uxcheckmate.com">
-                        <button type="submit">GET AUDIT →</button>
+<section class="main full-screen">
+    <div class="container scanContainer">
+        <div class="row" id="landingRowOne">
+            <div class="col-md-6">
+                <h1 id="landingHeader">Your Design Companion</h1>
+                <h2 id="landingSubheader">AI-Powered Insights for a Better, More Accessible Web.</h2>
+                <br><br>
+                <h3 id="landingCallToAction">Try it now!</h3>
+                <form method="post" asp-action="Report" id="urlForm">
+                    <div class="form-group">
+                        <div class="input-container">
+                            <input type="text" id="urlInput" name="Url" asp-for="Url" placeholder="https://uxcheckmate.com">
+                            <button type="submit">GET AUDIT →</button>
+                        </div>
+                        <span asp-validation-for="Url" class="text-danger"></span>
                     </div>
-                    <span asp-validation-for="Url" class="text-danger"></span>
-                </div>
-            </form>
-            <div id="responseMessage" class="mt-3"></div>
+                </form>
+                <div id="responseMessage" class="mt-3"></div>
 
-            @* Adding Logo Loader if url is valid *@
-            <div id="loaderWrapper" style="display: none;">
-                <div id="logoContainer">
-                    <img src="~/images/uxCheckmateLogo.png" alt="Loading" id="logo-img" />
-                    <div id="logoText">Analyzing...</div>
+                @* Adding Logo Loader if url is valid *@
+                <div id="loaderWrapper" style="display: none;">
+                    <div id="logoContainer">
+                        <img src="~/images/uxCheckmateLogo.png" alt="Loading" id="logo-img" />
+                        <div id="logoText">Analyzing...</div>
+                    </div>
+                </div>
+
+                @* Adding a pop up box message if the url is not reachable *@
+                <div id="customPopupMessage" class="customPopupBox" style="display: none;">
+                    <div class="popupContent">
+                        <h5>Oops! URL Unreachable</h5>
+                        <p>The URL you entered seems incorrect or no longer exists. Please check and try again.</p>
+                        <button class="btn btn-primary" onclick="closePopup()">Close</button>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6"></div>
+        </div>
+    </div>
+</section>
+
+<section class="disclosure full-screen" id="disclosure">
+    <div class="container" id="disclosureContainer">
+        <div class="row g-3" id="disclosureRowOne">
+            <h3 id="disclosureHeader">What going on back there?</h3>
+            <!-- Left Column -->
+            <div class="col-md-4 d-flex flex-column">
+                <div class="disclosureBoxes flex-grow-1">
+                    <img src="~/images/Scrapers.png" alt="Playwright and htmlAgility logos" id="logoImg">
+                    <p>UxCheckmate uses HtmlAgilityPack and Playwright to scrape static and dynamic content from a website. Playwright also assists in capturing a screenshot of the webpage.</p>
+                </div>
+            </div>
+            
+            <!-- Middle Column -->
+            <div class="col-md-4 d-flex flex-column">
+                <div class="disclosureBoxes flex-grow-1">
+                    <img src="~/images/AxeCore_Logo.png" alt="Axe Core Logo" id="axelogoImg">
+                    <p>UxCheckmate uses the AxeCore JS library to reference accessibility guidelines per the WCAG.</p>
                 </div>
             </div>
 
-            @* Adding a pop up box message if the url is not reachable *@
-            <div id="customPopupMessage" class="customPopupBox" style="display: none;">
-                <div class="popupContent">
-                    <h5>Oops! URL Unreachable</h5>
-                    <p>The URL you entered seems incorrect or no longer exists. Please check and try again.</p>
-                    <button class="btn btn-primary" onclick="closePopup()">Close</button>
+            <!-- Right Column -->
+            <div class="col-md-4 d-flex flex-column">
+                <div class="disclosureBoxes flex-grow-1">
+                    <img src="~/images/OpenAI_Logo.png" alt="Open AI Logo" id="ailogoImg">
+                    <p>UxCheckmate uses OpenAI to improve analysis responses and DALL·E to provide a mockup of the suggested changes.</p>
                 </div>
             </div>
         </div>
-        <div class="col-md-6"></div>
     </div>
-</div>
-
+</section>
 <script>
     var urlUnreachableMessage = '@TempData["UrlUnreachable"]';
     
