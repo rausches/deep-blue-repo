@@ -123,12 +123,6 @@ public class HomeController : Controller
     }
 
     [HttpGet]
-    public IActionResult Disclosure()
-    {
-        return View();
-    }
-
-    [HttpGet]
     public IActionResult TempBadPageExHeadersAndColors()
     {
         return View();
