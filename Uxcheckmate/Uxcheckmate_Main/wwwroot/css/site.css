@@ -28,7 +28,7 @@ body {
   margin: 0 auto; /* Centers the links */
   display: flex;
   justify-content: center;
-  font-family: "Gowun Dodum", sans-serif;
+  font-family: "Lexend", sans-serif;
 }
 
 .navbar-brand {
@@ -36,6 +36,10 @@ body {
   font-size: 1.5rem;
   text-decoration: none;
   color: var(--nav-text);
+}
+
+.navbar-toggler-icon {
+  filter: var(--menu-color);
 }
 
 .nav-link{
@@ -46,7 +50,10 @@ body {
   color: inherit;
 }
 .theme-switcher {
-  min-width: 150px;
+  max-width: 20%;
+  display: block;
+  float:center;
+  margin:auto;
 }
 
 #theme-selector{
@@ -60,6 +67,7 @@ body {
   --text-color: #000000;
   --nav-bg: #f8f9fa;
   --nav-text: #000000;
+  --disclosure-bg: #f9f9f9a3;
 }
 
 /* Dark Mode */
@@ -68,6 +76,8 @@ body {
   --text-color: #e0e0e0;
   --nav-bg: #1e1e1e;
   --nav-text: #ffffff;
+  --disclosure-bg: #001521;
+  --menu-color: invert(1);
 }
 
 /* Style for better mobile responsiveness */
@@ -102,7 +112,8 @@ footer {
   /*color: var(--nav-text);*/
   color: rgba(209, 209, 209, 0.663);
   text-align: center;
-  font-family:"Gowun Dodum", sans-serif;
+  font-family:"Lexend", sans-serif;
+  font-weight: 200;
 }
 
 /* Report Loader wrapper style */
@@ -233,13 +244,14 @@ footer {
 }
 
 #landingCallToAction{
-  font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-family:"Lexend", sans-serif;
   font-size: 18px;
-  font-weight: 100;
+  font-weight: 300;
 }
 
 #disclosureHeader{
-  font-family:"Gowun Dodum", sans-serif;
+  font-family:"Lexend", sans-serif;
+  font-weight: 600;
   font-size: 48px;
   text-align: center;
   padding: 3%;
@@ -259,7 +271,8 @@ footer {
   border: 1px solid #ddd;
   border-radius: 10px;
   text-align: center;
-  background-color: #f9f9f9a3;
+  background-color: var(--disclosure-bg);
+  box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
   flex-grow: 1; /* Ensures all boxes take full height */
 }
 
@@ -273,9 +286,9 @@ footer {
 /* Ensures text grows to fill available space */
 .disclosureBoxes p {
   flex-grow: 1;
-  padding: 3%;
-  font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-
+  padding: 5%;
+  font-family:"Lexend", sans-serif;
+  font-weight: 200;
 }
 
 #logoImg, #axelogoImg, #ailogoImg{

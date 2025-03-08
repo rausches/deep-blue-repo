@@ -17,30 +17,27 @@
     <link rel="stylesheet" href="~/Uxcheckmate_Main.styles.css" asp-append-version="true" />
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Text:ital@0;1&family=Gowun+Dodum&family=Playwrite+DE+Grund:wght@100..400&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Text:ital@0;1&family=Gowun+Dodum&family=Lexend:wght@100..900&display=swap" rel="stylesheet">
 </head>
 
 <body>
     <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm mb-3 transparent-navbar">
+<nav class="navbar navbar-expand-lg mb-3 transparent-navbar">
     <div class="container-fluid">
         <!-- Left-aligned Logo -->
-        <a class="navbar-brand me-auto" asp-area="" asp-controller="Home" asp-action="Index">Uxcheckmate</a>
-        
+        <a class="navbar-brand me-auto" asp-area="" asp-controller="Home" asp-action="Index">UxCheckmate</a>
+
         <!-- Navbar Toggle Button -->
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" 
-                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+            aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
         </button>
 
-        <!-- Centered Navbar Links -->
+        <!-- Collapsible Navbar Menu -->
         <div class="collapse navbar-collapse justify-content-center" id="navbarNav">
             <ul class="navbar-nav">
                 <li class="nav-item">
                     <a class="nav-link" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link" asp-area="" asp-controller="Home" asp-action="Feedback">Feedback</a>
@@ -51,12 +48,22 @@
                 <li class="nav-item">
                     <a class="nav-link" href="#disclosure" id="jumpTo">Disclosure</a>
                 </li>
+
+                <!-- Theme Switcher Inside Navbar Menu: Mobile -->
+                <li class="nav-item d-lg-none" id="themeSwitcherContainer">
+                    <div class="theme-switcher">
+                        <select id="theme-selector" class="form-select">
+                            <option value="light">Default</option>
+                            <option value="dark">Dark Mode</option>
+                        </select>
+                    </div>
+                </li>
             </ul>
         </div>
 
-        <!-- Theme Switcher Right-Aligned -->
-        <div class="theme-switcher ms-auto">
-            <select id="theme-selector" class="form-select">
+        <!-- Theme Switcher: Desktop -->
+        <div class="theme-switcher ms-auto d-none d-lg-block">
+            <select id="theme-selector-lg" class="form-select">
                 <option value="light">Default</option>
                 <option value="dark">Dark Mode</option>
             </select>
