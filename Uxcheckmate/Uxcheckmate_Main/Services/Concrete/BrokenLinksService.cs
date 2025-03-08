@@ -88,16 +88,25 @@ namespace Uxcheckmate_Main.Services
                     var response = await _httpClient.GetAsync(link);
 
                     // If the response is not successful, record the broken link.
-                    if (!response.IsSuccessStatusCode)
+                    if (response.StatusCode == HttpStatusCode.OK)
                     {
-                        _logger.LogWarning("Broken link detected: {Link} returned status {StatusCode}", link, response.StatusCode);
+                        // Good link, do nothing
+                    }
+                    else
+                    {
+                        // Just treat it as broken, log @ info-level message
+                        _logger.LogInformation(
+                            "Link {Link} returned status {StatusCode}. Marking as broken.",
+                            link, response.StatusCode
+                        );
                         brokenLinks.Add($"{link} (Status: {response.StatusCode})");
                     }
+
                 }
                 catch (Exception ex)
                 {
                     // Log the exception and mark the link as broken.
-                    _logger.LogError(ex, "Exception occurred while checking link: {Link}", link);
+                    _logger.LogInformation(ex, "Exception occurred while checking link: {Link}", link);
                     brokenLinks.Add($"{link} (Exception: {ex.Message})");
                 }
             }
