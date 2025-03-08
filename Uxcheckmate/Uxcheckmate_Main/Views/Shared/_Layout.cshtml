@@ -40,10 +40,7 @@
                     <a class="nav-link" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" asp-area="" asp-controller="Home" asp-action="Feedback">Feedback</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" asp-area="" asp-controller="Home" asp-action="Guide">Guide</a>
+                    <a class="nav-link" href="#faq" id="jumpTo">FAQ</a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link" href="#disclosure" id="jumpTo">Disclosure</a>
@@ -80,9 +77,9 @@
     <footer class="footer">
         <div class="footerContainer">
             <div class="row footerRow">
-                <div class="col-md-4"></div>
-                <div class="col-md-4">&copy; Deep Blue 2025 - <a asp-area="" asp-controller="Home" asp-action="Privacy" class="footerLinks">Privacy</a></div>
-                <div class="col-md-4"></div>
+                <div class="col-md-2">&copy; Deep Blue 2025</div>
+                <div class="col-md-8"><a asp-area="" asp-controller="Home" asp-action="Privacy" class="footerLinks">Privacy</a> | <a asp-area="" asp-controller="Home" asp-action="Feedback" class="footerLinks">Feedback</a></div>
+                <div class="col-md-2"></div>
             </div>
         </div>
     </footer>
