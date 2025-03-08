@@ -3,7 +3,9 @@
 }
 
 <div class="text-center">
-    <h1 class="display-4">Page Not Found</h1>
-    <p>Oops! This page does't exist.</p>
-    <a href="@Url.Action("Index", "Home")">Return Home</a>
+    @*Image Attribution: https://www.freepik.com/free-vector/chess-concept-illustration_14911773.htm#fromView=search&page=1&position=33&uuid=675d5e9f-b18f-496a-ad53-40ad74183398&query=stalemate*@
+    <img src="~/images/stalemate.png" alt="Illustration of two people playing chess" width="25%;"><br><br>
+    <h1 id="errorHeader">Stalemate: No More Moves Left!</h1>
+    <h2 id="errorSubheader">It appears we’re stuck on this page with no way forward.</h2><br><br>
+    <p id="errorCallToAction">Let’s call it a draw and head back <a href="@Url.Action("Index", "Home")" id="errorLink">home</a></p>
 </div>

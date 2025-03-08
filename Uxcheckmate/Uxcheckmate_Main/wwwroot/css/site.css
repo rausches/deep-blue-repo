@@ -280,12 +280,12 @@ Landing Page Styling
   background: #153551; 
 }
 
-#landingHeader{
+#landingHeader, #errorHeader{
   font-family:"DM Serif Text", serif;
   font-size: 60px;
 }
 
-#landingSubheader{
+#landingSubheader, #errorSubheader{
   font-family:"Gowun Dodum", sans-serif;
 }
 
@@ -484,4 +484,20 @@ FAQ Section Styling
   font-size: 14px;
   padding: 20px;
   text-align: center;
+}
+
+/*
+==================================================
+Error Page Styling
+==================================================
+*/
+
+#errorLink{
+  color: inherit;
+}
+
+#errorCallToAction{
+  font-family:"Lexend", sans-serif;
+  font-size: 18px;
+  font-weight: 300;
 }
