@@ -1,23 +1,33 @@
-/* Shared Layout */
+/* 
+==================================================
+Shared Layout 
+==================================================
+*/
 
 html{
   background-color: rgba(255, 255, 255, 0);
 }
-/* Apply theme variables */
+
 body {
   color: var(--text-color);
-  height: 100%;
+  height: 100%; 
   margin: 0;
   background: var(--bg-color);
   background-attachment: fixed;
-  scroll-snap-type: y mandatory;
+  scroll-snap-type: y mandatory; /* Scrolling behavior for page sections */
 }
+
 .full-screen {
   height: 100vh; /* Full viewport height */
   display: flex;
   scroll-snap-align: start; /* Ensures full section scrolling */
 }
-/* Navbar */
+
+/* 
+==================================================
+Navbar 
+==================================================
+*/
 
 .transparent-navbar {
   background: transparent !important;
@@ -50,6 +60,12 @@ body {
   color: inherit;
 }
 
+/*
+==================================================
+Theme Switcher
+==================================================
+*/
+
 .theme-switcher {
   max-width: 20%;
   display: block;
@@ -81,8 +97,12 @@ body {
   --menu-color: invert(1);
 }
 
-/* Style for better mobile responsiveness */
-@media (max-width: 768px) {
+/* 
+==================================================
+Mobile Menu
+==================================================
+*/
+@media (max-width: 768px) { /* Navbar condenses to mobile menu at 768px screen size*/
   .navbar-collapse {
       justify-content: start;
   }
@@ -93,6 +113,9 @@ body {
       text-align: center;
   }
 
+  .navbar-brand {
+    padding-left: 5%;
+  }
   .theme-switcher {
       width: 100%;
       text-align: center;
@@ -100,13 +123,17 @@ body {
   }
 }
 
-/* Middle section should follow theme */
+/* Middle section */
 .container {
   background-color: rgba(255, 255, 255, 0);
   color: var(--text-color);
 }
 
-/* Footer */
+/* 
+==================================================
+Footer
+==================================================
+*/
 footer {
   background-color: #001521;
   color: rgba(209, 209, 209, 0.663);
@@ -119,7 +146,11 @@ footer {
   color: inherit;
 }
 
-/* Report Loader wrapper style */
+/* 
+==================================================
+Report Loader wrapper style
+================================================== 
+*/
 #loaderWrapper{
   position: fixed;
   top: 0;
@@ -191,7 +222,11 @@ footer {
   overflow-wrap: break-word; /* ✅ Ensures long words break properly */
 }
 
-/* Index styling */
+/* 
+==================================================
+Landing Page Styling
+==================================================
+*/
 
 .home-container{
   background-color: rgba(255, 255, 255, 0);
@@ -252,6 +287,46 @@ footer {
   font-weight: 300;
 }
 
+.main{
+  overflow-x:hidden;
+  padding-left: 5%;
+}
+
+.disclosure{
+  padding: 5%;
+}
+/*
+==================================================
+Mobile Resizing for Form and Image
+==================================================
+*/
+@media (max-width: 768px) {
+  .disclosure {
+      margin-top: 50px; /* Adds space after image */
+  }
+}
+@media (max-width: 768px) { /* Tablets & Mobile */
+  #landingRowOne {
+      flex-direction: column;
+      align-items: center;
+  }
+
+  .placeholderImageCol {
+      order: 2; /* Moves image below text */
+      width: 100%;
+      margin-top: 20px;
+  }
+
+  #placeholderImage {
+      max-width: 90%; /* Slightly smaller image on mobile */
+  }
+}
+
+/*
+==================================================
+Disclosure Section Styling
+==================================================
+*/
 #disclosureHeader{
   font-family:"Lexend", sans-serif;
   font-weight: 600;
@@ -259,6 +334,7 @@ footer {
   text-align: center;
   padding: 3%;
 }
+
 /* Ensures all columns in the row are the same height */
 #disclosureRowOne {
   display: flex;
