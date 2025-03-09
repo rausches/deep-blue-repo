@@ -8,15 +8,15 @@
 
 <div class="container">
     <div class="row headerRow">
-        <div class="col-md-4">
+        <div class="col-md-6">
             <img src="" alt="">
         </div>
-        <div class="col-md-8">
-            <h1>Site Title</h1>
-            <h2>URL</h2>
-            <p>Total Issues Found: #</p>
+        <div class="col-md-6">
+            <h1 id="reportHeader">@Model.Url</h1>
+            <p id="totalIssues">Total Issues Found: @(@Model.DesignIssues.Count() + @Model.AccessibilityIssues.Count()) </p>
         </div> 
     </div>
+    <br>
 
 @*
 ============================================================================================
@@ -25,7 +25,7 @@
 *@
 
     <div class="row designRow">
-        <h3 class="designIssues">Design Issues</h3>
+        <h3 class="designIssues">Design Issues</h3><br><br>
         @* Alert if there are not issues *@
         @if (Model.DesignIssues == null || !Model.DesignIssues.Any())
         {
@@ -44,9 +44,9 @@
                     @* Assign unique id so that toggles don't get mixed up*@
                     var accordionItemId = $"designIssue-{Guid.NewGuid()}"; 
                     
-                    <div class="accordion-item">
-                        <h2 class="accordion-header" id="heading-@accordionItemId">
-                            <button class="accordion-button collapsed" type="button" 
+                    <div class="accordion-item reportAccordion">
+                        <h2 class="accordion-header reportAccordion" id="heading-@accordionItemId">
+                            <button class="accordion-button reportAccordionButton collapsed" type="button" 
                                     data-bs-toggle="collapse" 
                                     data-bs-target="#collapse-@accordionItemId" 
                                     aria-expanded="false" 
@@ -87,6 +87,7 @@
             </div>
         }
     </div>
+    <br>
 
 @*
 ============================================================================================
@@ -94,7 +95,7 @@
 ============================================================================================
 *@
     <div class="row accessiblityRow">
-        <h3>Accessibility Issues</h3>
+        <h3>Accessibility Issues</h3><br><br>
 
         @*Alert if there are not issues*@
         @if (Model.AccessibilityIssues == null || !Model.AccessibilityIssues.Any())
@@ -118,9 +119,9 @@
                     @* Assign unique id so that each toggles don't get mixed up*@
                     var accordionItemId = $"category-{Guid.NewGuid()}"; 
 
-                    <div class="accordion-item">
-                        <h2 class="accordion-header" id="heading-@accordionItemId">
-                            <button class="accordion-button collapsed" type="button" 
+                    <div class="accordion-item reportAccordion">
+                        <h2 class="accordion-header reportAccordion" id="heading-@accordionItemId">
+                            <button class="accordion-button reportAccordionButton collapsed" type="button" 
                                     data-bs-toggle="collapse" 
                                     data-bs-target="#collapse-@accordionItemId"
                                     aria-expanded="false" 
@@ -179,7 +180,6 @@
                                                         ? issue.Selector.Substring(0, maxLength) + "..." 
                                                         : issue.Selector;
                                                 }
-
                                                 <p>
                                                     <strong>Flagged Item:</strong>
                                                     <span id="selectorShort-@issue.Id">@shortSelector</span>

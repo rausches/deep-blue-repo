@@ -89,6 +89,12 @@ Theme Switcher
   --faq-bg: #f9f9f9a3;
   --card-back-bg: #ffffff;
   --card-back-text: #000000;
+  --report-bg: #f9f9f9a3;
+  --report-text: #000000;
+  --accordian-bg: #ffffff;
+  --accordian-text: #000000;
+  --accordian-item-bg: #ffffff;
+  --accordian-item-text: #000000;
 
 }
 
@@ -103,6 +109,12 @@ Theme Switcher
   --faq-bg: #001521;
   --card-back-bg: #001521;
   --card-back-text: #ffffff;
+  --report-bg: #001521;
+  --report-text: #ffffff;
+  --accordian-bg: #001521;
+  --accordian-text: #ffffff;
+  --accordian-item-bg: #0B2C48;;
+  --accordian-item-text: #ffffff;
 }
 
 /* 
@@ -500,4 +512,40 @@ Error Page Styling
   font-family:"Lexend", sans-serif;
   font-size: 18px;
   font-weight: 300;
+}
+
+/*
+==================================================
+Report Page Styling
+==================================================
+*/
+
+.headerRow, .designRow, .accessiblityRow{
+  background-color: var(--report-bg);
+  color: var(--report-text);
+  padding: 5%;
+  border-radius: 15px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.designRow, .accessiblityRow {
+  font-family:"Lexend", sans-serif;
+  font-weight: 200;
+}
+
+#reportHeader
+{
+  font-family:"DM Serif Text", serif;
+  font-size: 48px;
+}
+
+#totalIssues{
+  font-family:"Lexend", sans-serif;
+  font-size: 18px;
+  font-weight: 300;
+}
+
+.reportAccordion{
+  background-color: var(--accordian-bg) !important;
+  color: var(--accordian-text) !important;
 }
