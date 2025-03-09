@@ -12,7 +12,7 @@ namespace Uxcheckmate_Main.Services
     public class AxeCoreService : IAxeCoreService
     {
         private readonly ILogger<AxeCoreService> _logger;
-        private readonly UxCheckmateDbContext _dbContext;
+        protected readonly UxCheckmateDbContext _dbContext;
 
         public AxeCoreService(ILogger<AxeCoreService> logger, UxCheckmateDbContext dbContext)
         {
@@ -26,7 +26,7 @@ namespace Uxcheckmate_Main.Services
             Object2 = object2;
         }
 
-        public async Task<ICollection<AccessibilityIssue>> AnalyzeAndSaveAccessibilityReport(Report report)
+        public virtual async Task<ICollection<AccessibilityIssue>> AnalyzeAndSaveAccessibilityReport(Report report)
         {
             var issues = new List<AccessibilityIssue>();
 
@@ -157,7 +157,7 @@ namespace Uxcheckmate_Main.Services
             return issues;
         }
 
-        private static readonly Dictionary<string, string> AccessibilityCategoryMapping = new()
+        protected static readonly Dictionary<string, string> AccessibilityCategoryMapping = new()
         {
             { "color-contrast", "Color & Contrast" },
             { "focus-order", "Keyboard & Focus" },
@@ -181,7 +181,8 @@ namespace Uxcheckmate_Main.Services
         public UxCheckmateDbContext Object1 { get; }
         public ILogger<AxeCoreService> Object2 { get; }
 
-        private int DetermineSeverity(string impact)
+        protected int DetermineSeverity(string impact)
+
         {
             return impact switch
             {
