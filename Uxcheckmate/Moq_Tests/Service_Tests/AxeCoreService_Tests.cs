@@ -10,7 +10,7 @@ using NUnit.Framework;
 using Uxcheckmate_Main.Models;
 using Uxcheckmate_Main.Services;
 
-namespace Uxcheckmate_Tests.Services
+namespace Service_Tests
 {
     [TestFixture]
     public class AxeCoreServiceTests
