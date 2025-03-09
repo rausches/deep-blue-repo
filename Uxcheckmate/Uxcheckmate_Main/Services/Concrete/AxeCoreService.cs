@@ -182,6 +182,7 @@ namespace Uxcheckmate_Main.Services
         public ILogger<AxeCoreService> Object2 { get; }
 
         protected int DetermineSeverity(string impact)
+
         {
             return impact switch
             {
