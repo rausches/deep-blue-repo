@@ -37,25 +37,33 @@ namespace Uxcheckmate_Main.Services
 
         public async Task<ICollection<DesignIssue>> GenerateReportAsync(Report report)
         {
+            // Initialize url to report attribute
             var url = report.Url;
             _logger.LogInformation("Starting report generation for URL: {Url}", url);
 
+            // If there is no url throw an exception
             if (string.IsNullOrEmpty(url))
             {
                 _logger.LogError("URL is null or empty.");
                 throw new ArgumentException("URL cannot be empty.", nameof(url));
             }
 
+            // Create instance of the web scraper
             var scraper = new WebScraperService(_httpClient, _webScraperLogger);
             _logger.LogDebug("Scraping content from URL: {Url}", url);
+
+            // Call the scraper
             var scrapedData = await scraper.ScrapeAsync(url);
             _logger.LogDebug("Scraping completed for URL: {Url}", url);
 
+            // Get list of design categories
             var designCategories = await _dbContext.DesignCategories.ToListAsync();
             _logger.LogInformation("Found {Count} design categories.", designCategories.Count);
 
+            // Instantate Design Issue list
             var scanResults = new List<DesignIssue>();
 
+            // For each category call service based on category scan method
             foreach (var category in designCategories)
             {
                 _logger.LogInformation("Analyzing category: {CategoryName} using scan method: {ScanMethod}", category.Name, category.ScanMethod);
@@ -67,6 +75,7 @@ namespace Uxcheckmate_Main.Services
                     _ => ""
                 };
 
+                // Connect service response to dbset attributes
                 if (!string.IsNullOrEmpty(message))
                 {
                     var designIssue = new DesignIssue
@@ -87,7 +96,10 @@ namespace Uxcheckmate_Main.Services
                 }
             }
 
+            // Save to database
             await _dbContext.SaveChangesAsync();
+
+            // Return report
             return scanResults;
         }
 
@@ -110,7 +122,9 @@ namespace Uxcheckmate_Main.Services
                 case "Mobile Responsiveness":
                     _logger.LogDebug("Delegating Dynamic Sizing analysis for URL: {Url}", url);
                     var hasDynamicSizing = _dynamicSizingService.HasDynamicSizing(scrapedData["htmlContent"].ToString());
-                    
+                // Add your custom analysis here:
+                // Example: case "Category Name":
+                    // return await _servicename.method(url, scrapeddata)
                     if (!hasDynamicSizing)
                     {
                         string prompt = $"The website at {url} is missing dynamic sizing elements (e.g., media queries, viewport meta tag, flexbox/grid layout). Please provide a recommendation on how to implement dynamic sizing.";
