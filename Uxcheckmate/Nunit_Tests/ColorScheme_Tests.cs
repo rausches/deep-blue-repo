@@ -2,7 +2,10 @@ using NUnit.Framework;
 using Uxcheckmate_Main.Services;
 using System;
 using System.Collections.Generic;
+using System.Net.Http;
+using System.Threading.Tasks;
 using Moq;
+using Microsoft.Extensions.Logging;
 
 namespace Uxcheckmate_Tests
 {
@@ -10,11 +13,15 @@ namespace Uxcheckmate_Tests
     public class ColorSchemeServiceTests
     {
         private ColorSchemeService _colorService;
+        private Mock<HttpClient> _httpClientMock;
+        private Mock<ILogger<WebScraperService>> _loggerMock;
         private Mock<WebScraperService> _mockWebScraperService;
         [SetUp]
         public void Setup()
         {
-            _mockWebScraperService = new Mock<WebScraperService>(null);
+            _httpClientMock = new Mock<HttpClient>();
+            _loggerMock = new Mock<ILogger<WebScraperService>>();
+            _mockWebScraperService = new Mock<WebScraperService>(new HttpClient(), _loggerMock.Object);
             _colorService = new ColorSchemeService(_mockWebScraperService.Object);
         }
         [Test]
