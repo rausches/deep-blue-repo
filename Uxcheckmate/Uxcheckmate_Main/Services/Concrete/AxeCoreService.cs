@@ -1,11 +1,8 @@
 using System.Text.Json;
-using System.Collections.Generic;
 using Uxcheckmate_Main.Models;
 using Microsoft.Extensions.Logging;
-using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Playwright;
-using Microsoft.AspNetCore.Hosting;
 
 namespace Uxcheckmate_Main.Services
 {
@@ -194,5 +191,3 @@ namespace Uxcheckmate_Main.Services
         }
     }
 }
-
-

@@ -103,7 +103,7 @@ namespace Uxcheckmate_Main.Services
             return scanResults;
         }
 
-        private async Task<string> RunCustomAnalysisAsync(string url, string categoryName, string categoryDescription, Dictionary<string, object> scrapedData)
+        public async Task<string> RunCustomAnalysisAsync(string url, string categoryName, string categoryDescription, Dictionary<string, object> scrapedData)
         {
             _logger.LogInformation("Running custom analysis for category: {CategoryName}", categoryName);
 
