@@ -46,21 +46,13 @@ namespace Uxcheckmate_Main.Services
                 throw new ArgumentException("Invalid hex color format. Use #RRGGBB or RRGGBB.");
             }
         }
-        public async Task<string> AnalyzeWebsiteColorsAsync(string url)
+        public async Task<string> AnalyzeWebsiteColorsAsync(Dictionary<string, object> scrapedData)
         {
-            var scrapedData = await _webScraperService.ScrapeAsync(url);
-            if (scrapedData == null){
-                Console.WriteLine("[DEBUG] Scraped data is null");
+            if (scrapedData == null || !scrapedData.ContainsKey("htmlContent")){
+                Console.WriteLine("[DEBUG] Scraped data is null or missing 'htmlContent'");
                 return "[Error] Unable to retrieve page content.";
             }
-            string htmlContent;
-            if (scrapedData.ContainsKey("html_content")){
-                htmlContent = (string)scrapedData["html_content"];
-            }else{
-                Console.WriteLine("[DEBUG] 'html_content' missing, fetching manually...");
-                htmlContent = await _webScraperService.FetchHtmlAsync(url); // ✅ Fetch manually
-                scrapedData["html_content"] = htmlContent;
-            }
+             string htmlContent = (string)scrapedData["htmlContent"];
             var externalCss = scrapedData.ContainsKey("external_css") ? (List<string>)scrapedData["external_css"] : new List<string>();
             Console.WriteLine($"[DEBUG] HTML content length: {htmlContent.Length}");
             var extractedElements = ExtractHtmlElements(htmlContent, externalCss);

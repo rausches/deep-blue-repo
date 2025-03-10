@@ -5,13 +5,18 @@ namespace Uxcheckmate_Main.Services
 {
     public class HeadingHierarchyService : IHeadingHierarchyService
     {
-        public async Task<string> AnalyzeAsync(string url)
+        public Task<string> AnalyzeAsync(Dictionary<string, object> scrapedData)
         {
-            var headerChecker = await Models.CheckHtmlHierarchy.CreateFromUrlAsync(url);
-            if (headerChecker.problemsFound()){
-                return string.Join("\n", headerChecker.ProblemSpots());
+            if (!scrapedData.ContainsKey("htmlContent")){
+                Console.WriteLine("[DEBUG] No 'htmlContent' in scraped data");
+                return Task.FromResult("[Error] No HTML content available.");
             }
-            return string.Empty;
+            string htmlContent = (string)scrapedData["htmlContent"];
+            var headerChecker = Models.CheckHtmlHierarchy.CreateFromHtml(htmlContent);
+            if (headerChecker.problemsFound()){
+                return Task.FromResult(string.Join("\n", headerChecker.ProblemSpots()));
+            }
+            return Task.FromResult(string.Empty);
         }
     }
 }

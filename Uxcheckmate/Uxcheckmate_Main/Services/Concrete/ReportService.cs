@@ -115,10 +115,11 @@ namespace Uxcheckmate_Main.Services
 
                 case "Visual Hierarchy":
                     _logger.LogDebug("Delegating Visual Hierarchy analysis for URL: {Url}", url);
-                    return await _headingHierarchyService.AnalyzeAsync(url);
+                    return await _headingHierarchyService.AnalyzeAsync(scrapedData);
                 case "Color Scheme":
                     _logger.LogDebug("Delegating Color Scheme analysis for URL: {Url}", url);
-                    return await _colorSchemeService.AnalyzeWebsiteColorsAsync(url);
+                    return await _colorSchemeService.AnalyzeWebsiteColorsAsync(scrapedData);
+
                 case "Mobile Responsiveness":
                     _logger.LogDebug("Delegating Dynamic Sizing analysis for URL: {Url}", url);
                     var hasDynamicSizing = _dynamicSizingService.HasDynamicSizing(scrapedData["htmlContent"].ToString());
