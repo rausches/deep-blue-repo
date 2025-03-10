@@ -14,23 +14,24 @@ namespace BDD_Tests.Features
 {
     using Reqnroll;
     using System;
-    using System.Linq;    
+    using System.Linq;
+    
     
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Reqnroll", "2.0.0.0")]
     [System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     [NUnit.Framework.TestFixtureAttribute()]
-    [NUnit.Framework.DescriptionAttribute("Custom 404 Page")]
+    [NUnit.Framework.DescriptionAttribute("Checks for accessibility")]
     [NUnit.Framework.FixtureLifeCycleAttribute(NUnit.Framework.LifeCycle.InstancePerTestCase)]
-    public partial class Custom404PageFeature
+    public partial class ChecksForAccessibilityFeature
     {
         
         private global::Reqnroll.ITestRunner testRunner;
         
         private static string[] featureTags = ((string[])(null));
         
-        private static global::Reqnroll.FeatureInfo featureInfo = new global::Reqnroll.FeatureInfo(new System.Globalization.CultureInfo("en-US"), "features", "Custom 404 Page", "    As a user I want to access multiple pages.", global::Reqnroll.ProgrammingLanguage.CSharp, featureTags);
+        private static global::Reqnroll.FeatureInfo featureInfo = new global::Reqnroll.FeatureInfo(new System.Globalization.CultureInfo("en-US"), "features", "Checks for accessibility", "    As a user, I want to see a report that is easy to read and follow.", global::Reqnroll.ProgrammingLanguage.CSharp, featureTags);
         
-#line 1 "ErrorPage.feature"
+#line 1 "AccessibilityReport.feature"
 #line hidden
         
         [NUnit.Framework.OneTimeSetUpAttribute()]
@@ -82,14 +83,14 @@ namespace BDD_Tests.Features
         }
         
         [NUnit.Framework.TestAttribute()]
-        [NUnit.Framework.DescriptionAttribute("Navigating to a non-existent page should display a custom 404 page")]
-        public async System.Threading.Tasks.Task NavigatingToANon_ExistentPageShouldDisplayACustom404Page()
+        [NUnit.Framework.DescriptionAttribute("User\'s site has an image with a missing alt tag")]
+        public async System.Threading.Tasks.Task UsersSiteHasAnImageWithAMissingAltTag()
         {
             string[] tagsOfScenario = ((string[])(null));
             System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
-            global::Reqnroll.ScenarioInfo scenarioInfo = new global::Reqnroll.ScenarioInfo("Navigating to a non-existent page should display a custom 404 page", null, tagsOfScenario, argumentsOfScenario, featureTags);
+            global::Reqnroll.ScenarioInfo scenarioInfo = new global::Reqnroll.ScenarioInfo("User\'s site has an image with a missing alt tag", null, tagsOfScenario, argumentsOfScenario, featureTags);
 #line 4
-  this.ScenarioInitialize(scenarioInfo);
+this.ScenarioInitialize(scenarioInfo);
 #line hidden
             if ((global::Reqnroll.TagHelper.ContainsIgnoreTag(scenarioInfo.CombinedTags) || global::Reqnroll.TagHelper.ContainsIgnoreTag(featureTags)))
             {
@@ -99,10 +100,25 @@ namespace BDD_Tests.Features
             {
                 await this.ScenarioStartAsync();
 #line 5
-    await testRunner.GivenAsync("David requests a non-existent page \"/takis\"", ((string)(null)), ((global::Reqnroll.Table)(null)), "Given ");
+await testRunner.GivenAsync("David has submitted his site for a scan", ((string)(null)), ((global::Reqnroll.Table)(null)), "Given ");
 #line hidden
 #line 6
-    await testRunner.ThenAsync("he should be redirected to \"/Home/ErrorPage\"", ((string)(null)), ((global::Reqnroll.Table)(null)), "Then ");
+await testRunner.AndAsync("one of the images on the site is missing and alt-tag", ((string)(null)), ((global::Reqnroll.Table)(null)), "And ");
+#line hidden
+#line 7
+await testRunner.AndAsync("his report loads", ((string)(null)), ((global::Reqnroll.Table)(null)), "And ");
+#line hidden
+#line 8
+await testRunner.ThenAsync("he will see a header for Accessibility Recommendations", ((string)(null)), ((global::Reqnroll.Table)(null)), "Then ");
+#line hidden
+#line 9
+await testRunner.ThenAsync("he will see a subheader for Image Alt Tags", ((string)(null)), ((global::Reqnroll.Table)(null)), "Then ");
+#line hidden
+#line 10
+await testRunner.ThenAsync("he will see the line of html where the image is", ((string)(null)), ((global::Reqnroll.Table)(null)), "Then ");
+#line hidden
+#line 11
+await testRunner.ThenAsync("he will see a recommendation that says “This image is missing an alt-text tag.”", ((string)(null)), ((global::Reqnroll.Table)(null)), "Then ");
 #line hidden
             }
             await this.ScenarioCleanupAsync();

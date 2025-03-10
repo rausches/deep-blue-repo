@@ -64,6 +64,12 @@ public class Program
         // Register HttpClient and WebScraperService
         builder.Services.AddHttpClient<WebScraperService>();
 
+        // Register ScreenshotService
+        builder.Services.AddScoped<ScreenshotService>();
+
+        // Register PlaywrightService
+        builder.Services.AddScoped<PlaywrightService>();
+
         // Register Pa11yUrlBasedService and Pa11yService
         builder.Services.AddScoped<IAxeCoreService, AxeCoreService>();
         builder.Services.AddScoped<Pa11yUrlBasedService>();
