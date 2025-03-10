@@ -10,32 +10,27 @@ namespace Uxcheckmate_Main.Services
     {
         private readonly ILogger<AxeCoreService> _logger;
         protected readonly UxCheckmateDbContext _dbContext;
+        private readonly IPlaywrightService _playwrightService;
 
-        public AxeCoreService(ILogger<AxeCoreService> logger, UxCheckmateDbContext dbContext)
+        public AxeCoreService(ILogger<AxeCoreService> logger, UxCheckmateDbContext dbContext, IPlaywrightService playwrightService)
         {
             _logger = logger;
             _dbContext = dbContext;
-        }
-
-        public AxeCoreService(UxCheckmateDbContext object1, ILogger<AxeCoreService> object2)
-        {
-            Object1 = object1;
-            Object2 = object2;
+            _playwrightService = playwrightService;
         }
 
         public virtual async Task<ICollection<AccessibilityIssue>> AnalyzeAndSaveAccessibilityReport(Report report)
         {
             var issues = new List<AccessibilityIssue>();
 
-            // Initialize Playwright and launch a headless browser instance
-            using var playwright = await Playwright.CreateAsync();
-            await using var browser = await playwright.Chromium.LaunchAsync(new BrowserTypeLaunchOptions { Headless = true });
-            var context = await browser.NewContextAsync();
-            var page = await context.NewPageAsync();
-
+            IBrowserContext context = null;
             try
             {
                 _logger.LogInformation("Starting accessibility analysis for URL: {Url}", report.Url);
+                
+                // Request a new browser context from the PlaywrightService.
+                context = await _playwrightService.GetBrowserContextAsync();
+                var page = await context.NewPageAsync();
 
                 // Navigate to the target URL and wait until the page is fully loaded
                 await page.GotoAsync(report.Url, new PageGotoOptions { WaitUntil = WaitUntilState.Load });
@@ -150,6 +145,14 @@ namespace Uxcheckmate_Main.Services
             {
                 _logger.LogError("Error during accessibility analysis: {Message}", ex.Message);
             }
+            finally
+            {
+                // Close the browser context for this run so sessions don't overlap.
+                if (context != null)
+                {
+                    await context.CloseAsync();
+                }
+            }
 
             return issues;
         }
@@ -175,11 +178,7 @@ namespace Uxcheckmate_Main.Services
             { "aria-hidden-focus", "ARIA & Semantic HTML" }
         };
 
-        public UxCheckmateDbContext Object1 { get; }
-        public ILogger<AxeCoreService> Object2 { get; }
-
         protected int DetermineSeverity(string impact)
-
         {
             return impact switch
             {
