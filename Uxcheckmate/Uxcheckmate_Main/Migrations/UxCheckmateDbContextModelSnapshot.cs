@@ -267,6 +267,10 @@ namespace Uxcheckmate_Main.Migrations
                         .HasColumnType("varchar(128)")
                         .HasColumnName("URL");
 
+                    b.Property<string>("UserID")
+                        .HasColumnType("nvarchar(max)")
+                        .HasColumnName("UserID");
+
                     b.HasKey("Id")
                         .HasName("PK__Report__3214EC27DC95E762");
 
