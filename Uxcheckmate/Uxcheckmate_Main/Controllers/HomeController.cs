@@ -4,6 +4,8 @@ using Uxcheckmate_Main.Services;
 using Microsoft.EntityFrameworkCore;
 using System.Text.Json;
 using System.Diagnostics;
+using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims;
 
 namespace Uxcheckmate_Main.Controllers;
 
@@ -67,11 +69,16 @@ public class HomeController : Controller
                     return RedirectToAction("Index");
                 }
             }
+            string? userId = null;
+            if (User.Identity.IsAuthenticated){
+                userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            }
             // Create and save the report record.
             var report = new Report
             {
                 Url = url,
                 Date = DateOnly.FromDateTime(DateTime.UtcNow),
+                UserID = userId,
                 AccessibilityIssues = new List<AccessibilityIssue>(),
                 DesignIssues = new List<DesignIssue>()
             };
@@ -120,6 +127,11 @@ public class HomeController : Controller
     public IActionResult ErrorPage()
     {
         return View("ErrorPage");
+    }
+    [Authorize] // Have to be logged in/Authorized to access
+    public IActionResult UserDash()
+    {
+        return View();
     }
 
     [HttpGet]

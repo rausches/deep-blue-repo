@@ -46,12 +46,18 @@
                 <li class="nav-item">
                     <a class="nav-link" href="~/Home/#disclosure" id="jumpTo">Disclosure</a>
                 </li>
-                <li class="nav-item">
-                    <a class="nav-link" asp-area="Identity" asp-page="/Account/Login">Login</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" asp-area="Identity" asp-page="/Account/Register">Register</a>
-                </li>
+                @if (User.Identity.IsAuthenticated){
+                    <li class="nav-item">
+                        <a class="nav-link" asp-area="" asp-controller="Home" asp-action="UserDash">Dashboard</a>
+                    </li>
+                }else{
+                    <li class="nav-item">
+                        <a class="nav-link" asp-area="Identity" asp-page="/Account/Login">Login</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" asp-area="Identity" asp-page="/Account/Register">Register</a>
+                    </li>
+                }
 
                 <!-- Theme Switcher Inside Navbar Menu: Mobile -->
                 <li class="nav-item d-lg-none" id="themeSwitcherContainer">
