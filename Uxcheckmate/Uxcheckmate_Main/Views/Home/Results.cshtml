@@ -23,7 +23,18 @@
                                     DESIGN ISSUES
 ============================================================================================
 *@
-
+    <div class="row">
+        <div class="col-md-6">
+            <div class="form-group mb-3">
+                <label for="sortOptions">Sort issues by:</label>
+                <select id="sortOptions" class="form-select">
+                    <option value="category">Category (Default)</option>
+                    <option value="severity-high-low">Severity (High to Low)</option>
+                    <option value="severity-low-high">Severity (Low to High)</option>
+                </select>
+            </div>
+        </div>
+    </div>
     <div class="row designRow">
         <h3 class="designIssues">Design Issues</h3><br><br>
         @* Alert if there are not issues *@
