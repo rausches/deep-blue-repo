@@ -9,10 +9,13 @@
 <div class="container">
     <div class="row headerRow">
         <div class="col-md-6">
+            @* Placeholder for screenshot image *@
             <img src="" alt="">
         </div>
         <div class="col-md-6">
+            @* Display the URL associated with the report *@
             <h1 id="reportHeader">@Model.Url</h1>
+            @* Display the total number of issues found *@
             <p id="totalIssues">Total Issues Found: @(@Model.DesignIssues.Count() + @Model.AccessibilityIssues.Count()) </p>
         </div> 
     </div>
@@ -21,6 +24,7 @@
 <br>
 
 <div id="reportContainer">
+    @* Dropdown for selecting sort order of the issues *@
     <select id="sortSelect" class="form-select mb-4">
         <option value="category" selected="@(ViewBag.CurrentSort == "category")">Category</option>
         <option value="severity-high-low" selected="@(ViewBag.CurrentSort == "severity-high-low")">Severity (High to Low)</option>
@@ -35,6 +39,7 @@
     <div class="report-section mb-5">
         <h3 class="section-header mb-4">Design Issues</h3>
         <div id="designIssuesContainer">
+            @* Partial view rendering design issues *@
             @await Html.PartialAsync("_DesignIssuesPartial", Model.DesignIssues)
         </div>
     </div>
@@ -48,64 +53,23 @@
     <div class="report-section mb-5">
         <h3 class="section-header mb-4">Accessibility Issues</h3>
         <div id="accessibilityIssuesContainer">
+            @* Partial view rendering accessibility issues *@
             @await Html.PartialAsync("_AccessibilityIssuesPartial", Model.AccessibilityIssues)
         </div>
     </div>
 
+@*
+============================================================================================
+                                Print PDF
+============================================================================================
+*@
+
     <a asp-action="DownloadReport" asp-route-id="@Model.Id" class="btn btn-primary">
         Download PDF Report
     </a>
-</div>
+
+</div> @* End tag for #reportContainer *@
 
 @section Scripts {
-    <script>
-        document.getElementById('sortSelect').addEventListener('change', function() {
-            const sortOrder = this.value;
-            
-            fetch(`/Home/GetSortedIssues?id=@Model.Id&sortOrder=${sortOrder}`)
-                .then(response => response.json())
-                .then(data => {
-                    document.getElementById('designIssuesContainer').innerHTML = data.designHtml;
-                    document.getElementById('accessibilityIssuesContainer').innerHTML = data.accessibilityHtml;
-                    initBootstrapCollapses();
-                });
-        });
-
-        function initBootstrapCollapses() {
-            // Initialize all accordions
-            document.querySelectorAll('.accordion').forEach(accordion => {
-                const collapses = accordion.querySelectorAll('.accordion-collapse');
-                
-                collapses.forEach(collapse => {
-                    // Create new Collapse instance with proper parent
-                    new bootstrap.Collapse(collapse, {
-                        toggle: false,
-                        parent: accordion
-                    });
-                });
-
-                // Add click handlers for proper toggle behavior
-                accordion.querySelectorAll('.accordion-button').forEach(button => {
-                    button.addEventListener('click', function() {
-                        const target = document.querySelector(this.dataset.bsTarget);
-                        const collapse = bootstrap.Collapse.getInstance(target) || new bootstrap.Collapse(target);
-                        
-                        if (target.classList.contains('show')) {
-                            collapse.hide();
-                        } else {
-                            // Hide others in the same accordion
-                            collapses.forEach(c => {
-                                if (c !== target) bootstrap.Collapse.getInstance(c)?.hide();
-                            });
-                            collapse.show();
-                        }
-                    });
-                });
-            });
-        }
-        
-        // Initial initialization
-        initBootstrapCollapses();
-    </script>
+    <script src="~/js/reportResults.js"></script>
 }
-

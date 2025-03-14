@@ -76,7 +76,7 @@ public class HomeController : Controller
             if (User.Identity.IsAuthenticated){
                 userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             }
-            // Create and save the report record.
+            // Create and save the initial report record
             var report = new Report
             {
                 Url = url,
@@ -88,19 +88,18 @@ public class HomeController : Controller
             _context.Reports.Add(report);
             await _context.SaveChangesAsync();
             _logger.LogInformation("Report record created with ID: {ReportId}", report.Id);
-            
-            // Run analysis
+
+            // Run accessibility and design analysis
             await _axeCoreService.AnalyzeAndSaveAccessibilityReport(report);
             await _reportService.GenerateReportAsync(report);
 
-            // Fetch the full report 
+            // Fetch the full report including related issues and categories
             var fullReport = await _context.Reports
-            .Include(r => r.AccessibilityIssues)
-                .ThenInclude(a => a.Category)
-            .Include(r => r.DesignIssues)
-                .ThenInclude(d => d.Category)
-            .FirstOrDefaultAsync(r => r.Id == report.Id);
+                .Include(r => r.AccessibilityIssues).ThenInclude(a => a.Category)
+                .Include(r => r.DesignIssues).ThenInclude(d => d.Category)
+                .FirstOrDefaultAsync(r => r.Id == report.Id);
 
+            // Handle the case where the report could not be fetched
             if (fullReport == null)
             {
                 _logger.LogError("Failed to fetch report with ID: {ReportId}", report.Id);
@@ -108,47 +107,33 @@ public class HomeController : Controller
                 return View("Index");
             }
 
-        // Apply sorting
-        ViewBag.CurrentSort = sortOrder;
-        
-        fullReport.DesignIssues = sortOrder switch
-        {
-            "severity-high-low" => fullReport.DesignIssues
-                .OrderByDescending(i => i.Severity)
-                .ThenBy(i => i.Category.Name)
-                .ToList(),
-            "severity-low-high" => fullReport.DesignIssues
-                .OrderBy(i => i.Severity)
-                .ThenBy(i => i.Category.Name)
-                .ToList(),
-            _ => fullReport.DesignIssues
-                .OrderBy(i => i.Category.Name)
-                .ThenByDescending(i => i.Severity)
-                .ToList()
-        };
+            // Apply sorting based on the provided sort order
+            ViewBag.CurrentSort = sortOrder;
 
-        fullReport.AccessibilityIssues = sortOrder switch
-        {
-            "severity-high-low" => fullReport.AccessibilityIssues
-                .OrderByDescending(i => i.Severity)
-                .ThenBy(i => i.Category.Name)
-                .ToList(),
-            "severity-low-high" => fullReport.AccessibilityIssues
-                .OrderBy(i => i.Severity)
-                .ThenBy(i => i.Category.Name)
-                .ToList(),
-            _ => fullReport.AccessibilityIssues
-                .OrderBy(i => i.Category.Name)
-                .ThenByDescending(i => i.Severity)
-                .ToList()
-        };
+            // Sort design issues
+            fullReport.DesignIssues = sortOrder switch
+            {
+                "severity-high-low" => fullReport.DesignIssues.OrderByDescending(i => i.Severity).ThenBy(i => i.Category.Name).ToList(),
+                "severity-low-high" => fullReport.DesignIssues.OrderBy(i => i.Severity).ThenBy(i => i.Category.Name).ToList(),
+                _ => fullReport.DesignIssues.OrderBy(i => i.Category.Name).ThenByDescending(i => i.Severity).ToList()
+            };
 
-        if (isAjax)
-        {
-            return PartialView("_ReportSections", fullReport);
-        }
+            // Sort accessibility issues
+            fullReport.AccessibilityIssues = sortOrder switch
+            {
+                "severity-high-low" => fullReport.AccessibilityIssues.OrderByDescending(i => i.Severity).ThenBy(i => i.Category.Name).ToList(),
+                "severity-low-high" => fullReport.AccessibilityIssues.OrderBy(i => i.Severity).ThenBy(i => i.Category.Name).ToList(),
+                _ => fullReport.AccessibilityIssues.OrderBy(i => i.Category.Name).ThenByDescending(i => i.Severity).ToList()
+            };
 
-        return View("Results", fullReport);
+            // If the request is an AJAX call, return the partial view
+            if (isAjax)
+            {
+                return PartialView("_ReportSections", fullReport);
+            }
+
+            // Return the full results view
+            return View("Results", fullReport);
         }
         catch (Exception ex)
         {
@@ -207,63 +192,85 @@ public class HomeController : Controller
     [HttpGet]
     public async Task<IActionResult> GetSortedIssues(int id, string sortOrder)
     {
+        // Retrieve the report with the specified ID, including related design and accessibility issues along with their categories
         var report = await _context.Reports
             .Include(r => r.DesignIssues).ThenInclude(d => d.Category)
             .Include(r => r.AccessibilityIssues).ThenInclude(a => a.Category)
             .FirstOrDefaultAsync(r => r.Id == id);
 
+        // If the report is not found, return a 404 Not Found response
         if (report == null) return NotFound();
 
-        // Add ViewBag value for partials
+        // Store the current sort order in ViewBag to be used by partial views for rendering sorted data
         ViewBag.CurrentSort = sortOrder;
 
-        // Sort design issues
+        // Sort the list of design issues based on the provided sort order
         report.DesignIssues = sortOrder switch
         {
+            // Sort by severity in descending order (high to low)
             "severity-high-low" => report.DesignIssues.OrderByDescending(i => i.Severity).ToList(),
+            // Sort by severity in ascending order (low to high)
             "severity-low-high" => report.DesignIssues.OrderBy(i => i.Severity).ToList(),
+            // Default sorting by category name in ascending order
             _ => report.DesignIssues.OrderBy(i => i.Category.Name).ToList()
         };
 
-        // Sort accessibility issues
+        // Sort the list of accessibility issues based on the provided sort order
         report.AccessibilityIssues = sortOrder switch
         {
+            // Sort by severity in descending order (high to low)
             "severity-high-low" => report.AccessibilityIssues.OrderByDescending(i => i.Severity).ToList(),
+            // Sort by severity in ascending order (low to high)
             "severity-low-high" => report.AccessibilityIssues.OrderBy(i => i.Severity).ToList(),
+            // Default sorting by category name in ascending order
             _ => report.AccessibilityIssues.OrderBy(i => i.Category.Name).ToList()
         };
 
+        // Render the design issues partial view to HTML with the sorted design issues list
         var designHtml = await this.RenderViewAsync("_DesignIssuesPartial", report.DesignIssues);
+
+        // Render the accessibility issues partial view to HTML with the sorted accessibility issues list
         var accessibilityHtml = await this.RenderViewAsync("_AccessibilityIssuesPartial", report.AccessibilityIssues);
 
+        // Return the rendered partial views as a JSON object
         return Json(new { designHtml, accessibilityHtml });
     }
-
 }
 
 public static class ControllerExtensions
 {
     public static async Task<string> RenderViewAsync<TModel>(this Controller controller, string viewName, TModel model)
     {
+        // Assign the model to the ViewData to ensure the view has access to it.
         controller.ViewData.Model = model;
+
+        // Create a StringWriter to capture the rendered HTML output.
         using var writer = new StringWriter();
-        
+
+        // Retrieve the view engine service from the dependency injection container.
         var viewEngine = controller.HttpContext.RequestServices.GetService<ICompositeViewEngine>();
+
+        // Attempt to find the specified view using the view engine.
         var viewResult = viewEngine.FindView(controller.ControllerContext, viewName, false);
 
+        // If the view cannot be found, throw an exception.
         if (!viewResult.Success)
             throw new Exception($"View '{viewName}' not found");
 
+        // Create a ViewContext, which encapsulates all information required for rendering.
         var viewContext = new ViewContext(
-            controller.ControllerContext,
-            viewResult.View,
-            controller.ViewData,
-            controller.TempData,
-            writer,
-            new HtmlHelperOptions()
+            controller.ControllerContext, // Current controller context
+            viewResult.View,              // The view to render
+            controller.ViewData,          // ViewData containing the model
+            controller.TempData,          // Temporary data storage
+            writer,                       // Output writer to capture the rendered view
+            new HtmlHelperOptions()       // Helper options for rendering
         );
 
+        // Render the view asynchronously into the StringWriter.
         await viewResult.View.RenderAsync(viewContext);
+
+        // Return the rendered content as a string.
         return writer.ToString();
     }
 }
