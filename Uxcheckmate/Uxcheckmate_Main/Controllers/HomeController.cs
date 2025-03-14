@@ -37,7 +37,7 @@ public class HomeController : Controller
     }
 
     [HttpPost]
-    public async Task<IActionResult> Report(string url)
+    public async Task<IActionResult> Report(string url, string sortOrder = "category")
     {
         if (string.IsNullOrEmpty(url))
         {
