@@ -1,4 +1,7 @@
-﻿<!DOCTYPE html>
+﻿@{
+    ViewData["Layout"] = "Layout";
+}
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8" />
@@ -61,9 +64,9 @@
 
                 <!-- Theme Switcher Inside Navbar Menu: Mobile -->
                 <li class="nav-item d-lg-none" id="themeSwitcherContainer">
->>>>>>> dev
                     <div class="theme-switcher">
-                        <select id="theme-selector" class="form-select">
+                        <label for="theme-selector">Choose a theme:</label>
+                        <select id="theme-selector" class="form-select" title="Theme Selector">
                             <option value="light">Default</option>
                             <option value="dark">Dark Mode</option>
                         </select>
@@ -74,7 +77,8 @@
 
         <!-- Theme Switcher: Desktop -->
         <div class="theme-switcher ms-auto d-none d-lg-block">
-            <select id="theme-selector-lg" class="form-select">
+            <label for="theme-selector-lg">Choose a theme:</label>
+            <select id="theme-selector-lg" class="form-select" title="Large Theme Selector">
                 <option value="light">Default</option>
                 <option value="dark">Dark Mode</option>
             </select>
