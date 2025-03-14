@@ -6,6 +6,9 @@ using System.Text.Json;
 using System.Diagnostics;
 using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
+using Microsoft.AspNetCore.Mvc.ViewFeatures;
+using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.AspNetCore.Mvc.ViewEngines;
 
 namespace Uxcheckmate_Main.Controllers;
 
@@ -36,8 +39,8 @@ public class HomeController : Controller
         return View();
     }
 
-    [HttpPost]
-    public async Task<IActionResult> Report(string url, string sortOrder = "category")
+[HttpPost]
+    public async Task<IActionResult> Report(string url, string sortOrder = "category", bool isAjax = false)
     {
         if (string.IsNullOrEmpty(url))
         {
@@ -86,14 +89,17 @@ public class HomeController : Controller
             await _context.SaveChangesAsync();
             _logger.LogInformation("Report record created with ID: {ReportId}", report.Id);
             
+            // Run analysis
             await _axeCoreService.AnalyzeAndSaveAccessibilityReport(report);
             await _reportService.GenerateReportAsync(report);
 
             // Fetch the full report 
             var fullReport = await _context.Reports
-                .Include(r => r.AccessibilityIssues)
-                .Include(r => r.DesignIssues) // Load design issues
-                .FirstOrDefaultAsync(r => r.Id == report.Id);
+            .Include(r => r.AccessibilityIssues)
+                .ThenInclude(a => a.Category)
+            .Include(r => r.DesignIssues)
+                .ThenInclude(d => d.Category)
+            .FirstOrDefaultAsync(r => r.Id == report.Id);
 
             if (fullReport == null)
             {
@@ -102,7 +108,47 @@ public class HomeController : Controller
                 return View("Index");
             }
 
-            return View("Results", fullReport);
+        // Apply sorting
+        ViewBag.CurrentSort = sortOrder;
+        
+        fullReport.DesignIssues = sortOrder switch
+        {
+            "severity-high-low" => fullReport.DesignIssues
+                .OrderByDescending(i => i.Severity)
+                .ThenBy(i => i.Category.Name)
+                .ToList(),
+            "severity-low-high" => fullReport.DesignIssues
+                .OrderBy(i => i.Severity)
+                .ThenBy(i => i.Category.Name)
+                .ToList(),
+            _ => fullReport.DesignIssues
+                .OrderBy(i => i.Category.Name)
+                .ThenByDescending(i => i.Severity)
+                .ToList()
+        };
+
+        fullReport.AccessibilityIssues = sortOrder switch
+        {
+            "severity-high-low" => fullReport.AccessibilityIssues
+                .OrderByDescending(i => i.Severity)
+                .ThenBy(i => i.Category.Name)
+                .ToList(),
+            "severity-low-high" => fullReport.AccessibilityIssues
+                .OrderBy(i => i.Severity)
+                .ThenBy(i => i.Category.Name)
+                .ToList(),
+            _ => fullReport.AccessibilityIssues
+                .OrderBy(i => i.Category.Name)
+                .ThenByDescending(i => i.Severity)
+                .ToList()
+        };
+
+        if (isAjax)
+        {
+            return PartialView("_ReportSections", fullReport);
+        }
+
+        return View("Results", fullReport);
         }
         catch (Exception ex)
         {
@@ -156,5 +202,68 @@ public class HomeController : Controller
 
         var pdfBytes = _pdfExportService.GenerateReportPdf(report);
         return File(pdfBytes, "application/pdf", $"UXCheckmate_Report_{report.Id}.pdf");
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> GetSortedIssues(int id, string sortOrder)
+    {
+        var report = await _context.Reports
+            .Include(r => r.DesignIssues).ThenInclude(d => d.Category)
+            .Include(r => r.AccessibilityIssues).ThenInclude(a => a.Category)
+            .FirstOrDefaultAsync(r => r.Id == id);
+
+        if (report == null) return NotFound();
+
+        // Add ViewBag value for partials
+        ViewBag.CurrentSort = sortOrder;
+
+        // Sort design issues
+        report.DesignIssues = sortOrder switch
+        {
+            "severity-high-low" => report.DesignIssues.OrderByDescending(i => i.Severity).ToList(),
+            "severity-low-high" => report.DesignIssues.OrderBy(i => i.Severity).ToList(),
+            _ => report.DesignIssues.OrderBy(i => i.Category.Name).ToList()
+        };
+
+        // Sort accessibility issues
+        report.AccessibilityIssues = sortOrder switch
+        {
+            "severity-high-low" => report.AccessibilityIssues.OrderByDescending(i => i.Severity).ToList(),
+            "severity-low-high" => report.AccessibilityIssues.OrderBy(i => i.Severity).ToList(),
+            _ => report.AccessibilityIssues.OrderBy(i => i.Category.Name).ToList()
+        };
+
+        var designHtml = await this.RenderViewAsync("_DesignIssuesPartial", report.DesignIssues);
+        var accessibilityHtml = await this.RenderViewAsync("_AccessibilityIssuesPartial", report.AccessibilityIssues);
+
+        return Json(new { designHtml, accessibilityHtml });
+    }
+
+}
+
+public static class ControllerExtensions
+{
+    public static async Task<string> RenderViewAsync<TModel>(this Controller controller, string viewName, TModel model)
+    {
+        controller.ViewData.Model = model;
+        using var writer = new StringWriter();
+        
+        var viewEngine = controller.HttpContext.RequestServices.GetService<ICompositeViewEngine>();
+        var viewResult = viewEngine.FindView(controller.ControllerContext, viewName, false);
+
+        if (!viewResult.Success)
+            throw new Exception($"View '{viewName}' not found");
+
+        var viewContext = new ViewContext(
+            controller.ControllerContext,
+            viewResult.View,
+            controller.ViewData,
+            controller.TempData,
+            writer,
+            new HtmlHelperOptions()
+        );
+
+        await viewResult.View.RenderAsync(viewContext);
+        return writer.ToString();
     }
 }
