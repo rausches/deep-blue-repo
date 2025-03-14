@@ -134,19 +134,6 @@ public class HomeController : Controller
         return View();
     }
 
-    [HttpGet]
-    public IActionResult TempBadPageExHeadersAndColors()
-    {
-        return View();
-    }
-
-    [HttpGet]
-    public async Task<IActionResult> Guide()
-    {
-        // Grabing only ones with ScanMethod Custom for now
-        var designCategories = await _context.DesignCategories.Where(dc => dc.ScanMethod == "Custom").ToListAsync();
-        return View(designCategories);
-    }
 
     [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
     public IActionResult Error()

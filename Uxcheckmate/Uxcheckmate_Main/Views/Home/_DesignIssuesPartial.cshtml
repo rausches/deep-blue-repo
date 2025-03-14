@@ -1,0 +1,94 @@
+@model IEnumerable<Uxcheckmate_Main.Models.DesignIssue>
+@using System.Text.RegularExpressions
+
+@functions {
+    string SanitizeId(string input) {
+        return Regex.Replace(input, "[^a-zA-Z0-9]", "-").ToLower();
+    }
+}
+
+@{
+    var sortOrder = ViewBag.CurrentSort as string ?? "category";
+    var severityLevels = new Dictionary<int, string> { {3, "High"}, {2, "Medium"}, {1, "Low"} };
+}
+
+@if (sortOrder.StartsWith("severity"))
+{
+    var severityOrder = sortOrder == "severity-high-low" 
+        ? severityLevels.OrderByDescending(s => s.Key) 
+        : severityLevels.OrderBy(s => s.Key);
+
+    <div class="accordion" id="designIssuesAccordion">
+        @foreach (var severity in severityOrder)
+        {
+            var issues = Model.Where(i => i.Severity == severity.Key).ToList();
+            var sanitizedId = SanitizeId(severity.Value);
+
+            <div class="accordion-item reportAccordion">
+                <h2 class="accordion-header">
+                    <button class="accordion-button collapsed" type="button"
+                            data-bs-toggle="collapse" 
+                            data-bs-target="#collapse-design-@sanitizedId">
+                        <strong>@severity.Value Severity Issues</strong>
+                        <span class="text-muted">(@issues.Count issues)</span>
+                    </button>
+                </h2>
+                <div id="collapse-design-@sanitizedId" class="accordion-collapse collapse"
+                     data-bs-parent="#designIssuesAccordion">
+                    <div class="accordion-body">
+                        @if (!issues.Any())
+                        {
+                            <p class="text-muted">No issues</p>
+                        }
+                        else
+                        {
+                            foreach (var issue in issues)
+                            {
+                                <div class="issueContainer p-3 border rounded mb-2">
+                                    <span class="badge bg-secondary">@issue.Category.Name</span>
+                                    <p>@issue.Message</p>
+                                </div>
+                            }
+                        }
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}
+else
+{
+    var categories = Model.GroupBy(i => i.Category?.Name ?? "Uncategorized").OrderBy(g => g.Key);
+
+    <div class="accordion" id="designIssuesAccordion">
+        @foreach (var categoryGroup in categories)
+        {
+            var sanitizedId = SanitizeId(categoryGroup.Key);
+
+            <div class="accordion-item reportAccordion">
+                <h2 class="accordion-header">
+                    <button class="accordion-button collapsed" type="button"
+                            data-bs-toggle="collapse" 
+                            data-bs-target="#collapse-design-@sanitizedId">
+                        <strong>@categoryGroup.Key</strong>
+                        <span class="text-muted">(@categoryGroup.Count() issues)</span>
+                    </button>
+                </h2>
+                <div id="collapse-design-@sanitizedId" class="accordion-collapse collapse"
+                     data-bs-parent="#designIssuesAccordion">
+                    <div class="accordion-body">
+                        @foreach (var issue in categoryGroup)
+                        {
+                            <div class="issueContainer p-3 border rounded mb-2">
+                                <span class="badge bg-secondary">
+                                    @(issue.Severity == 3 ? "High" : issue.Severity == 2 ? "Medium" : "Low")
+                                </span>
+                                <p>@issue.Message</p>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}
