@@ -6,6 +6,7 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using Moq;
 using Microsoft.Extensions.Logging;
+using SkiaSharp;
 
 namespace Uxcheckmate_Tests
 {
@@ -13,16 +14,16 @@ namespace Uxcheckmate_Tests
     public class ColorSchemeServiceTests
     {
         private ColorSchemeService _colorService;
-        private Mock<HttpClient> _httpClientMock;
-        private Mock<ILogger<WebScraperService>> _loggerMock;
-        private Mock<WebScraperService> _mockWebScraperService;
+        private Mock<WebScraperService> _webScraperServiceMock;
+        private Mock<ILogger<ColorSchemeService>> _loggerMock;
+        private Mock<IScreenshotService> _screenshotServiceMock;
         [SetUp]
         public void Setup()
         {
-            _httpClientMock = new Mock<HttpClient>();
-            _loggerMock = new Mock<ILogger<WebScraperService>>();
-            _mockWebScraperService = new Mock<WebScraperService>(new HttpClient(), _loggerMock.Object);
-            _colorService = new ColorSchemeService(_mockWebScraperService.Object);
+            _webScraperServiceMock = new Mock<WebScraperService>(new HttpClient(), Mock.Of<ILogger<WebScraperService>>());
+            _loggerMock = new Mock<ILogger<ColorSchemeService>>();
+            _screenshotServiceMock = new Mock<IScreenshotService>();
+            _colorService = new ColorSchemeService(_webScraperServiceMock.Object, _loggerMock.Object, _screenshotServiceMock.Object);
         }
         [Test]
         public void MaxDifference_AreColorsSimilar_True()
@@ -566,6 +567,64 @@ namespace Uxcheckmate_Tests
             };
             var issues = _colorService.CheckLegibility(extractedData);
             Assert.That(issues, Does.Contain("Low contrast in <span>: #CCCCCC on #DDDDDD"));
+        }
+        [Test]
+        public void ExtractColorPixelsCorrectCounts(){
+            byte[] testImage = GenerateTestImage();
+            var result = _colorService.ExtractColorPixels(testImage);
+            Assert.That(result, Is.Not.Empty);
+            Assert.That(result.ContainsKey("#FF0000"), Is.True); // Red
+            Assert.That(result.ContainsKey("#00FF00"), Is.True); // Green
+        }
+        [Test]
+        public void CalculateColorProportionsFromPixelsProportions()
+        {
+            var colorCounts = new Dictionary<string, int>
+            {
+                { "#FF0000", 5000 }, // 50
+                { "#00FF00", 3000 }, // 30
+                { "#0000FF", 2000 }  // 20
+            };
+            var result = _colorService.CalculateColorProportionsFromPixels(colorCounts);
+            Assert.That(result["#FF0000"], Is.EqualTo(50.0));
+            Assert.That(result["#00FF00"], Is.EqualTo(30.0));
+            Assert.That(result["#0000FF"], Is.EqualTo(20.0));
+        }
+        [Test]
+        public void IsColorBalancedUnbalancedColorsPixels()
+        {
+            var colorProportions = new Dictionary<string, double>
+            {
+                { "#FF0000", 80.0 },
+                { "#00FF00", 10.0 },
+                { "#0000FF", 5.0 },
+                { "#FFFFFF", 5.0 }
+            };
+            var result = _colorService.IsColorBalanced(colorProportions);
+            Assert.That(result, Is.False);
+        }
+        [Test]
+        public async Task AnalyzeWebsiteColorsFromScreenshotAsyncInvalidScreenshotError()
+        {
+            var screenshotServiceMock = new Mock<IScreenshotService>();
+            screenshotServiceMock.Setup(s => s.CaptureFullPageScreenshot(It.IsAny<string>())).ReturnsAsync(new byte[0]);
+            var result = await _colorService.AnalyzeWebsiteColorsFromScreenshotAsync("https://example.com");
+            Assert.That(result.ContainsKey("error"), Is.True);
+        }
+        private byte[] GenerateTestImage()
+        {
+            using var bitmap = new SkiaSharp.SKBitmap(100, 100);
+            using var canvas = new SkiaSharp.SKCanvas(bitmap);
+            using var paint = new SkiaSharp.SKPaint();
+            // Red Part
+            paint.Color = new SkiaSharp.SKColor(255, 0, 0);
+            canvas.DrawRect(0, 0, 50, 100, paint);
+            // Green Part
+            paint.Color = new SkiaSharp.SKColor(0, 255, 0);
+            canvas.DrawRect(50, 0, 50, 100, paint);
+            using var image = SkiaSharp.SKImage.FromBitmap(bitmap);
+            using var data = image.Encode(SkiaSharp.SKEncodedImageFormat.Png, 100);
+            return data.ToArray();
         }
     }
 }
