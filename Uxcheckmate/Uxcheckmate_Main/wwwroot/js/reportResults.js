@@ -7,89 +7,117 @@ JS for view more on flagged item results. If making changes to this file please 
 */
 
 function toggleSelector(id) {
-    // Grab references to the short text, full text, and link
+    // Existing toggle code remains the same
     const shortEl = document.getElementById(`selectorShort-${id}`);
     const fullEl = document.getElementById(`selectorFull-${id}`);
     const linkEl = document.getElementById(`toggleLink-${id}`);
 
-    // If short is hidden, switch back to short
     if (shortEl.style.display === 'none') {
         shortEl.style.display = 'inline';
         fullEl.style.display = 'none';
         linkEl.textContent = 'View More';
-    } 
-    // Otherwise show the full text
-    else {
+    } else {
         shortEl.style.display = 'none';
         fullEl.style.display = 'inline';
         linkEl.textContent = 'View Less';
     }
 }
+
 /*
 ===========================================================================================================
-                                        Sorting Behavior
+                                        Sorting Behavior 
 ===========================================================================================================
 */
-    // Attach an event listener to the 'sortSelect' dropdown element
-    document.getElementById('sortSelect').addEventListener('change', function() {
-        // Retrieve the currently selected sort order value from the dropdown
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Get reference to the sort selection dropdown element
+    const sortSelect = document.getElementById('sortSelect');
+    
+    // Safety check: Ensure the element exists before proceeding
+    if (!sortSelect) {
+        console.error('Sort select element not found!');
+        return; // Exit early to prevent further errors
+    }
+
+    // Get the report ID from data attribute (data-report-id)
+    // This replaces the Razor @Model.Id syntax for proper separation of concerns
+    // The value is stored in HTML using: <select data-report-id="@Model.Id">
+    const reportId = sortSelect.dataset.reportId;
+
+    // Add event listener for when the dropdown selection changes
+    sortSelect.addEventListener('change', function() {
+        // Get the currently selected value from the dropdown
         const sortOrder = this.value;
         
-        // Make a fetch request to the server to retrieve sorted issues
-        // The sortOrder is passed as a query parameter along with the model ID
-        fetch(`/Home/GetSortedIssues?id=@Model.Id&sortOrder=${sortOrder}`)
-            .then(response => response.json()) // Parse the JSON response
+        // Make API call to get sorted issues
+        fetch(`/Home/GetSortedIssues?id=${reportId}&sortOrder=${sortOrder}`)
+            // Convert response to JSON format
+            .then(response => response.json())
+            // Handle successful response
             .then(data => {
-                // Update the inner HTML of the design issues container with the returned HTML content
+                // Update design issues section with new HTML
+                // innerHTML is used because server returns pre-rendered HTML
                 document.getElementById('designIssuesContainer').innerHTML = data.designHtml;
-
-                // Update the inner HTML of the accessibility issues container with the returned HTML content
+                
+                // Update accessibility issues section similarly
                 document.getElementById('accessibilityIssuesContainer').innerHTML = data.accessibilityHtml;
-
-                // Re-initialize Bootstrap collapsible elements to ensure new content is interactive
+                
+                // Reinitialize collapsible elements after DOM update
+                // Required because new elements won't have Bootstrap handlers attached
                 initBootstrapCollapses();
-            });
+            })
+            // Handle any errors in the fetch chain
+            .catch(error => console.error('Error fetching sorted issues:', error));
     });
 
-    // Function to initialize all Bootstrap collapsible elements within accordions
-    function initBootstrapCollapses() {
-        // Select all accordion elements on the page
-        document.querySelectorAll('.accordion').forEach(accordion => {
-            // Select all collapsible elements within the current accordion
-            const collapses = accordion.querySelectorAll('.accordion-collapse');
-            
-            // Initialize each collapsible element
-            collapses.forEach(collapse => {
-                new bootstrap.Collapse(collapse, {
-                    toggle: false, // Do not automatically toggle upon initialization
-                    parent: accordion // Set the accordion as the parent element for collapse behavior
-                });
-            });
+    // Initialize collapsible elements on initial page load
+    initBootstrapCollapses();
+});
 
-            // Add click event listeners to all accordion buttons within the current accordion
-            accordion.querySelectorAll('.accordion-button').forEach(button => {
-                button.addEventListener('click', function() {
-                    // Determine the target collapse element associated with the clicked button
-                    const target = document.querySelector(this.dataset.bsTarget);
-                    
-                    // Retrieve an existing Bootstrap collapse instance or create a new one
-                    const collapse = bootstrap.Collapse.getInstance(target) || new bootstrap.Collapse(target);
-                    
-                    if (target.classList.contains('show')) {
-                        // If the target collapse is currently open, hide it
-                        collapse.hide();
-                    } else {
-                        // Hide all other collapsible elements in the same accordion, except the target
-                        collapses.forEach(c => {
-                            if (c !== target) bootstrap.Collapse.getInstance(c)?.hide();
-                        });
-                        // Show the target collapse element
-                        collapse.show();
-                    }
-                });
+
+function initBootstrapCollapses() {
+    // Find all accordion containers on the page
+    // Uses querySelectorAll to handle multiple accordions
+    document.querySelectorAll('.accordion').forEach(accordion => {
+        // Find all collapsible elements within this accordion
+        const collapses = accordion.querySelectorAll('.accordion-collapse');
+        
+        // Initialize each collapsible element with Bootstrap
+        collapses.forEach(collapse => {
+            // Create new Bootstrap Collapse instance
+            new bootstrap.Collapse(collapse, {
+                toggle: false, // Prevent auto-toggle on init
+                parent: accordion // Set accordion as parent for exclusive behavior
             });
         });
-    }
-    
-    // Perform initial initialization of collapsible elements on page load
-    initBootstrapCollapses();
+
+        // Add custom click handlers to all accordion buttons
+        accordion.querySelectorAll('.accordion-button').forEach(button => {
+            button.addEventListener('click', function() {
+                // Get target collapse element from data attribute
+                const target = document.querySelector(this.dataset.bsTarget);
+                
+                // Get existing Bootstrap instance or create new one
+                const collapse = bootstrap.Collapse.getInstance(target) || 
+                               new bootstrap.Collapse(target);
+                
+                // Toggle visibility based on current state
+                if (target.classList.contains('show')) {
+                    // If open, hide the collapse
+                    collapse.hide();
+                } else {
+                    // If closed, first hide all siblings
+                    collapses.forEach(c => {
+                        if (c !== target) {
+                            // Get instance and hide if exists
+                            const instance = bootstrap.Collapse.getInstance(c);
+                            instance?.hide();
+                        }
+                    });
+                    // Then show the target collapse
+                    collapse.show();
+                }
+            });
+        });
+    });
+}

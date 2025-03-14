@@ -19,42 +19,60 @@
             <p id="totalIssues">Total Issues Found: @(@Model.DesignIssues.Count() + @Model.AccessibilityIssues.Count()) </p>
         </div> 
     </div>
-</div>
 
 <br>
 
 <div id="reportContainer">
-    @* Dropdown for selecting sort order of the issues *@
-    <select id="sortSelect" class="form-select mb-4">
-        <option value="category" selected="@(ViewBag.CurrentSort == "category")">Category</option>
-        <option value="severity-high-low" selected="@(ViewBag.CurrentSort == "severity-high-low")">Severity (High to Low)</option>
-        <option value="severity-low-high" selected="@(ViewBag.CurrentSort == "severity-low-high")">Severity (Low to High)</option>
-    </select>
+    <div class="row sortSelectRow">
+        <div class="col-md-8"></div>
+        <div class="col-md-4 sortSelectCol">
+            @* Dropdown for selecting sort order of the issues *@
+            <select id="sortSelect" class="form-select mb-4" data-report-id="@Model.Id">
+                <option value="category" selected="@(ViewBag.CurrentSort == "category")">Category</option>
+                <option value="severity-high-low" selected="@(ViewBag.CurrentSort == "severity-high-low")">Severity (High to Low)</option>
+                <option value="severity-low-high" selected="@(ViewBag.CurrentSort == "severity-low-high")">Severity (Low to High)</option>
+            </select>
+        </div>
+    </div>
 
 @*
 ============================================================================================
                                     Design Issues
 ============================================================================================
 *@
-    <div class="report-section mb-5">
-        <h3 class="section-header mb-4">Design Issues</h3>
-        <div id="designIssuesContainer">
-            @* Partial view rendering design issues *@
-            @await Html.PartialAsync("_DesignIssuesPartial", Model.DesignIssues)
+    <div class="row designRow">
+        <div class="report-section mb-5">
+            <h3 class="section-header mb-4">Design Issues</h3>
+            @if (Model.DesignIssues == null || !Model.DesignIssues.Any())
+            {
+                <div class="alert alert-success">
+                    <strong>No UX issues found! Your site looks great.</strong>
+                </div>
+            }
+            else
+            {
+                <div id="designIssuesContainer">
+                    @* Partial view rendering design issues *@
+                    @await Html.PartialAsync("_DesignIssuesPartial", Model.DesignIssues)
+                </div>
+            }
         </div>
     </div>
+
+<br>
 
 @*
 ============================================================================================
                                 Accessibility Issues
 ============================================================================================
 *@
-
-    <div class="report-section mb-5">
-        <h3 class="section-header mb-4">Accessibility Issues</h3>
-        <div id="accessibilityIssuesContainer">
-            @* Partial view rendering accessibility issues *@
-            @await Html.PartialAsync("_AccessibilityIssuesPartial", Model.AccessibilityIssues)
+    <div class="row accessiblityRow">
+        <div class="report-section mb-5">
+            <h3 class="section-header mb-4">Accessibility Issues</h3>
+            <div id="accessibilityIssuesContainer">
+                @* Partial view rendering accessibility issues *@
+                @await Html.PartialAsync("_AccessibilityIssuesPartial", Model.AccessibilityIssues)
+            </div>
         </div>
     </div>
 
@@ -69,6 +87,7 @@
     </a>
 
 </div> @* End tag for #reportContainer *@
+</div> @*End tag for .container *@
 
 @section Scripts {
     <script src="~/js/reportResults.js"></script>
