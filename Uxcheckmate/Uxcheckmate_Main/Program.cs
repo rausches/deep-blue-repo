@@ -65,6 +65,7 @@ public class Program
         builder.Services.AddHttpClient<WebScraperService>();
 
         // Register ScreenshotService
+        builder.Services.AddScoped<IScreenshotService, ScreenshotService>();
         builder.Services.AddScoped<ScreenshotService>();
 
         // Register PlaywrightService

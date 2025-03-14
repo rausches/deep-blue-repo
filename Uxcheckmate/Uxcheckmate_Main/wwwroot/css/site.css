@@ -537,6 +537,7 @@ Report Page Styling
 {
   font-family:"DM Serif Text", serif;
   font-size: 48px;
+  overflow-wrap: break-word; /* ✅ Break long words to the next line */
 }
 
 #totalIssues{

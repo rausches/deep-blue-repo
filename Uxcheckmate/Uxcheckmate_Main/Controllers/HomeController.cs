@@ -6,6 +6,8 @@ using System.Text.Json;
 using System.Diagnostics;
 using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
+using Microsoft.Playwright;
+
 
 namespace Uxcheckmate_Main.Controllers;
 
@@ -18,9 +20,11 @@ public class HomeController : Controller
     private readonly IReportService _reportService;
     private readonly IAxeCoreService _axeCoreService;
     private readonly PdfExportService _pdfExportService;
+    private readonly IScreenshotService _screenshotService;
 
     public HomeController(ILogger<HomeController> logger, HttpClient httpClient, UxCheckmateDbContext dbContext, 
-        IOpenAiService openAiService, IAxeCoreService axeCoreService, IReportService reportService, PdfExportService pdfExportService)
+        IOpenAiService openAiService, IAxeCoreService axeCoreService, IReportService reportService, 
+        PdfExportService pdfExportService, IScreenshotService screenshotService)
     {
         _logger = logger;
         _httpClient = httpClient;
@@ -28,6 +32,7 @@ public class HomeController : Controller
         _axeCoreService = axeCoreService;
         _reportService = reportService;
         _pdfExportService = pdfExportService;
+        _screenshotService = screenshotService;
     }
 
     [HttpGet]
@@ -69,6 +74,18 @@ public class HomeController : Controller
                     return RedirectToAction("Index");
                 }
             }
+            // Capture a screenshot of the URL
+            var screenshotOptions = new PageScreenshotOptions { FullPage = true };
+            var screenshot = await _screenshotService.CaptureScreenshot(screenshotOptions, url);
+            if (string.IsNullOrEmpty(screenshot))
+            {
+                _logger.LogError("Failed to capture screenshot for URL: {Url}", url);
+                ModelState.AddModelError("", "An error occurred while capturing the screenshot.");
+                return View("Index");
+            }
+            TempData["Screenshot"] = screenshot;
+
+            // Check if the user is authenticated and get the user ID
             string? userId = null;
             if (User.Identity.IsAuthenticated){
                 userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
