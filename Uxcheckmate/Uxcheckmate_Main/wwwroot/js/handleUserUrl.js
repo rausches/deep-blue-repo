@@ -78,5 +78,7 @@ if (typeof window !== 'undefined') {
     };
 }
 
-// Export the functions to be used in other files (Jest_Tests/handleUserUrl.test.js)
-module.exports = { validateURL, handleUserUrl };
+// Conditionally export functions based on the environment
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = { validateURL, handleUserUrl };
+}

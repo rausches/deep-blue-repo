@@ -50,7 +50,7 @@ public class HomeController : Controller
             // Check if the URL is reachable
             using (var httpClient = new HttpClient())
             {
-                var request = new HttpRequestMessage(HttpMethod.Head, url);
+                var request = new HttpRequestMessage(HttpMethod.Get, url);
                 // Sending a HEAD request to the URL to check if it is reachable
                 HttpResponseMessage response;
                 try{
