@@ -4,17 +4,23 @@ using System.Globalization;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using System.IO;
 using HtmlAgilityPack;
+using SkiaSharp;
 
 namespace Uxcheckmate_Main.Services
 {
     public class ColorSchemeService : IColorSchemeService
     {
         private readonly WebScraperService _webScraperService;
+        private readonly ILogger<ColorSchemeService> _logger;
+        private readonly IScreenshotService _screenshotService;
 
-        public ColorSchemeService(WebScraperService webScraperService)
+        public ColorSchemeService(WebScraperService webScraperService, ILogger<ColorSchemeService> logger, IScreenshotService screenshotService)
         {
             _webScraperService = webScraperService;
+            _logger = logger;
+            _screenshotService = screenshotService;
         }
         public static bool AreColorsSimilar((int R, int G, int B) color1, (int R, int G, int B) color2, int threshold = 50)
         {
@@ -46,21 +52,32 @@ namespace Uxcheckmate_Main.Services
                 throw new ArgumentException("Invalid hex color format. Use #RRGGBB or RRGGBB.");
             }
         }
-        public async Task<string> AnalyzeWebsiteColorsAsync(Dictionary<string, object> scrapedData)
+        public async Task<string> AnalyzeWebsiteColorsAsync(Dictionary<string, object> scrapedData, Task<byte[]> screenshotTask)
         {
             if (scrapedData == null || !scrapedData.ContainsKey("htmlContent")){
                 Console.WriteLine("[DEBUG] Scraped data is null or missing 'htmlContent'");
                 return "[Error] Unable to retrieve page content.";
             }
-             string htmlContent = (string)scrapedData["htmlContent"];
+            string htmlContent = (string)scrapedData["htmlContent"];
             var externalCss = scrapedData.ContainsKey("external_css") ? (List<string>)scrapedData["external_css"] : new List<string>();
             Console.WriteLine($"[DEBUG] HTML content length: {htmlContent.Length}");
             var extractedElements = ExtractHtmlElements(htmlContent, externalCss);
             var legibilityIssues = CheckLegibility(extractedElements);
+            byte[] screenshot = await screenshotTask; 
+            if (screenshot.Length == 0){
+                _logger.LogError("Screenshot capture failed.");
+                return "[Error] Screenshot capture failed.";
+            }
+            // Now using screenshot instead of code html
+            /**
             var colorPixelUsage = EstimateColorPixelUsage(extractedElements);
             var colorProportions = CalculateColorProportions(colorPixelUsage);
             var colorBalanceIssues = CheckColorBalanceIssues(colorProportions);
-            var allIssues = legibilityIssues.Concat(colorBalanceIssues).ToList();
+            */
+            var screenshotAnalysis = AnalyzeWebsiteColorsFromScreenshot(screenshot);
+            var screenshotColorProportions = (Dictionary<string, double>)screenshotAnalysis["colorProportions"];
+            var screenshotBalanceIssues = CheckColorBalanceIssues(screenshotColorProportions);
+            var allIssues = legibilityIssues.Concat(screenshotBalanceIssues).ToList();
             return allIssues.Any() ? string.Join("\n", allIssues) : string.Empty;
         }
         public Dictionary<string, object> ExtractHtmlElements(string htmlContent, List<string> externalCss)
@@ -233,6 +250,17 @@ namespace Uxcheckmate_Main.Services
             }
             return colorProportions;
         }
+        public Dictionary<string, double> CalculateColorProportionsFromPixels(Dictionary<string, int> colorPixelCounts)
+        {
+            int totalPixels = colorPixelCounts.Values.Sum();
+            var colorProportions = new Dictionary<string, double>();
+            if (totalPixels == 0) return colorProportions; // No Zero Divisors
+            foreach (var color in colorPixelCounts){
+                double percentage = (color.Value / (double)totalPixels) * 100.0;
+                colorProportions[color.Key] = Math.Round(percentage, 2);
+            }
+            return colorProportions;
+        }
         public Dictionary<string, double> CheckColorBalance(Dictionary<string, double> colorProportions, int similarityThreshold = 15)
         {
             // Going to group similar colors
@@ -392,11 +420,59 @@ namespace Uxcheckmate_Main.Services
             var colorBalance = CheckColorBalance(colorProportions);
             if (!IsColorBalanced(colorBalance)){
                 issues.Add("Color balance issue: The proportions of primary, secondary, and accent colors are not within recommended ranges.");
-                foreach (var color in colorBalance.OrderByDescending(c => c.Value)){
-                    issues.Add($"Color {color.Key}: {color.Value}%");
+                var sortedColors = colorBalance.OrderByDescending(c => c.Value).ToList(); // Sorted
+                // Grabbing top 3 Colors
+                var topColors = sortedColors.Take(3).ToList();
+                var otherColors = sortedColors.Skip(3).ToList();
+                // Adding top 3 to issues
+                foreach (var color in topColors){
+                    issues.Add($"Color {color.Key}: {color.Value:F2}%");
+                }
+                // Remaining colors marked as other
+                double otherPercentage = otherColors.Sum(c => c.Value);
+                if (otherPercentage > 0){
+                    issues.Add($"Other colors: {otherPercentage:F2}%");
                 }
             }
             return issues;
+        }
+        public Dictionary<string, int> ExtractColorPixels(byte[] imageData)
+        {
+            if (imageData == null || imageData.Length == 0){
+                _logger.LogError("ExtractColorPixels: Empty or null image data received.");
+                return new Dictionary<string, int>(); // Return empty
+            }
+            using var stream = new MemoryStream(imageData);
+            using var bitmap = SKBitmap.Decode(stream);
+            if (bitmap == null){
+                _logger.LogError("ExtractColorPixels: Failed to decode image.");
+                return new Dictionary<string, int>(); // Return empty
+            }
+            var colorCounts = new Dictionary<string, int>();
+            for (int x = 0; x < bitmap.Width; x++){
+                for (int y = 0; y < bitmap.Height; y++){
+                    SKColor color = bitmap.GetPixel(x, y);
+                    string hexColor = $"#{color.Red:X2}{color.Green:X2}{color.Blue:X2}";
+                    if (!colorCounts.ContainsKey(hexColor)){
+                        colorCounts[hexColor] = 0;
+                    }
+                    colorCounts[hexColor]++;
+                }
+            }
+            return colorCounts;
+        }
+        public Dictionary<string, object> AnalyzeWebsiteColorsFromScreenshot(byte[] screenshot)
+        {
+            var colorPixelCounts = ExtractColorPixels(screenshot);
+            var colorProportions = CalculateColorProportionsFromPixels(colorPixelCounts);
+            var colorBalance = CheckColorBalance(colorProportions);
+            return new Dictionary<string, object>
+            {
+                { "colorPixelCounts", colorPixelCounts },
+                { "colorProportions", colorProportions },
+                { "colorBalance", colorBalance },
+                { "isBalanced", IsColorBalanced(colorBalance) }
+            };
         }
     }
 }

@@ -76,6 +76,9 @@ public class Program
         builder.Services.AddScoped<Pa11yUrlBasedService>();
         Console.WriteLine("Pa11yUrlBasedService registered");
 
+        // Register ScreenshotService
+        builder.Services.AddScoped<IScreenshotService, ScreenshotService>();
+
         builder.Services.AddScoped<PdfExportService>();
 
         // Register Report Services
