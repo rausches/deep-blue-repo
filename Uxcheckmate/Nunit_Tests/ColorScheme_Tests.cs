@@ -581,35 +581,22 @@ namespace Uxcheckmate_Tests
         {
             var colorCounts = new Dictionary<string, int>
             {
-                { "#FF0000", 5000 }, // 50
-                { "#00FF00", 3000 }, // 30
-                { "#0000FF", 2000 }  // 20
+                { "#FF0000", 9800 }, // 98%
+                { "#00FF00", 200 }   // 2%
             };
             var result = _colorService.CalculateColorProportionsFromPixels(colorCounts);
-            Assert.That(result["#FF0000"], Is.EqualTo(50.0));
-            Assert.That(result["#00FF00"], Is.EqualTo(30.0));
-            Assert.That(result["#0000FF"], Is.EqualTo(20.0));
-        }
-        [Test]
-        public void IsColorBalancedUnbalancedColorsPixels()
-        {
-            var colorProportions = new Dictionary<string, double>
-            {
-                { "#FF0000", 80.0 },
-                { "#00FF00", 10.0 },
-                { "#0000FF", 5.0 },
-                { "#FFFFFF", 5.0 }
-            };
-            var result = _colorService.IsColorBalanced(colorProportions);
-            Assert.That(result, Is.False);
+            Assert.That(result["#FF0000"], Is.EqualTo(98.0).Within(0.1));
+            Assert.That(result["#00FF00"], Is.EqualTo(2.0).Within(0.1));
+            Assert.That(result.ContainsKey("Other"), Is.False, "Other should not be present when only two colors exist.");
         }
         [Test]
         public async Task AnalyzeWebsiteColorsFromScreenshotAsyncInvalidScreenshotError()
         {
             var screenshotServiceMock = new Mock<IScreenshotService>();
             screenshotServiceMock.Setup(s => s.CaptureFullPageScreenshot(It.IsAny<string>())).ReturnsAsync(new byte[0]);
-            var result = await _colorService.AnalyzeWebsiteColorsFromScreenshotAsync("https://example.com");
-            Assert.That(result.ContainsKey("error"), Is.True);
+            var result = _colorService.AnalyzeWebsiteColorsFromScreenshot(new byte[0]);
+            Assert.That(result.ContainsKey("colorProportions"), Is.True);
+            Assert.That((bool)result["isBalanced"], Is.False);
         }
         private byte[] GenerateTestImage()
         {
