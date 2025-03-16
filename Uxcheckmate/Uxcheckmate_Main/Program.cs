@@ -82,6 +82,7 @@ public class Program
         builder.Services.AddScoped<IHeadingHierarchyService, HeadingHierarchyService>();
         builder.Services.AddScoped<IColorSchemeService, ColorSchemeService>();
         builder.Services.AddScoped<IDynamicSizingService, DynamicSizingService>();
+        builder.Services.AddScoped<IViewRenderService, ViewRenderService>();
         builder.Services.AddHttpClient<IFaviconDetectionService, FaviconDetectionService>();
 
 

@@ -21,9 +21,11 @@ public class HomeController : Controller
     private readonly IReportService _reportService;
     private readonly IAxeCoreService _axeCoreService;
     private readonly PdfExportService _pdfExportService;
+    private readonly IViewRenderService _viewRenderService;
 
     public HomeController(ILogger<HomeController> logger, HttpClient httpClient, UxCheckmateDbContext dbContext, 
-        IOpenAiService openAiService, IAxeCoreService axeCoreService, IReportService reportService, PdfExportService pdfExportService)
+        IOpenAiService openAiService, IAxeCoreService axeCoreService, IReportService reportService, PdfExportService pdfExportService,
+        IViewRenderService viewRenderService)
     {
         _logger = logger;
         _httpClient = httpClient;
@@ -31,6 +33,7 @@ public class HomeController : Controller
         _axeCoreService = axeCoreService;
         _reportService = reportService;
         _pdfExportService = pdfExportService;
+        _viewRenderService = viewRenderService;
     }
 
     [HttpGet]
@@ -227,50 +230,12 @@ public class HomeController : Controller
         };
 
         // Render the design issues partial view to HTML with the sorted design issues list
-        var designHtml = await this.RenderViewAsync("_DesignIssuesPartial", report.DesignIssues);
+        var designHtml = await _viewRenderService.RenderViewToStringAsync(this, "_DesignIssuesPartial", report.DesignIssues);
 
         // Render the accessibility issues partial view to HTML with the sorted accessibility issues list
-        var accessibilityHtml = await this.RenderViewAsync("_AccessibilityIssuesPartial", report.AccessibilityIssues);
+        var accessibilityHtml = await _viewRenderService.RenderViewToStringAsync(this, "_AccessibilityIssuesPartial", report.AccessibilityIssues);
 
         // Return the rendered partial views as a JSON object
         return Json(new { designHtml, accessibilityHtml });
-    }
-}
-
-public static class ControllerExtensions
-{
-    public static async Task<string> RenderViewAsync<TModel>(this Controller controller, string viewName, TModel model)
-    {
-        // Assign the model to the ViewData to ensure the view has access to it.
-        controller.ViewData.Model = model;
-
-        // Create a StringWriter to capture the rendered HTML output.
-        using var writer = new StringWriter();
-
-        // Retrieve the view engine service from the dependency injection container.
-        var viewEngine = controller.HttpContext.RequestServices.GetService<ICompositeViewEngine>();
-
-        // Attempt to find the specified view using the view engine.
-        var viewResult = viewEngine.FindView(controller.ControllerContext, viewName, false);
-
-        // If the view cannot be found, throw an exception.
-        if (!viewResult.Success)
-            throw new Exception($"View '{viewName}' not found");
-
-        // Create a ViewContext, which encapsulates all information required for rendering.
-        var viewContext = new ViewContext(
-            controller.ControllerContext, // Current controller context
-            viewResult.View,              // The view to render
-            controller.ViewData,          // ViewData containing the model
-            controller.TempData,          // Temporary data storage
-            writer,                       // Output writer to capture the rendered view
-            new HtmlHelperOptions()       // Helper options for rendering
-        );
-
-        // Render the view asynchronously into the StringWriter.
-        await viewResult.View.RenderAsync(viewContext);
-
-        // Return the rendered content as a string.
-        return writer.ToString();
     }
 }
