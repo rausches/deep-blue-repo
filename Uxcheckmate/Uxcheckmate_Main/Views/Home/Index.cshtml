@@ -1,5 +1,9 @@
 ﻿@model Uxcheckmate_Main.Models.ReportUrl
 
+@* @{
+    var screenshot = TempData["Screenshot"] as string; // Retrieve screenshot from TempData
+} *@
+
 @{
     ViewData["Title"] = "Home Page";
 }
@@ -22,13 +26,45 @@
                 </form>
                 <div id="responseMessage" class="mt-3"></div>
 
-                @* Adding Logo Loader if url is valid *@
+                @* Logo Loader *@
                 <div id="loaderWrapper" style="display: none;">
                     <div id="logoContainer">
-                        <img src="~/images/uxCheckmateLogo.png" alt="Loading" id="logo-img" />
+                        <img src="~/images/uxCheckmateLogo.png" alt="Loading" id="logo-img"/>
                         <div id="logoText">Analyzing...</div>
                     </div>
                 </div>
+
+                @* Scanning website Loader *@
+                <div id="scanningWrapper" style="display: none;">
+                    <div id="scanningContainer">
+                        <div class="scan-status">
+                            <h1>Scanning your website...</h1>
+                            <p class="messageScanningIssues" style="display: none;">Evaluating Design Issues requirements...</p>
+                            <p class="messageScanningIssues" style="display: none;">Evaluating Accessibility requirements...</p>
+                            <p class="messageScanningIssues" style="display: none;">Evaluating Severity...</p>
+                            <p class="messageScanningIssues" style="display: none;">Evaluating Code Structure...</p>
+                            <p class="messageScanningIssues" style="display: none;">Evaluating Performance...</p>
+                            <p class="messageScanningIssues" style="display: none;">Evaluating Mobile Compatibility...</p>
+                            <p class="messageScanningIssues" style="display: none;">Evaluating Color Contrast...</p>
+                            <p class="messageScanningIssues" style="display: none;">Evaluating Keyboard Navigation...</p>
+                            <p class="messageScanningIssues" style="display: none;">Evaluating Screen Reader Support...</p>
+                            <p class="messageScanningIssues" style="display: none;">Evaluating Interactive Elements...</p>
+                            <p class="messageScanningIssues" style="display: none;">Evaluating Forms and Inputs Accessibility...</p>
+                            <p class="messageScanningIssues" style="display: none;">Evaluating Content Readability...</p>
+                            <p class="messageScanningIssues" style="display: none;">Evaluating Image Alt Text...</p>
+                            <p class="messageScanningIssues" style="display: none;">Evaluating Link Accessibility...</p>
+                            <p class="messageScanningIssues" style="display: none;">Evaluating Media and Video Accessibility...</p>
+                            <p class="messageScanningIssues" style="display: none;">Evaluating Site Responsiveness...</p>
+
+                        </div>
+
+                        <div class="loading-screenshot">
+                            <div class="spinner"></div>
+                        </div>
+                            @* <div class="spinner"></div> *@
+                    
+                    </div>
+                </div> 
 
                 @* Adding a pop up box message if the url is not reachable *@
                 <div id="customPopupMessage" class="customPopupBox" style="display: none;">

@@ -1,6 +1,6 @@
 @model Uxcheckmate_Main.Models.Report
 @{
-    var screenshot = TempData["Screenshot"] as string;
+    var firstScreenshot  = TempData["firstScreenshot"] as string;
 }
 @*
 ============================================================================================
@@ -8,10 +8,10 @@
 ============================================================================================
 *@
 
-<div class="container">
+<div class="col-md-6 container">
     <div class="row headerRow">
         <div class="col-md-6">
-            <img src="@screenshot" alt="Screenshot of the given website" class="img-fluid" />
+            <img src="@firstScreenshot " alt="Screenshot of the given website" class="img-fluid" />
         </div>
         <div class="col-md-6">
             <h1 id="reportHeader">@Model.Url</h1>
@@ -19,6 +19,7 @@
         </div> 
     </div>
     <br>
+
 
 @*
 ============================================================================================

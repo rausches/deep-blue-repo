@@ -25,3 +25,5 @@ function toggleSelector(id) {
         linkEl.textContent = 'View Less';
     }
 }
+
+

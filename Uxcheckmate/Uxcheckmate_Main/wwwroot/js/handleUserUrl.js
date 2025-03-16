@@ -12,6 +12,8 @@ function handleUserUrl(event) {
     var urlInput = document.getElementById('urlInput').value.trim();
     var responseMessage = document.getElementById('responseMessage');
     var loaderWrapper = document.getElementById('loaderWrapper');
+    var scanningWrapper = document.getElementById('scanningWrapper');
+    
 
     // Check if the URL is empty
     if (urlInput === "") {
@@ -58,8 +60,18 @@ function handleUserUrl(event) {
     responseMessage.innerHTML = "";
     loaderWrapper.style.display = 'flex';
 
-    // URL is valid, send to the server
-    document.getElementById('urlForm').submit();    
+    // document.getElementById('urlForm').submit();    
+
+    // Delay the redirect to the results page
+    setTimeout(function () {
+        loaderWrapper.style.display = 'none';
+        scanningWrapper.style.display = 'block';
+
+        // Submit the form after showing the scanning state
+        setTimeout(function () {
+            document.getElementById('urlForm').submit(); // Submit form after 2 seconds of scanning state
+        }, 2000);
+    }, 3000);
 
     closePopup();
 
@@ -82,3 +94,25 @@ if (typeof window !== 'undefined') {
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = { validateURL, handleUserUrl };
 }
+
+
+// Function show each message scanning issues one at a time 
+function showEachMessage() {
+    var messages = document.getElementsByClassName('messageScanningIssues');
+    var i = 0;
+    var interval = setInterval(function () {
+        if (i < messages.length) {
+            messages[i].style.display = 'block'; 
+            if (i > 0) {
+                messages[i - 1].style.display = 'none'; 
+            }
+            i++;
+        } else {
+            clearInterval(interval); 
+        }
+    }, 2000); 
+}
+
+showEachMessage(); 
+
+

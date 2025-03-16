@@ -50,15 +50,20 @@ public class HomeController : Controller
             return View("Index");
         }
 
-       try
+        try
         {
+
             // Check if the URL is reachable
             using (var httpClient = new HttpClient())
             {
                 var request = new HttpRequestMessage(HttpMethod.Get, url);
                 // Sending a HEAD request to the URL to check if it is reachable
+
+                _logger.LogInformation("Request Headers: {Headers}", request.Headers);
+
                 HttpResponseMessage response;
-                try{
+                try
+                {
                     response = await httpClient.SendAsync(request);
                 }
                 catch (HttpRequestException ex)
@@ -73,23 +78,28 @@ public class HomeController : Controller
                     TempData["UrlUnreachable"] = "The URL you entered seems incorrect or no longer exists. Please try again.";
                     return RedirectToAction("Index");
                 }
+                _logger.LogInformation("Response Headers: {Headers}", response.Headers);
             }
-            // Capture a screenshot of the URL
+
+            // **First Screenshot Request: Capture Screenshot **
             var screenshotOptions = new PageScreenshotOptions { FullPage = true };
-            var screenshot = await _screenshotService.CaptureScreenshot(screenshotOptions, url);
-            if (string.IsNullOrEmpty(screenshot))
+            var firstScreenshot  = await _screenshotService.CaptureScreenshot(screenshotOptions, url);
+            if (string.IsNullOrEmpty(firstScreenshot ))
             {
                 _logger.LogError("Failed to capture screenshot for URL: {Url}", url);
                 ModelState.AddModelError("", "An error occurred while capturing the screenshot.");
                 return View("Index");
             }
-            TempData["Screenshot"] = screenshot;
+
+            TempData["FirstScreenshot"] = firstScreenshot;
 
             // Check if the user is authenticated and get the user ID
             string? userId = null;
-            if (User.Identity.IsAuthenticated){
+            if (User.Identity.IsAuthenticated)
+            {
                 userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             }
+
             // Create and save the report record.
             var report = new Report
             {
@@ -102,7 +112,7 @@ public class HomeController : Controller
             _context.Reports.Add(report);
             await _context.SaveChangesAsync();
             _logger.LogInformation("Report record created with ID: {ReportId}", report.Id);
-            
+
             await _axeCoreService.AnalyzeAndSaveAccessibilityReport(report);
             await _reportService.GenerateReportAsync(report);
 
@@ -120,6 +130,7 @@ public class HomeController : Controller
             }
 
             return View("Results", fullReport);
+
         }
         catch (Exception ex)
         {
@@ -133,6 +144,7 @@ public class HomeController : Controller
     {
         return View();
     }
+
 
     [HttpGet]
     public IActionResult Feedback()
