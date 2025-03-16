@@ -68,9 +68,11 @@
                 @* Adding a pop up box message if the url is not reachable *@
                 <div id="customPopupMessage" class="customPopupBox" style="display: none;">
                     <div class="popupContent">
-                        <h5>Oops! URL Unreachable</h5>
+                        <div class="popupText">
+                        <h1>Oops! URL Unreachable</h1>
                         <p>The URL you entered seems incorrect or no longer exists. Please check and try again.</p>
-                        <button class="btn btn-primary" onclick="closePopup()">Close</button>
+                        </div>
+                        <button class="btn btn-primary closePopupBtn" onclick="closePopup()">Close</button>
                     </div>
                 </div>
             </div>
