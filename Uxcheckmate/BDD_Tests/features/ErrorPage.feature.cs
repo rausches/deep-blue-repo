@@ -14,7 +14,8 @@ namespace BDD_Tests.Features
 {
     using Reqnroll;
     using System;
-    using System.Linq;    
+    using System.Linq;
+    
     
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Reqnroll", "2.0.0.0")]
     [System.Runtime.CompilerServices.CompilerGeneratedAttribute()]

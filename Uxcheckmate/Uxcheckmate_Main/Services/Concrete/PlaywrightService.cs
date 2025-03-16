@@ -73,6 +73,7 @@ namespace Uxcheckmate_Main.Services
             if (_playwright != null)
             {
                 _playwright.Dispose();
+                _playwright = null;
                 _logger.LogInformation("Playwright disposed on service shutdown.");
             }
         }
