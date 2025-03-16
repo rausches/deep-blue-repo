@@ -1,0 +1,218 @@
+@model IEnumerable<Uxcheckmate_Main.Models.AccessibilityIssue>
+@using System.Text.RegularExpressions
+
+@functions {
+    @* Sanitizes strings for safe HTML ID attributes *@
+    string SanitizeId(string input) {
+        @* Replace non-alphanumeric chars with hyphens and lowercase *@
+        return Regex.Replace(input, "[^a-zA-Z0-9]", "-").ToLower();
+    }
+}
+
+@{
+    @* Get current sort order from ViewBag or default to category *@
+    var sortOrder = ViewBag.CurrentSort as string ?? "category";
+    
+    @* Expanded severity mapping with 4 levels *@
+    var severityLevels = new Dictionary<int, string>
+    {
+        {4, "Critical"}, {3, "Severe"}, {2, "Moderate"}, {1, "Low"}
+    };
+}
+
+@*
+===========================================================================================================
+                                        Severity Sorting
+===========================================================================================================
+*@ 
+
+@if (sortOrder.StartsWith("severity"))
+{
+    @* Severity-based sorting logic *@
+    var severityOrder = sortOrder == "severity-high-low" 
+        ? severityLevels.OrderByDescending(s => s.Key)  // Critical -> Low
+        : severityLevels.OrderBy(s => s.Key);           // Low -> Critical
+
+    @* Accessibility accordion container *@
+    <div class="accordion" id="accessibilityIssuesAccordion">
+        @foreach (var severity in severityOrder)
+        {
+            @* Get issues for current severity level *@
+            var issues = Model.Where(i => i.Severity == severity.Key).ToList();
+            @* Create safe ID for accordion elements *@
+            var sanitizedId = SanitizeId(severity.Value);
+
+            @* Accordion item per severity level *@
+            <div class="accordion-item reportAccordion">
+                <h2 class="accordion-header">
+                    @* Accordion toggle button *@
+                    <button class="accordion-button collapsed" type="button"
+                            data-bs-toggle="collapse" 
+                            data-bs-target="#collapse-accessibility-@sanitizedId">
+                        <strong>@severity.Value Severity Issues</strong>
+                        <span class="text-muted">(@issues.Count issues)</span>
+                    </button>
+                </h2>
+                @* Collapsible content panel *@
+                <div id="collapse-accessibility-@sanitizedId" class="accordion-collapse collapse"
+                     data-bs-parent="#accessibilityIssuesAccordion">
+                    <div class="accordion-body">
+                        @* Empty state handling *@
+                        @if (!issues.Any())
+                        {
+                            <p class="text-muted">No issues</p>
+                        }
+                        else
+                        {
+                            @* Individual issue display *@
+                            foreach (var issue in issues)
+                            {
+                                <div class="issueContainer p-3 mb-3 border rounded">
+                                    @* Issue details row *@
+                                    <div class="row">
+                                        <div class="col-md-12">
+                                            <span class="badge bg-secondary">@issue.Category.Name</span>
+                                            <br><br>
+                                            <p>@issue.Details</p>
+                                        </div>
+                                    </div>
+
+                                    @* Selector display row with truncation logic *@
+                                    <div class="row">
+                                        <div class="col-md-12">
+                                            @{
+                                                @* Truncate long CSS selectors *@
+                                                int maxLength = 200;
+                                                string shortSelector = issue.Selector?.Length > maxLength 
+                                                    ? issue.Selector.Substring(0, maxLength) + "..." 
+                                                    : issue.Selector;
+                                            }
+                                            <p>
+                                                <strong>Flagged Item:</strong>
+                                                @* Truncated selector display *@
+                                                <span id="selectorShort-@issue.Id">@shortSelector</span>
+
+                                                @* Full selector toggle logic *@
+                                                @if (issue.Selector?.Length > maxLength)
+                                                {
+                                                    @* Hidden full selector *@
+                                                    <span id="selectorFull-@issue.Id" style="display:none;">
+                                                        @issue.Selector
+                                                    </span>
+                                                    
+                                                    @* Toggle link with JavaScript interaction *@
+                                                    <a href="javascript:void(0);"
+                                                    id="toggleLink-@issue.Id"
+                                                    onclick="toggleSelector(@issue.Id)">
+                                                        View More
+                                                    </a>
+                                                }
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        }
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}
+else  
+
+@*
+===========================================================================================================
+                                        Category Sorting
+===========================================================================================================
+*@
+
+{
+    @* Group issues by category name *@
+    var categories = Model.GroupBy(i => i.Category?.Name ?? "Uncategorized").OrderBy(g => g.Key);
+
+    <div class="accordion" id="accessibilityIssuesAccordion">
+        @foreach (var categoryGroup in categories)
+        {
+            @* Create safe ID for accordion elements *@
+            var sanitizedId = SanitizeId(categoryGroup.Key);
+
+            @* Accordion item per category *@
+            <div class="accordion-item reportAccordion">
+                <h2 class="accordion-header">
+                    <button class="accordion-button collapsed" type="button"
+                            data-bs-toggle="collapse" 
+                            data-bs-target="#collapse-accessibility-@sanitizedId">
+                        <strong>@categoryGroup.Key</strong>
+                        <span class="text-muted">(@categoryGroup.Count() issues)</span>
+                    </button>
+                </h2>
+                <div id="collapse-accessibility-@sanitizedId" class="accordion-collapse collapse"
+                     data-bs-parent="#accessibilityIssuesAccordion">
+                    <div class="accordion-body">
+                        @foreach (var issue in categoryGroup)
+                        {
+                            @* Issue container with details and severity *@
+                            <div class="issueContainer p-3 mb-3 border rounded">
+                                @* Main content row *@
+                                <div class="row">
+                                    <div class="col-md-11">
+                                        <p>@issue.Details</p>
+                                    </div>
+                                    <div class="col-md-1">
+                                        @* Dynamic severity badge display *@
+                                        <p>
+                                            @if (issue.Severity == 4)
+                                            {
+                                                <span class="badge bg-danger">Critical</span>
+                                            }
+                                            else if (issue.Severity == 3)
+                                            {
+                                                <span class="badge bg-warning">Severe</span>
+                                            }
+                                            else if (issue.Severity == 2)
+                                            {
+                                                <span class="badge bg-info">Moderate</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-light text-dark">Low</span>
+                                            }
+                                        </p>
+                                    </div>
+                                </div>
+
+                                @* Selector display section (same as severity view) *@
+                                <div class="row">
+                                    <div class="col-md-12">
+                                        @{
+                                            int maxLength = 200;
+                                            string shortSelector = issue.Selector?.Length > maxLength 
+                                                ? issue.Selector.Substring(0, maxLength) + "..." 
+                                                : issue.Selector;
+                                        }
+                                        <p>
+                                            <strong>Flagged Item:</strong>
+                                            <span id="selectorShort-@issue.Id">@shortSelector</span>
+                                            @if (issue.Selector?.Length > maxLength)
+                                            {
+                                                <span id="selectorFull-@issue.Id" style="display:none;">
+                                                    @issue.Selector
+                                                </span>
+                                                <a href="javascript:void(0);"
+                                                id="toggleLink-@issue.Id"
+                                                onclick="toggleSelector(@issue.Id)">
+                                                    View More
+                                                </a>
+                                            }
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}

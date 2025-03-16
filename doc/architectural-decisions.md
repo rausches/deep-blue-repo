@@ -10,7 +10,7 @@ File names will be decided on by consensus of all developers before the start of
 ## .Net SDK version
 This project will be developed on .Net 9.0 framework.
 ## CSS Library
-This project will use the Tailwindcss library for styling needs.
+This project will use the Bootstrap for styling needs.
 ## Javascript
 This project will use regular javascript.
 ## Git Branches
