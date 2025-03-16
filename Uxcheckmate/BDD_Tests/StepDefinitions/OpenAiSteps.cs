@@ -65,7 +65,7 @@ namespace BDD_Tests.StepDefinitions
             };
         }
 
-        [When(@"the report loads")]
+        [When(@"the fully report loads")]
         public async Task WhenTheReportLoads()
         {
             if (_mockScrapedData.ContainsKey("no_issues") && (bool)_mockScrapedData["no_issues"])

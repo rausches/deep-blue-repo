@@ -9,210 +9,85 @@
 <div class="container">
     <div class="row headerRow">
         <div class="col-md-6">
+            @* Placeholder for screenshot image *@
             <img src="" alt="">
         </div>
         <div class="col-md-6">
+            @* Display the URL associated with the report *@
             <h1 id="reportHeader">@Model.Url</h1>
+            @* Display the total number of issues found *@
             <p id="totalIssues">Total Issues Found: @(@Model.DesignIssues.Count() + @Model.AccessibilityIssues.Count()) </p>
         </div> 
     </div>
-    <br>
+
+<br>
+
+<div id="reportContainer">
+    <div class="row sortSelectRow">
+        <div class="col-md-8"></div>
+        <div class="col-md-4 sortSelectCol">
+            @* Dropdown for selecting sort order of the issues *@
+            <select id="sortSelect" class="form-select mb-4" data-report-id="@Model.Id">
+                <option value="category" selected="@(ViewBag.CurrentSort == "category")">Category</option>
+                <option value="severity-high-low" selected="@(ViewBag.CurrentSort == "severity-high-low")">Severity (High to Low)</option>
+                <option value="severity-low-high" selected="@(ViewBag.CurrentSort == "severity-low-high")">Severity (Low to High)</option>
+            </select>
+        </div>
+    </div>
 
 @*
 ============================================================================================
-                                    DESIGN ISSUES
+                                    Design Issues
 ============================================================================================
 *@
-
     <div class="row designRow">
-        <h3 class="designIssues">Design Issues</h3><br><br>
-        @* Alert if there are not issues *@
-        @if (Model.DesignIssues == null || !Model.DesignIssues.Any())
-        {
-            <div class="alert alert-success">
-                <strong>No UX issues found! Your site looks great.</strong>
-            </div>
-        }
-        else
-        {
-            @*Expand boxes for each issue*@
-            <div class="accordion" id="designIssuesAccordion">
-                @foreach (var issue in Model.DesignIssues)
-                {
-                    var categoryName = issue.Category?.Name ?? "Uncategorized";
-
-                    @* Assign unique id so that toggles don't get mixed up*@
-                    var accordionItemId = $"designIssue-{Guid.NewGuid()}"; 
-                    
-                    <div class="accordion-item reportAccordion">
-                        <h2 class="accordion-header reportAccordion" id="heading-@accordionItemId">
-                            <button class="accordion-button reportAccordionButton collapsed" type="button" 
-                                    data-bs-toggle="collapse" 
-                                    data-bs-target="#collapse-@accordionItemId" 
-                                    aria-expanded="false" 
-                                    aria-controls="collapse-@accordionItemId">
-                                @* High Level: Design Category *@
-                                <strong>@categoryName</strong>
-                            </button>
-                        </h2>
-
-                        <div id="collapse-@accordionItemId" class="accordion-collapse collapse" 
-                            aria-labelledby="heading-@accordionItemId" 
-                            data-bs-parent="#designIssuesAccordion">
-                            @* Body of Issue (Message & Severity) *@
-                            <div class="accordion-body">
-                                <div class="row">
-                                    <div class="col-md-11">@issue.Message</div>
-                                    <div class="col-md-1">
-                                        <p>
-                                            @if (issue.Severity == 3)
-                                            {
-                                                <span class="badge bg-danger">High</span>
-                                            }
-                                            else if (issue.Severity == 2)
-                                            {
-                                                <span class="badge bg-warning">Medium</span>
-                                            }
-                                            else
-                                            {
-                                                <span class="badge bg-info">Low</span>
-                                            }
-                                        </p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                }
-            </div>
-        }
+        <div class="report-section mb-5">
+            <h3 class="section-header mb-4">Design Issues</h3>
+            @if (Model.DesignIssues == null || !Model.DesignIssues.Any())
+            {
+                <div class="alert alert-success">
+                    <strong>No UX issues found! Your site looks great.</strong>
+                </div>
+            }
+            else
+            {
+                <div id="designIssuesContainer">
+                    @* Partial view rendering design issues *@
+                    @await Html.PartialAsync("_DesignIssuesPartial", Model.DesignIssues)
+                </div>
+            }
+        </div>
     </div>
-    <br>
+
+<br>
 
 @*
 ============================================================================================
-                            ACCESSIBILITY ISSUES
+                                Accessibility Issues
 ============================================================================================
 *@
     <div class="row accessiblityRow">
-        <h3>Accessibility Issues</h3><br><br>
-
-        @*Alert if there are not issues*@
-        @if (Model.AccessibilityIssues == null || !Model.AccessibilityIssues.Any())
-        {
-            <div class="alert alert-success">
-                <strong>No accessibility issues found!</strong>
+        <div class="report-section mb-5">
+            <h3 class="section-header mb-4">Accessibility Issues</h3>
+            <div id="accessibilityIssuesContainer">
+                @* Partial view rendering accessibility issues *@
+                @await Html.PartialAsync("_AccessibilityIssuesPartial", Model.AccessibilityIssues)
             </div>
-        }
-        else
-        {
-            @*Expand boxes for each issue*@
-            <div class="accordion" id="accessibilityIssuesAccordion">
-                
-                @foreach (var categoryGroup in Model.AccessibilityIssues
-                            .GroupBy(issue => issue.Category?.Name)
-                            .OrderBy(g => g.Key == "Other" ? 1 : 0)
-                            .ThenBy(g => g.Key))
-                {
-                    var categoryName = categoryGroup.Key ?? "Other";
-
-                    @* Assign unique id so that each toggles don't get mixed up*@
-                    var accordionItemId = $"category-{Guid.NewGuid()}"; 
-
-                    <div class="accordion-item reportAccordion">
-                        <h2 class="accordion-header reportAccordion" id="heading-@accordionItemId">
-                            <button class="accordion-button reportAccordionButton collapsed" type="button" 
-                                    data-bs-toggle="collapse" 
-                                    data-bs-target="#collapse-@accordionItemId"
-                                    aria-expanded="false" 
-                                    aria-controls="collapse-@accordionItemId">
-
-                                @* High Level: Category Name & # of issues *@
-                                <strong>@categoryName</strong> &nbsp;
-                                <span class="text-muted">
-                                    (@categoryGroup.Count() issues)
-                                </span>
-                            </button>
-                        </h2>
-                        
-                        @* Body of Issue (Details, Severity, Selector) *@
-                        <div id="collapse-@accordionItemId" class="accordion-collapse collapse"
-                            aria-labelledby="heading-@accordionItemId"
-                            data-bs-parent="#accessibilityIssuesAccordion">
-                            
-                            <div class="accordion-body">
-                                @foreach (var issue in categoryGroup)
-                                {
-                                    @*Start a container div for the entire issue*@
-                                    <div class="issueContainer p-3 mb-3 border rounded">
-                                        <div class="row">
-                                            <div class="col-md-11">
-                                                <p>@issue.Details</p>
-                                            </div>
-                                            <div class="col-md-1">
-                                                <p>
-                                                    @if (issue.Severity == 4)
-                                                    {
-                                                        <span class="badge bg-danger">Critical</span>
-                                                    }
-                                                    else if (issue.Severity == 3)
-                                                    {
-                                                        <span class="badge bg-warning">Severe</span>
-                                                    }
-                                                    else if (issue.Severity == 2)
-                                                    {
-                                                        <span class="badge bg-info">Moderate</span>
-                                                    }
-                                                    else
-                                                    {
-                                                        <span class="badge bg-light text-dark">Low</span>
-                                                    }
-                                                </p>
-                                            </div>
-                                        </div>
-
-                                        @* Flagged items *@
-                                        <div class="row">
-                                            <div class="col-md-12">
-                                                @{
-                                                    int maxLength = 200;
-                                                    string shortSelector = issue.Selector?.Length > maxLength 
-                                                        ? issue.Selector.Substring(0, maxLength) + "..." 
-                                                        : issue.Selector;
-                                                }
-                                                <p>
-                                                    <strong>Flagged Item:</strong>
-                                                    <span id="selectorShort-@issue.Id">@shortSelector</span>
-
-                                                    @if (issue.Selector?.Length > maxLength)
-                                                    {
-                                                        <span id="selectorFull-@issue.Id" style="display:none;">
-                                                            @issue.Selector
-                                                        </span>
-                                                        
-                                                        @* JS call on view more click *@
-                                                        <a href="javascript:void(0);"
-                                                        id="toggleLink-@issue.Id"
-                                                        onclick="toggleSelector(@issue.Id)">
-                                                            View More
-                                                        </a>
-                                                    }
-                                                </p>
-                                            </div>
-                                        </div>
-                                    </div> 
-                                }
-                            </div>
-                        </div>
-                    </div>
-                }
-            </div>
-        }
+        </div>
     </div>
+
+@*
+============================================================================================
+                                Print PDF
+============================================================================================
+*@
+
     <a asp-action="DownloadReport" asp-route-id="@Model.Id" class="btn btn-primary">
         Download PDF Report
     </a>
-</div>
+
+</div> @* End tag for #reportContainer *@
+</div> @*End tag for .container *@
 
 @section Scripts {
     <script src="~/js/reportResults.js"></script>
