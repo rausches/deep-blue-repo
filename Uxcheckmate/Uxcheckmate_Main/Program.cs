@@ -74,6 +74,9 @@ public class Program
         // Register Pa11yUrlBasedService and Pa11yService
         builder.Services.AddScoped<IAxeCoreService, AxeCoreService>();
 
+        // Register ScreenshotService
+        builder.Services.AddScoped<IScreenshotService, ScreenshotService>();
+
         builder.Services.AddScoped<PdfExportService>();
 
         // Register Report Services

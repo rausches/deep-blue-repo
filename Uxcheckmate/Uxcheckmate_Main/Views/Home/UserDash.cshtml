@@ -1,0 +1,10 @@
+@{
+    ViewData["Title"] = "User Dashboard";
+}
+
+<div class="text-center">
+    <h1 class="display-4">User Dashboard</h1>
+    <form method="post" asp-area="Identity" asp-page="/Account/Logout">
+        <button type="submit" class="btn btn-primary">Logout</button>
+    </form>
+</div>

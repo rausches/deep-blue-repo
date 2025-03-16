@@ -19,9 +19,10 @@ namespace Uxcheckmate_Main.Services
         private readonly IColorSchemeService _colorSchemeService;
         private readonly IDynamicSizingService _dynamicSizingService;
         private readonly ILogger<WebScraperService> _webScraperLogger;
+        private readonly IScreenshotService _screenshotService;
         // private readonly IFaviconDetectionService _faviconDetectionService; // Commented out
 
-        public ReportService(HttpClient httpClient, ILogger<ReportService> logger, UxCheckmateDbContext context, IOpenAiService openAiService, IBrokenLinksService brokenLinksService, IHeadingHierarchyService headingHierarchyService, IColorSchemeService colorSchemeService, IDynamicSizingService dynamicSizingService, ILogger<WebScraperService> webScraperLogger) /*, IFaviconDetectionService faviconDetectionService*/
+        public ReportService(HttpClient httpClient, ILogger<ReportService> logger, UxCheckmateDbContext context, IOpenAiService openAiService, IBrokenLinksService brokenLinksService, IHeadingHierarchyService headingHierarchyService, IColorSchemeService colorSchemeService, IDynamicSizingService dynamicSizingService, IScreenshotService screenshotService, ILogger<WebScraperService> webScraperLogger) /*, IFaviconDetectionService faviconDetectionService*/
         {
             _httpClient = httpClient;
             _dbContext = context;
@@ -31,6 +32,7 @@ namespace Uxcheckmate_Main.Services
             _headingHierarchyService = headingHierarchyService;
             _colorSchemeService = colorSchemeService;
             _dynamicSizingService = dynamicSizingService;
+            _screenshotService = screenshotService;
             _webScraperLogger = webScraperLogger;
             // _faviconDetectionService = faviconDetectionService; // Commented out
         }
@@ -106,6 +108,7 @@ namespace Uxcheckmate_Main.Services
         public async Task<string> RunCustomAnalysisAsync(string url, string categoryName, string categoryDescription, Dictionary<string, object> scrapedData)
         {
             _logger.LogInformation("Running custom analysis for category: {CategoryName}", categoryName);
+            Task<byte[]> screenshotTask = _screenshotService?.CaptureFullPageScreenshot(url) ?? Task.FromResult(new byte[0]); // Full site screenshot for anaylsis
 
             switch (categoryName)
             {
@@ -118,7 +121,7 @@ namespace Uxcheckmate_Main.Services
                     return await _headingHierarchyService.AnalyzeAsync(scrapedData);
                 case "Color Scheme":
                     _logger.LogDebug("Delegating Color Scheme analysis for URL: {Url}", url);
-                    return await _colorSchemeService.AnalyzeWebsiteColorsAsync(scrapedData);
+                    return await _colorSchemeService.AnalyzeWebsiteColorsAsync(scrapedData, screenshotTask);
 
                 case "Mobile Responsiveness":
                     _logger.LogDebug("Delegating Dynamic Sizing analysis for URL: {Url}", url);

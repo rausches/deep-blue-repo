@@ -58,6 +58,27 @@ namespace Uxcheckmate_Main.Services
                 return string.Empty;
             }
         }
-
+        public async Task<byte[]> CaptureFullPageScreenshot(string url)
+        {
+            if (string.IsNullOrWhiteSpace(url)){
+                _logger.LogError("URL cannot be empty.");
+                return Array.Empty<byte>();
+            }
+            try{
+                var context = await _playwrightService.GetBrowserContextAsync();
+                var page = await context.NewPageAsync();
+                await page.GotoAsync(url, new PageGotoOptions { WaitUntil = WaitUntilState.Load });
+                _logger.LogInformation("Capturing full-page screenshot of {Url}", url);
+                var screenshotBytes = await page.ScreenshotAsync(new PageScreenshotOptions
+                {
+                    FullPage = true
+                });
+                await page.CloseAsync();
+                return screenshotBytes;
+            }catch (Exception ex){
+                _logger.LogError(ex, "Failed to capture full-page screenshot.");
+                return Array.Empty<byte>();
+            }
+        }
     }
 }

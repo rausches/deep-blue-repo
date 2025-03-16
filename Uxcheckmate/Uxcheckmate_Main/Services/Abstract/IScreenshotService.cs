@@ -9,5 +9,6 @@ namespace Uxcheckmate_Main.Services
     {
         // Method to take a screenshot of the webpage 
         Task<string> CaptureScreenshot(PageScreenshotOptions screenshotOptions, string url);
+        Task<byte[]> CaptureFullPageScreenshot(string url);
     }
 }
