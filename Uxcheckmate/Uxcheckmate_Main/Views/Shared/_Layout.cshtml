@@ -23,52 +23,46 @@
     <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Text:ital@0;1&family=Gowun+Dodum&family=Lexend:wght@100..900&display=swap" rel="stylesheet">
 </head>
 
-<body>
-    <header>
-        
-<nav class="navbar navbar-expand-lg mb-3 transparent-navbar">
-    <div class="container-fluid">
-        <!-- Left-aligned Logo -->
-        <a class="navbar-brand me-auto" asp-area="" asp-controller="Home" asp-action="Index">UxCheckmate</a>
+<body class="d-flex flex-column min-vh-100"> <!-- Ensures full viewport height -->
+    <header> 
+        <nav class="navbar navbar-expand-lg mb-3 transparent-navbar">
+            <div class="container-fluid">
+                <a class="navbar-brand me-auto" asp-area="" asp-controller="Home" asp-action="Index">UxCheckmate</a>
 
-        <!-- Navbar Toggle Button -->
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
-            aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
-        </button>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+                    aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
 
-        <!-- Collapsible Navbar Menu -->
-        <div class="collapse navbar-collapse justify-content-center" id="navbarNav">
-            <ul class="navbar-nav">
-                <li class="nav-item">
-                    <a class="nav-link" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="~/Home/#faq" id="jumpTo">FAQ</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="~/Home/#disclosure" id="jumpTo">Disclosure</a>
-                </li>
-                @if (User.Identity.IsAuthenticated){
-                    <li class="nav-item">
-                        <a class="nav-link" asp-area="" asp-controller="Home" asp-action="UserDash">Dashboard</a>
-                    </li>
-                }else{
-                    <li class="nav-item">
-                        <a class="nav-link" asp-area="Identity" asp-page="/Account/Login">Login</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" asp-area="Identity" asp-page="/Account/Register">Register</a>
-                    </li>
-                }
-
+                <div class="collapse navbar-collapse justify-content-center" id="navbarNav">
+                    <ul class="navbar-nav">
+                        <li class="nav-item">
+                            <a class="nav-link" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="~/Home/#faq" id="jumpTo">FAQ</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="~/Home/#disclosure" id="jumpTo">Disclosure</a>
+                        </li>
+                        @if (User.Identity.IsAuthenticated){
+                            <li class="nav-item">
+                                <a class="nav-link" asp-area="" asp-controller="Home" asp-action="UserDash">Dashboard</a>
+                            </li>
+                        }else{
+                            <li class="nav-item">
+                                <a class="nav-link" asp-area="Identity" asp-page="/Account/Login">Login</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" asp-area="Identity" asp-page="/Account/Register">Register</a>
+                            </li>
+                        }
                 <!-- Theme Switcher Inside Navbar Menu: Mobile -->
                 <li class="nav-item d-lg-none" id="themeSwitcherContainer">
                     <div class="theme-switcher">
-                        <label for="theme-selector">Choose a theme:</label>
                         <select id="theme-selector" class="form-select" title="Theme Selector">
-                            <option value="light">Default</option>
-                            <option value="dark">Dark Mode</option>
+                            <option value="light">Theme: Light Mode</option>
+                            <option value="dark">Theme: Dark Mode</option>
                         </select>
                     </div>
                 </li>
@@ -77,29 +71,32 @@
 
         <!-- Theme Switcher: Desktop -->
         <div class="theme-switcher ms-auto d-none d-lg-block">
-            <label for="theme-selector-lg">Choose a theme:</label>
             <select id="theme-selector-lg" class="form-select" title="Large Theme Selector">
-                <option value="light">Default</option>
-                <option value="dark">Dark Mode</option>
+                <option value="light">Theme: Light Mode</option>
+                <option value="dark">Theme: Dark Mode</option>
             </select>
         </div>
     </div>
 </nav>
-
-    </header>
-    <div class="container-fluid">
+    <div class="container-fluid flex-grow-1"> <!-- Expands to push footer down -->
         <main role="main" class="pb-3">
             @RenderBody()
         </main>
     </div>
-    <footer class="footer">
+
+    <footer class="footer mt-auto"> <!-- Ensures footer stays at bottom -->
         <div class="footerContainer">
             <div class="row footerRow">
                 <div class="col-md-2">&copy; Deep Blue 2025</div>
-                <div class="col-md-8"><a asp-area="" asp-controller="Home" asp-action="Privacy" class="footerLinks">Privacy</a> | <a asp-area="" asp-controller="Home" asp-action="Feedback" class="footerLinks">Feedback</a></div>
-            <div>
+                <div class="col-md-8">
+                    <a asp-area="" asp-controller="Home" asp-action="Privacy" class="footerLinks">Privacy</a> | 
+                    <a asp-area="" asp-controller="Home" asp-action="Feedback" class="footerLinks">Feedback</a>
+                </div>
+                <div class="col-md-2"></div>
+            </div>
         </div>
     </footer>
+
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/themeSwitcher.js" asp-append-version="true"></script>

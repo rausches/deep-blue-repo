@@ -62,7 +62,10 @@ namespace Service_Tests
         public async Task GenerateReportAsync_Returns_Null_If_No_Issues_Found()
         {
             var report = new Report { Url = "https://example.com" }; // Create a report with a sample URL
-            _colorSchemeServiceMock.Setup(s => s.AnalyzeWebsiteColorsAsync(It.IsAny<string>())).ReturnsAsync(""); // Mock the color analysis to return no issues
+
+            // Mock the color analysis to return no issues, passing a Dictionary<string, object> as the parameter
+            _colorSchemeServiceMock.Setup(s => s.AnalyzeWebsiteColorsAsync(It.IsAny<Dictionary<string, object>>()))
+                .ReturnsAsync(""); // Mock the color analysis to return no issues
 
             var result = await _reportService.GenerateReportAsync(report); // Generate the report
 
@@ -73,7 +76,8 @@ namespace Service_Tests
         public async Task GenerateReportAsync_Returns_Issues_If_Issues_Found()
         {
             var report = new Report { Url = "https://example.com" }; // Create a report with a sample URL
-            _colorSchemeServiceMock.Setup(s => s.AnalyzeWebsiteColorsAsync(It.IsAny<string>())).ReturnsAsync("Issue found"); // Mock the color analysis to return an issue
+            _colorSchemeServiceMock.Setup(s => s.AnalyzeWebsiteColorsAsync(It.IsAny<Dictionary<string, object>>()))
+                .ReturnsAsync("Issue Found");  // Mock the color analysis to return an issue
 
             var result = await _reportService.GenerateReportAsync(report); // Generate the report
 
@@ -98,12 +102,13 @@ namespace Service_Tests
         public async Task GenerateReportAsync_Calls_CustomAnalysis_If_ScanMethod_Is_Custom()
         {
             var report = new Report { Url = "https://example.com" }; // Create a report with a sample URL
-            _colorSchemeServiceMock.Setup(s => s.AnalyzeWebsiteColorsAsync(It.IsAny<string>())).ReturnsAsync("Custom Issue"); // Mock the color analysis to return a custom issue
+            _colorSchemeServiceMock.Setup(s => s.AnalyzeWebsiteColorsAsync(It.IsAny<Dictionary<string, object>>()))
+                .ReturnsAsync("Custom Issue"); // Mock the color analysis to return a custom issue
 
             await _reportService.GenerateReportAsync(report); // Generate the report
 
             // Verify that the color scheme service was called once
-            _colorSchemeServiceMock.Verify(s => s.AnalyzeWebsiteColorsAsync(It.IsAny<string>()), Times.Once);
+            _colorSchemeServiceMock.Verify(s => s.AnalyzeWebsiteColorsAsync(It.IsAny<Dictionary<string, object>>()), Times.Once);
         }
 
         [Test] 
@@ -145,7 +150,7 @@ namespace Service_Tests
         [Test] 
         public async Task RunCustomAnalysisAsync_Returns_String_IfIssuesFound()
         {
-            _colorSchemeServiceMock.Setup(service => service.AnalyzeWebsiteColorsAsync(It.IsAny<string>())).ReturnsAsync("Issue found"); // Mock the color analysis to return an issue
+            _colorSchemeServiceMock.Setup(service => service.AnalyzeWebsiteColorsAsync(It.IsAny<Dictionary<string, object>>())).ReturnsAsync("Issue found"); // Mock the color analysis to return an issue
 
             var result = await _reportService.RunCustomAnalysisAsync("url", "Color Scheme", "description", new Dictionary<string, object>()); // Run custom analysis
 
@@ -156,7 +161,7 @@ namespace Service_Tests
         [Test]
         public async Task RunCustomAnalysisAsync_Returns_Null_If_NoIssuesFound()
         {
-            _colorSchemeServiceMock.Setup(service => service.AnalyzeWebsiteColorsAsync(It.IsAny<string>())).ReturnsAsync(""); // Mock the color analysis to return no issues
+            _colorSchemeServiceMock.Setup(service => service.AnalyzeWebsiteColorsAsync(It.IsAny<Dictionary<string, object>>())).ReturnsAsync(""); // Mock the color analysis to return no issues
 
             var result = await _reportService.RunCustomAnalysisAsync("url", "Color Scheme", "description", new Dictionary<string, object>()); // Run custom analysis
 
@@ -169,7 +174,7 @@ namespace Service_Tests
             await _reportService.RunCustomAnalysisAsync("url", "Color Scheme", "desc", new Dictionary<string, object>()); // Run custom analysis
 
             // Verify that the color scheme service was called once
-            _colorSchemeServiceMock.Verify(service => service.AnalyzeWebsiteColorsAsync(It.IsAny<string>()), Times.Once);
+            _colorSchemeServiceMock.Verify(service => service.AnalyzeWebsiteColorsAsync(It.IsAny<Dictionary<string, object>>()), Times.Once);
         }
     }
 }
