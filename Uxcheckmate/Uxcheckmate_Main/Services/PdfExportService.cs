@@ -11,53 +11,137 @@ namespace Uxcheckmate_Main.Services
     {
         public byte[] GenerateReportPdf(Report report)
         {
+            string logoPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "uxCheckmateLogo.png");
+
             return Document.Create(container =>
             {
                 container.Page(page =>
                 {
                     page.Size(PageSizes.A4);
                     page.Margin(30);
-                    page.Header()
-                        .Text($"UXCheckmate Report for {report.Url}")
-                        .SemiBold().FontSize(20).FontColor(Colors.Blue.Medium);
+                    page.DefaultTextStyle(TextStyle.Default.FontSize(12));
+
+                    // Unified Header
+                    page.Header().Column(headerCol =>
+                    {
+                        // First Row: Website & Report Date + Logo
+                        headerCol.Item().Row(headerRow =>
+                        {
+                            // Left-aligned Website & Report Date
+                            headerRow.RelativeItem().Column(col =>
+                            {
+                                col.Item().Text($"Website: {report.Url}")
+                                    .FontSize(12)
+                                    .Bold()
+                                    .FontColor(Colors.Grey.Darken2);
+
+                                col.Item().Text($"Report Date: {report.Date}")
+                                    .FontSize(10)
+                                    .FontColor(Colors.Grey.Darken1);
+                            });
+
+                            // Right-aligned Logo (if exists)
+                            if (File.Exists(logoPath))
+                            {
+                                headerRow.ConstantItem(60).AlignRight().Height(40).Image(logoPath, ImageScaling.FitArea);
+                            }
+                        });
+
+                        // Second Row: Centered Report Title
+                        headerCol.Item().AlignCenter().Text("UXCheckmate Report")
+                            .SemiBold()
+                            .FontSize(24)
+                            .FontColor(Colors.Blue.Medium);
+                    });
 
                     page.Content().Column(col =>
                     {
-                        col.Spacing(10);
-                        col.Item().Text($"Report Date: {report.Date}");
+                        col.Spacing(15);
 
-                        col.Item().Text("Accessibility Issues").Bold();
-                        if (report.AccessibilityIssues?.Count > 0)
+                        // Accessibility Issues Section
+                        col.Item().Container().Background(Colors.Grey.Lighten3).Padding(10).Column(section =>
                         {
-                            foreach (var issue in report.AccessibilityIssues)
+                            section.Item().Text("Accessibility Issues").Bold().FontSize(16);
+                            if (report.AccessibilityIssues?.Count > 0)
                             {
-                                col.Item().Text($"• {issue.Message} (Severity: {issue.Severity})");
-                            }
-                        }
-                        else
-                        {
-                            col.Item().Text("No accessibility issues found.").Italic();
-                        }
+                                section.Item().Table(table =>
+                                {
+                                    table.ColumnsDefinition(columns =>
+                                    {
+                                        columns.RelativeColumn(3);
+                                        columns.RelativeColumn(1);
+                                    });
 
-                        col.Item().Text("Design Issues").Bold();
-                        if (report.DesignIssues?.Count > 0)
-                        {
-                            foreach (var issue in report.DesignIssues)
-                            {
-                                col.Item().Text($"• {issue.Message} (Severity: {issue.Severity})");
+                                    table.Header(header =>
+                                    {
+                                        header.Cell().Text("Issue").Bold();
+                                        header.Cell().Text("Severity").Bold();
+                                    });
+
+                                    foreach (var issue in report.AccessibilityIssues)
+                                    {
+                                        table.Cell().Text(issue.Message);
+                                        table.Cell().Text(issue.Severity.ToString()).FontColor(GetSeverityColor(issue.Severity));
+                                    }
+                                });
                             }
-                        }
-                        else
+                            else
+                            {
+                                section.Item().Text("No accessibility issues found.").Italic();
+                            }
+                        });
+
+                        // Design Issues Section
+                        col.Item().Container().Background(Colors.Grey.Lighten4).Padding(10).Column(section =>
                         {
-                            col.Item().Text("No design issues found.").Italic();
-                        }
+                            section.Item().Text("Design Issues").Bold().FontSize(16);
+                            if (report.DesignIssues?.Count > 0)
+                            {
+                                section.Item().Table(table =>
+                                {
+                                    table.ColumnsDefinition(columns =>
+                                    {
+                                        columns.RelativeColumn(3);
+                                        columns.RelativeColumn(1);
+                                    });
+
+                                    table.Header(header =>
+                                    {
+                                        header.Cell().Text("Issue").Bold();
+                                        header.Cell().Text("Severity").Bold();
+                                    });
+
+                                    foreach (var issue in report.DesignIssues)
+                                    {
+                                        table.Cell().Text(issue.Message);
+                                        table.Cell().Text(issue.Severity.ToString()).FontColor(GetSeverityColor(issue.Severity));
+                                    }
+                                });
+                            }
+                            else
+                            {
+                                section.Item().Text("No design issues found.").Italic();
+                            }
+                        });
                     });
 
                     page.Footer()
                         .AlignCenter()
-                        .Text($"Generated by UXCheckmate - {System.DateTime.UtcNow}");
+                        .Text($"Generated by UXCheckmate - {System.DateTime.UtcNow}")
+                        .FontSize(10).FontColor(Colors.Grey.Darken1);
                 });
             }).GeneratePdf();
+        }
+
+        private string GetSeverityColor(object severity)
+        {
+            return severity?.ToString()?.ToLower() switch
+            {
+                "high" => Colors.Red.Darken2,
+                "medium" => Colors.Orange.Darken2,
+                "low" => Colors.Green.Darken2,
+                _ => Colors.Black
+            };
         }
     }
 }
