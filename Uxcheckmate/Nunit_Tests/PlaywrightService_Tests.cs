@@ -93,7 +93,6 @@ namespace Uxcheckmate_Main.Tests
             );
         }
 
-
         [TearDown]
         public void TearDown()
         {

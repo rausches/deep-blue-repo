@@ -90,12 +90,6 @@ if (typeof window !== 'undefined') {
     };
 }
 
-// Conditionally export functions based on the environment
-if (typeof module !== 'undefined' && module.exports) {
-    module.exports = { validateURL, handleUserUrl };
-}
-
-
 // Function show each message scanning issues one at a time 
 function showEachMessage() {
     var messages = document.getElementsByClassName('messageScanningIssues');
@@ -115,4 +109,7 @@ function showEachMessage() {
 
 showEachMessage(); 
 
-
+// Export the functions for testing purposes
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = { validateURL, handleUserUrl };
+}
