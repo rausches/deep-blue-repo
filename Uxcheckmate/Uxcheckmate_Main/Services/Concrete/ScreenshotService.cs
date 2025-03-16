@@ -43,8 +43,12 @@ namespace Uxcheckmate_Main.Services
                 // Navigate to the specified URL
                 await page.GotoAsync(url);
 
+                // Ensure FullPage option is set to False to capture only the viewport of the page
+                screenshotOptions.FullPage = false;
+
                 // Take a screenshot of the page with the specified options
                 var screenshotBytes = await page.ScreenshotAsync(screenshotOptions);
+                
 
                 // Convert the screenshot bytes to a base64 string
                 // This allows the image to be displayed in the browser without saving it to disk

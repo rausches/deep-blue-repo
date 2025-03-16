@@ -6,6 +6,7 @@ using System.Text.Json;
 using System.Diagnostics;
 using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
+using Microsoft.Playwright;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.Mvc.ViewEngines;
@@ -21,11 +22,13 @@ public class HomeController : Controller
     private readonly IReportService _reportService;
     private readonly IAxeCoreService _axeCoreService;
     private readonly PdfExportService _pdfExportService;
+    private readonly IScreenshotService _screenshotService;
     private readonly IViewRenderService _viewRenderService;
 
     public HomeController(ILogger<HomeController> logger, HttpClient httpClient, UxCheckmateDbContext dbContext, 
-        IOpenAiService openAiService, IAxeCoreService axeCoreService, IReportService reportService, PdfExportService pdfExportService,
-        IViewRenderService viewRenderService)
+        IOpenAiService openAiService, IAxeCoreService axeCoreService, IReportService reportService, 
+        PdfExportService pdfExportService, IScreenshotService screenshotService, IViewRenderService viewRenderService)
+        
     {
         _logger = logger;
         _httpClient = httpClient;
@@ -33,6 +36,7 @@ public class HomeController : Controller
         _axeCoreService = axeCoreService;
         _reportService = reportService;
         _pdfExportService = pdfExportService;
+        _screenshotService = screenshotService;
         _viewRenderService = viewRenderService;
     }
 
@@ -51,15 +55,20 @@ public class HomeController : Controller
             return View("Index");
         }
 
-       try
+        try
         {
+
             // Check if the URL is reachable
             using (var httpClient = new HttpClient())
             {
                 var request = new HttpRequestMessage(HttpMethod.Get, url);
                 // Sending a HEAD request to the URL to check if it is reachable
+
+                _logger.LogInformation("Request Headers: {Headers}", request.Headers);
+
                 HttpResponseMessage response;
-                try{
+                try
+                {
                     response = await httpClient.SendAsync(request);
                 }
                 catch (HttpRequestException ex)
@@ -74,12 +83,29 @@ public class HomeController : Controller
                     TempData["UrlUnreachable"] = "The URL you entered seems incorrect or no longer exists. Please try again.";
                     return RedirectToAction("Index");
                 }
+                _logger.LogInformation("Response Headers: {Headers}", response.Headers);
             }
+
+            // **First Screenshot Request: Capture Screenshot **
+            var screenshotOptions = new PageScreenshotOptions { FullPage = true };
+            var firstScreenshot  = await _screenshotService.CaptureScreenshot(screenshotOptions, url);
+            if (string.IsNullOrEmpty(firstScreenshot ))
+            {
+                _logger.LogError("Failed to capture screenshot for URL: {Url}", url);
+                ModelState.AddModelError("", "An error occurred while capturing the screenshot.");
+                return View("Index");
+            }
+
+            TempData["FirstScreenshot"] = firstScreenshot;
+
+            // Check if the user is authenticated and get the user ID
             string? userId = null;
-            if (User.Identity.IsAuthenticated){
+            if (User.Identity.IsAuthenticated)
+            {
                 userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             }
-            // Create and save the initial report record
+
+            // Create and save the report record.
             var report = new Report
             {
                 Url = url,
@@ -137,6 +163,7 @@ public class HomeController : Controller
 
             // Return the full results view
             return View("Results", fullReport);
+
         }
         catch (Exception ex)
         {
@@ -150,6 +177,7 @@ public class HomeController : Controller
     {
         return View();
     }
+
 
     [HttpGet]
     public IActionResult Feedback()

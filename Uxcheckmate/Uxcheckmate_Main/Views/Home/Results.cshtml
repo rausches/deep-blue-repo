@@ -1,16 +1,17 @@
 @model Uxcheckmate_Main.Models.Report
-
+@{
+    var firstScreenshot  = TempData["firstScreenshot"] as string;
+}
 @*
 ============================================================================================
                         HEADER (Screenshot, URL, #of issues)
 ============================================================================================
 *@
 
-<div class="container">
+<div class="col-md-6 container">
     <div class="row headerRow">
         <div class="col-md-6">
-            @* Placeholder for screenshot image *@
-            <img src="" alt="">
+            <img src="@firstScreenshot " alt="Screenshot of the given website" class="img-fluid" />
         </div>
         <div class="col-md-6">
             @* Display the URL associated with the report *@
@@ -34,6 +35,7 @@
             </select>
         </div>
     </div>
+
 
 @*
 ============================================================================================
