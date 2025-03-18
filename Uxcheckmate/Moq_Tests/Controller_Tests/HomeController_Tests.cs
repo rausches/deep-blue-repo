@@ -29,6 +29,7 @@ namespace Controller_Tests
         private Mock<IReportService> _reportServiceMock;
         private Mock<IAxeCoreService> _axeCoreServiceMock;
         private Mock<PdfExportService> _pdfExportServiceMock;
+        private Mock<IScreenshotService> _screenshotServiceMock;
         private HomeController _controller; 
         
         private Mock<DbSet<Report>> _mockReportDbSet;
@@ -44,6 +45,7 @@ namespace Controller_Tests
             _reportServiceMock = new Mock<IReportService>();
             _axeCoreServiceMock = new Mock<IAxeCoreService>();
             _pdfExportServiceMock = new Mock<PdfExportService>();
+            _screenshotServiceMock = new Mock<IScreenshotService>();
             _viewEngineMock = new Mock<ICompositeViewEngine>();
             _tempDataMock = new Mock<ITempDataDictionary>();
 
@@ -73,6 +75,7 @@ namespace Controller_Tests
                 _axeCoreServiceMock.Object,
                 _reportServiceMock.Object,
                 _pdfExportServiceMock.Object,
+                _screenshotServiceMock.Object,
                 viewRenderServiceMock.Object
             );
 

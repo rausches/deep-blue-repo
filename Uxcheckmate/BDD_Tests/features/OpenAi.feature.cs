@@ -106,7 +106,7 @@ namespace BDD_Tests.Features
     await testRunner.AndAsync("her site has 16 fonts on it", ((string)(null)), ((global::Reqnroll.Table)(null)), "And ");
 #line hidden
 #line 6
-    await testRunner.WhenAsync("the report loads", ((string)(null)), ((global::Reqnroll.Table)(null)), "When ");
+    await testRunner.WhenAsync("the report does load", ((string)(null)), ((global::Reqnroll.Table)(null)), "When ");
 #line hidden
 #line 7
     await testRunner.ThenAsync("she will see a suggestion in the report to condense the amount of fonts on her si" +
@@ -140,7 +140,7 @@ namespace BDD_Tests.Features
     await testRunner.AndAsync("her site has huge blocks of text", ((string)(null)), ((global::Reqnroll.Table)(null)), "And ");
 #line hidden
 #line 12
-    await testRunner.WhenAsync("the report loads", ((string)(null)), ((global::Reqnroll.Table)(null)), "When ");
+    await testRunner.WhenAsync("the fully report loads", ((string)(null)), ((global::Reqnroll.Table)(null)), "When ");
 #line hidden
 #line 13
     await testRunner.ThenAsync("she will see a suggestion to separate her text content with images, padding, and " +
@@ -174,7 +174,7 @@ namespace BDD_Tests.Features
     await testRunner.AndAsync("her site has no recommendations", ((string)(null)), ((global::Reqnroll.Table)(null)), "And ");
 #line hidden
 #line 18
-    await testRunner.WhenAsync("the report loads", ((string)(null)), ((global::Reqnroll.Table)(null)), "When ");
+    await testRunner.WhenAsync("the report does load", ((string)(null)), ((global::Reqnroll.Table)(null)), "When ");
 #line hidden
 #line 19
     await testRunner.ThenAsync("she will see a message that says there are no suggestions", ((string)(null)), ((global::Reqnroll.Table)(null)), "Then ");

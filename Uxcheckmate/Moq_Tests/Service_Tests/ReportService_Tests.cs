@@ -18,6 +18,7 @@ namespace Service_Tests
         private Mock<IColorSchemeService> _colorSchemeServiceMock; 
         private UxCheckmateDbContext _context; 
         private readonly ILogger<WebScraperService> webScraperLogger; 
+        private Mock<IScreenshotService> _screenshotServiceMock;
 
         [SetUp]
         public void Setup()
@@ -43,6 +44,7 @@ namespace Service_Tests
             // Initialize mock services
             _openAiServiceMock = new Mock<IOpenAiService>();
             _colorSchemeServiceMock = new Mock<IColorSchemeService>();
+            _screenshotServiceMock = new Mock<IScreenshotService>();
 
             // Instantiate the ReportService with mocked dependencies
             _reportService = new ReportService(
@@ -54,7 +56,8 @@ namespace Service_Tests
                 Mock.Of<IHeadingHierarchyService>(),
                 _colorSchemeServiceMock.Object, 
                 Mock.Of<IDynamicSizingService>(), 
-                webScraperLogger 
+                _screenshotServiceMock.Object,
+                webScraperLogger
             );
         }
 
@@ -63,9 +66,15 @@ namespace Service_Tests
         {
             var report = new Report { Url = "https://example.com" }; // Create a report with a sample URL
 
-            // Mock the color analysis to return no issues, passing a Dictionary<string, object> as the parameter
-            _colorSchemeServiceMock.Setup(s => s.AnalyzeWebsiteColorsAsync(It.IsAny<Dictionary<string, object>>()))
-                .ReturnsAsync(""); // Mock the color analysis to return no issues
+            // Mock the screenshot service to return a task with empty byte array
+            _screenshotServiceMock.Setup(s => s.CaptureFullPageScreenshot(It.IsAny<string>()))
+                .ReturnsAsync(Array.Empty<byte>());
+
+            // Update this line to provide both required parameters
+            _colorSchemeServiceMock.Setup(s => s.AnalyzeWebsiteColorsAsync(
+                It.IsAny<Dictionary<string, object>>(),
+                It.IsAny<Task<byte[]>>()))
+                .ReturnsAsync("");
 
             var result = await _reportService.GenerateReportAsync(report); // Generate the report
 
@@ -75,9 +84,15 @@ namespace Service_Tests
         [Test]
         public async Task GenerateReportAsync_Returns_Issues_If_Issues_Found()
         {
-            var report = new Report { Url = "https://example.com" }; // Create a report with a sample URL
-            _colorSchemeServiceMock.Setup(s => s.AnalyzeWebsiteColorsAsync(It.IsAny<Dictionary<string, object>>()))
-                .ReturnsAsync("Issue Found");  // Mock the color analysis to return an issue
+            var report = new Report { Url = "https://example.com" }; //     // Mock the screenshot service
+
+            _screenshotServiceMock.Setup(s => s.CaptureFullPageScreenshot(It.IsAny<string>()))
+                .ReturnsAsync(Array.Empty<byte>());
+            
+            _colorSchemeServiceMock.Setup(s => s.AnalyzeWebsiteColorsAsync(
+                It.IsAny<Dictionary<string, object>>(),
+                It.IsAny<Task<byte[]>>()))
+                .ReturnsAsync("Issue Found");
 
             var result = await _reportService.GenerateReportAsync(report); // Generate the report
 
@@ -102,13 +117,19 @@ namespace Service_Tests
         public async Task GenerateReportAsync_Calls_CustomAnalysis_If_ScanMethod_Is_Custom()
         {
             var report = new Report { Url = "https://example.com" }; // Create a report with a sample URL
-            _colorSchemeServiceMock.Setup(s => s.AnalyzeWebsiteColorsAsync(It.IsAny<Dictionary<string, object>>()))
-                .ReturnsAsync("Custom Issue"); // Mock the color analysis to return a custom issue
+
+            _screenshotServiceMock.Setup(s => s.CaptureFullPageScreenshot(It.IsAny<string>()))
+                .ReturnsAsync(Array.Empty<byte>());
+            
+            _colorSchemeServiceMock.Setup(s => s.AnalyzeWebsiteColorsAsync(
+                It.IsAny<Dictionary<string, object>>(),
+                It.IsAny<Task<byte[]>>()))
+                .ReturnsAsync("Custom Issue");
 
             await _reportService.GenerateReportAsync(report); // Generate the report
 
             // Verify that the color scheme service was called once
-            _colorSchemeServiceMock.Verify(s => s.AnalyzeWebsiteColorsAsync(It.IsAny<Dictionary<string, object>>()), Times.Once);
+            _colorSchemeServiceMock.Verify(s => s.AnalyzeWebsiteColorsAsync(It.IsAny<Dictionary<string, object>>(), It.IsAny<Task<byte[]>>()), Times.Once);
         }
 
         [Test] 
@@ -135,6 +156,7 @@ namespace Service_Tests
                 Mock.Of<IHeadingHierarchyService>(),
                 Mock.Of<IColorSchemeService>(),
                 Mock.Of<IDynamicSizingService>(),
+                _screenshotServiceMock.Object,
                 webScraperLoggerMock
             );
 
@@ -150,7 +172,14 @@ namespace Service_Tests
         [Test] 
         public async Task RunCustomAnalysisAsync_Returns_String_IfIssuesFound()
         {
-            _colorSchemeServiceMock.Setup(service => service.AnalyzeWebsiteColorsAsync(It.IsAny<Dictionary<string, object>>())).ReturnsAsync("Issue found"); // Mock the color analysis to return an issue
+            _screenshotServiceMock.Setup(s => s.CaptureFullPageScreenshot(It.IsAny<string>()))
+                .ReturnsAsync(Array.Empty<byte>());
+            
+            // Update this mock to include the screenshot task parameter
+            _colorSchemeServiceMock.Setup(service => service.AnalyzeWebsiteColorsAsync(
+                It.IsAny<Dictionary<string, object>>(), 
+                It.IsAny<Task<byte[]>>()))
+                .ReturnsAsync("Issue found");
 
             var result = await _reportService.RunCustomAnalysisAsync("url", "Color Scheme", "description", new Dictionary<string, object>()); // Run custom analysis
 
@@ -161,7 +190,14 @@ namespace Service_Tests
         [Test]
         public async Task RunCustomAnalysisAsync_Returns_Null_If_NoIssuesFound()
         {
-            _colorSchemeServiceMock.Setup(service => service.AnalyzeWebsiteColorsAsync(It.IsAny<Dictionary<string, object>>())).ReturnsAsync(""); // Mock the color analysis to return no issues
+
+            _screenshotServiceMock.Setup(s => s.CaptureFullPageScreenshot(It.IsAny<string>()))
+                .ReturnsAsync(Array.Empty<byte>());
+            
+            _colorSchemeServiceMock.Setup(s => s.AnalyzeWebsiteColorsAsync(
+                It.IsAny<Dictionary<string, object>>(),
+                It.IsAny<Task<byte[]>>()))
+                .ReturnsAsync(""); // Mock the color analysis to return no issues
 
             var result = await _reportService.RunCustomAnalysisAsync("url", "Color Scheme", "description", new Dictionary<string, object>()); // Run custom analysis
 
@@ -171,10 +207,15 @@ namespace Service_Tests
         [Test]
         public async Task RunCustomAnalysisAsync_Calls_Correct_Category_Service()
         {
+            _screenshotServiceMock.Setup(s => s.CaptureFullPageScreenshot(It.IsAny<string>()))
+                .ReturnsAsync(Array.Empty<byte>());
             await _reportService.RunCustomAnalysisAsync("url", "Color Scheme", "desc", new Dictionary<string, object>()); // Run custom analysis
 
             // Verify that the color scheme service was called once
-            _colorSchemeServiceMock.Verify(service => service.AnalyzeWebsiteColorsAsync(It.IsAny<Dictionary<string, object>>()), Times.Once);
+            _colorSchemeServiceMock.Verify(service => service.AnalyzeWebsiteColorsAsync(
+                It.IsAny<Dictionary<string, object>>(),
+                It.IsAny<Task<byte[]>>()), 
+                Times.Once);
         }
     }
 }

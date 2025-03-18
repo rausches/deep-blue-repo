@@ -18,6 +18,7 @@ namespace ErrorPage_Tests
         private Mock<HttpClient> _mockHttpClient; 
         private Mock<PdfExportService> _mockpdfExportService;
         private Mock<IViewRenderService> _mockViewRenderService;
+        private Mock<IScreenshotService> _mockScreenshotService;
 
         [SetUp]
         public void Setup()
@@ -29,6 +30,7 @@ namespace ErrorPage_Tests
             _mockReportService = new Mock<IReportService>();
             _mockHttpClient = new Mock<HttpClient>();
             _mockpdfExportService = new Mock<PdfExportService>();
+            _mockScreenshotService = new Mock<IScreenshotService>();
             _mockViewRenderService = new Mock<IViewRenderService>();
 
         }
@@ -37,7 +39,7 @@ namespace ErrorPage_Tests
         public void Error404_ReturnsErrorPageView()
         {
             // Arrange
-           var controller = new HomeController(_mockLogger.Object, _mockHttpClient.Object, _mockDbContext.Object, _mockOpenAiService.Object, _mockAxeCoreService.Object, _mockReportService.Object, _mockpdfExportService.Object, _mockViewRenderService.Object);
+           var controller = new HomeController(_mockLogger.Object, _mockHttpClient.Object, _mockDbContext.Object, _mockOpenAiService.Object, _mockAxeCoreService.Object, _mockReportService.Object, _mockpdfExportService.Object, _mockScreenshotService.Object, _mockViewRenderService.Object);
 
             // Act
             var result = controller.ErrorPage() as ViewResult;
