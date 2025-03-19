@@ -20,6 +20,9 @@ public partial class Report
 
     public DateOnly Date { get; set; }
 
+    [Column("UserID")]
+    public string? UserID { get; set; }
+
     [InverseProperty("Report")]
     public virtual ICollection<AccessibilityIssue> AccessibilityIssues { get; set; } = new List<AccessibilityIssue>();
 

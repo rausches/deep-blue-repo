@@ -19,7 +19,7 @@ public class BrokenLinksSteps
         // Create a logger using LoggerFactory
         var loggerFactory = LoggerFactory.Create(builder => 
         {
-            builder.AddConsole(); // Or add other providers as needed
+            builder.AddConsole(); 
         });
         var logger = loggerFactory.CreateLogger<BrokenLinksService>();
 

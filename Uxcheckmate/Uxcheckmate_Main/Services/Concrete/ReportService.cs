@@ -19,9 +19,10 @@ namespace Uxcheckmate_Main.Services
         private readonly IColorSchemeService _colorSchemeService;
         private readonly IDynamicSizingService _dynamicSizingService;
         private readonly ILogger<WebScraperService> _webScraperLogger;
+        private readonly IScreenshotService _screenshotService;
         // private readonly IFaviconDetectionService _faviconDetectionService; // Commented out
 
-        public ReportService(HttpClient httpClient, ILogger<ReportService> logger, UxCheckmateDbContext context, IOpenAiService openAiService, IBrokenLinksService brokenLinksService, IHeadingHierarchyService headingHierarchyService, IColorSchemeService colorSchemeService, IDynamicSizingService dynamicSizingService, ILogger<WebScraperService> webScraperLogger) /*, IFaviconDetectionService faviconDetectionService*/
+        public ReportService(HttpClient httpClient, ILogger<ReportService> logger, UxCheckmateDbContext context, IOpenAiService openAiService, IBrokenLinksService brokenLinksService, IHeadingHierarchyService headingHierarchyService, IColorSchemeService colorSchemeService, IDynamicSizingService dynamicSizingService, IScreenshotService screenshotService, ILogger<WebScraperService> webScraperLogger) /*, IFaviconDetectionService faviconDetectionService*/
         {
             _httpClient = httpClient;
             _dbContext = context;
@@ -31,31 +32,40 @@ namespace Uxcheckmate_Main.Services
             _headingHierarchyService = headingHierarchyService;
             _colorSchemeService = colorSchemeService;
             _dynamicSizingService = dynamicSizingService;
+            _screenshotService = screenshotService;
             _webScraperLogger = webScraperLogger;
             // _faviconDetectionService = faviconDetectionService; // Commented out
         }
 
         public async Task<ICollection<DesignIssue>> GenerateReportAsync(Report report)
         {
+            // Initialize url to report attribute
             var url = report.Url;
             _logger.LogInformation("Starting report generation for URL: {Url}", url);
 
+            // If there is no url throw an exception
             if (string.IsNullOrEmpty(url))
             {
                 _logger.LogError("URL is null or empty.");
                 throw new ArgumentException("URL cannot be empty.", nameof(url));
             }
 
+            // Create instance of the web scraper
             var scraper = new WebScraperService(_httpClient, _webScraperLogger);
             _logger.LogDebug("Scraping content from URL: {Url}", url);
+
+            // Call the scraper
             var scrapedData = await scraper.ScrapeAsync(url);
             _logger.LogDebug("Scraping completed for URL: {Url}", url);
 
+            // Get list of design categories
             var designCategories = await _dbContext.DesignCategories.ToListAsync();
             _logger.LogInformation("Found {Count} design categories.", designCategories.Count);
 
+            // Instantate Design Issue list
             var scanResults = new List<DesignIssue>();
 
+            // For each category call service based on category scan method
             foreach (var category in designCategories)
             {
                 _logger.LogInformation("Analyzing category: {CategoryName} using scan method: {ScanMethod}", category.Name, category.ScanMethod);
@@ -67,6 +77,7 @@ namespace Uxcheckmate_Main.Services
                     _ => ""
                 };
 
+                // Connect service response to dbset attributes
                 if (!string.IsNullOrEmpty(message))
                 {
                     var designIssue = new DesignIssue
@@ -87,13 +98,17 @@ namespace Uxcheckmate_Main.Services
                 }
             }
 
+            // Save to database
             await _dbContext.SaveChangesAsync();
+
+            // Return report
             return scanResults;
         }
 
-        private async Task<string> RunCustomAnalysisAsync(string url, string categoryName, string categoryDescription, Dictionary<string, object> scrapedData)
+        public async Task<string> RunCustomAnalysisAsync(string url, string categoryName, string categoryDescription, Dictionary<string, object> scrapedData)
         {
             _logger.LogInformation("Running custom analysis for category: {CategoryName}", categoryName);
+            Task<byte[]> screenshotTask = _screenshotService?.CaptureFullPageScreenshot(url) ?? Task.FromResult(new byte[0]); // Full site screenshot for anaylsis
 
             switch (categoryName)
             {
@@ -103,14 +118,17 @@ namespace Uxcheckmate_Main.Services
 
                 case "Visual Hierarchy":
                     _logger.LogDebug("Delegating Visual Hierarchy analysis for URL: {Url}", url);
-                    return await _headingHierarchyService.AnalyzeAsync(url);
+                    return await _headingHierarchyService.AnalyzeAsync(scrapedData);
                 case "Color Scheme":
                     _logger.LogDebug("Delegating Color Scheme analysis for URL: {Url}", url);
-                    return await _colorSchemeService.AnalyzeWebsiteColorsAsync(url);
+                    return await _colorSchemeService.AnalyzeWebsiteColorsAsync(scrapedData, screenshotTask);
+
                 case "Mobile Responsiveness":
                     _logger.LogDebug("Delegating Dynamic Sizing analysis for URL: {Url}", url);
                     var hasDynamicSizing = _dynamicSizingService.HasDynamicSizing(scrapedData["htmlContent"].ToString());
-                    
+                // Add your custom analysis here:
+                // Example: case "Category Name":
+                    // return await _servicename.method(url, scrapeddata)
                     if (!hasDynamicSizing)
                     {
                         string prompt = $"The website at {url} is missing dynamic sizing elements (e.g., media queries, viewport meta tag, flexbox/grid layout). Please provide a recommendation on how to implement dynamic sizing.";

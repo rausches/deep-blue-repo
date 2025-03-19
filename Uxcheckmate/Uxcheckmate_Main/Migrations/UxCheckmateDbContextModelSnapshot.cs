@@ -239,6 +239,12 @@ namespace Uxcheckmate_Main.Migrations
                             Id = 10,
                             FontName = "TrashHand",
                             IsLegible = false
+                        },
+                        new
+                        {
+                            Id = 11,
+                            FontName = "Comic Sans",
+                            IsLegible = false
                         });
                 });
 
@@ -260,6 +266,10 @@ namespace Uxcheckmate_Main.Migrations
                         .IsUnicode(false)
                         .HasColumnType("varchar(128)")
                         .HasColumnName("URL");
+
+                    b.Property<string>("UserID")
+                        .HasColumnType("nvarchar(max)")
+                        .HasColumnName("UserID");
 
                     b.HasKey("Id")
                         .HasName("PK__Report__3214EC27DC95E762");

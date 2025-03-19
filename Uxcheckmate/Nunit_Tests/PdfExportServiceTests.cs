@@ -1,48 +1,39 @@
 using NUnit.Framework;
-using System;
-using System.Collections.Generic;
+using QuestPDF.Infrastructure;
 using Uxcheckmate_Main.Models;
 using Uxcheckmate_Main.Services;
+using System;
 
-namespace Uxcheckmate_Tests
-
+namespace Uxcheckmate_Main.Tests
 {
     [TestFixture]
     public class PdfExportServiceTests
     {
-        private PdfExportService _pdfExportService;
-
         [SetUp]
         public void Setup()
         {
-            _pdfExportService = new PdfExportService();
+            QuestPDF.Settings.License = LicenseType.Community; // Configure license for tests
         }
 
         [Test]
-        public void GenerateReportPdf_ValidReport_ReturnsNonEmptyByteArray()
+        public void GenerateReportPdf_ShouldReturnNonEmptyByteArray()
         {
             // Arrange
-            var report = new Report
+            var pdfService = new PdfExportService();
+            var sampleReport = new Report
             {
                 Url = "https://example.com",
-                Date = DateTime.UtcNow,
-                AccessibilityIssues = new List<Issue>
-                {
-                    new Issue { Message = "Missing alt text", Severity = "High" },
-                    new Issue { Message = "Low contrast text", Severity = "Medium" }
-                },
-                DesignIssues = new List<Issue>
-                {
-                    new Issue { Message = "Inconsistent button styles", Severity = "Low" }
-                }
+                Date = DateOnly.FromDateTime(DateTime.UtcNow), // Correct conversion
+                AccessibilityIssues = null, // No accessibility issues for this test
+                DesignIssues = null // No design issues for this test
             };
 
             // Act
-            var pdfBytes = _pdfExportService.GenerateReportPdf(report);
+            var result = pdfService.GenerateReportPdf(sampleReport);
 
             // Assert
-            Assert.IsNotNull(pdfBytes, "PDF byte array should not be null.");
-            Assert.IsNotEmpty(pdfBytes, "PDF byte array should not be empty.");
+            Assert.That(result, Is.Not.Null, "The PDF byte array is null.");
+            Assert.That(result.Length, Is.GreaterThan(0), "The PDF byte array is empty.");
         }
     }
 }

@@ -1,0 +1,154 @@
+@model IEnumerable<Uxcheckmate_Main.Models.DesignIssue>
+@using System.Text.RegularExpressions
+
+@functions {
+    @* Sanitize IDs for HTML elements by replacing non-alphanumeric characters with dashes *@
+    string SanitizeId(string input) {
+        return Regex.Replace(input, "[^a-zA-Z0-9]", "-").ToLower();
+    }
+}
+
+@{
+    @* Get current sort order from ViewBag or default to 'category' *@
+    var sortOrder = ViewBag.CurrentSort as string ?? "category";
+    
+    @* Dictionary mapping severity levels to display names *@
+    var severityLevels = new Dictionary<int, string> { {3, "High"}, {2, "Medium"}, {1, "Low"} };
+}
+
+@*
+===========================================================================================================
+                                        Severity Sorting
+===========================================================================================================
+*@ 
+
+@if (sortOrder.StartsWith("severity"))
+{
+    @* Severity-based sorting logic *@
+    @* Determine sorting direction for severity levels *@
+    var severityOrder = sortOrder == "severity-high-low" 
+        ? severityLevels.OrderByDescending(s => s.Key)  // High to Low
+        : severityLevels.OrderBy(s => s.Key);           // Low to High
+
+    @* Main accordion container *@
+    <div class="accordion" id="designIssuesAccordion">
+        @* Loop through each severity level in sorted order *@
+        @foreach (var severity in severityOrder)
+        {
+            @* Filter issues for current severity level *@
+            var issues = Model.Where(i => i.Severity == severity.Key).ToList();
+            @* Create safe HTML ID using sanitization function *@
+            var sanitizedId = SanitizeId(severity.Value);
+
+            @* Accordion item for each severity level *@
+            <div class="accordion-item reportAccordion">
+                <h2 class="accordion-header">
+                    @* Accordion header button with severity name and count *@
+                    <button class="accordion-button collapsed" type="button"
+                            data-bs-toggle="collapse" 
+                            data-bs-target="#collapse-design-@sanitizedId">
+                        <strong>@severity.Value Severity Issues</strong>
+                        <span class="text-muted">(@issues.Count issues)</span>
+                    </button>
+                </h2>
+                @* Collapsible content area *@
+                <div id="collapse-design-@sanitizedId" class="accordion-collapse collapse"
+                     data-bs-parent="#designIssuesAccordion">
+                    <div class="accordion-body">
+                        <div class="row">
+                            @* Handle empty state for severity category *@
+                            @if (!issues.Any())
+                            {
+                                <p class="text-muted">No issues</p>
+                            }
+                            else
+                            {
+                                @* Display each issue in the severity category *@
+                                foreach (var issue in issues)
+                                {
+                                    <div class="issueContainer p-3 mb-3 border rounded">
+                                        <div class="col-md-12">
+                                            @* Display category badge *@
+                                            <span class="badge bg-secondary">@issue.Category.Name</span>
+                                            <br><br>
+                                            @* Display issue message *@
+                                            @issue.Message
+                                        </div>
+                                    </div>
+                                }
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}
+
+@*
+===========================================================================================================
+                                        Category Sorting
+===========================================================================================================
+*@
+
+else  
+{
+    @* Group issues by their category name *@
+    var categories = Model.GroupBy(i => i.Category?.Name ?? "Uncategorized").OrderBy(g => g.Key);
+
+    @* Main accordion container *@
+    <div class="accordion" id="designIssuesAccordion">
+        @* Loop through each category group *@
+        @foreach (var categoryGroup in categories)
+        {
+            @* Create safe HTML ID using sanitization function *@
+            var sanitizedId = SanitizeId(categoryGroup.Key);
+
+            @* Accordion item for each category *@
+            <div class="accordion-item reportAccordion">
+                <h2 class="accordion-header">
+                    @* Accordion header button with category name and count *@
+                    <button class="accordion-button collapsed" type="button"
+                            data-bs-toggle="collapse" 
+                            data-bs-target="#collapse-design-@sanitizedId">
+                        <strong>@categoryGroup.Key</strong>
+                        <span class="text-muted">(@categoryGroup.Count() issues)</span>
+                    </button>
+                </h2>
+                @* Collapsible content area *@
+                <div id="collapse-design-@sanitizedId" class="accordion-collapse collapse"
+                     data-bs-parent="#designIssuesAccordion">
+                    <div class="accordion-body">
+                        @* Display each issue in the category *@
+                        @foreach (var issue in categoryGroup)
+                        {
+                            <div class="issueContainer p-3 mb-3 border rounded">
+                                <div class="row">
+                                    @* Issue message and severity badge *@
+                                    <div class="col-md-11">@issue.Message</div>
+                                    <div class="col-md-1">
+                                        <p>
+                                            @* Dynamic severity badge coloring *@
+                                            @if (issue.Severity == 3)
+                                            {
+                                                <span class="badge bg-danger">High</span>
+                                            }
+                                            else if (issue.Severity == 2)
+                                            {
+                                                <span class="badge bg-warning">Medium</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="badge bg-info">Low</span>
+                                            }
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}

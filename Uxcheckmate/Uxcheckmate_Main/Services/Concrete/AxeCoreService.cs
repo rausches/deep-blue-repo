@@ -1,38 +1,36 @@
 using System.Text.Json;
-using System.Collections.Generic;
 using Uxcheckmate_Main.Models;
 using Microsoft.Extensions.Logging;
-using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Playwright;
-using Microsoft.AspNetCore.Hosting;
 
 namespace Uxcheckmate_Main.Services
 {
     public class AxeCoreService : IAxeCoreService
     {
         private readonly ILogger<AxeCoreService> _logger;
-        private readonly UxCheckmateDbContext _dbContext;
+        protected readonly UxCheckmateDbContext _dbContext;
+        private readonly IPlaywrightService _playwrightService;
 
-        public AxeCoreService(ILogger<AxeCoreService> logger, UxCheckmateDbContext dbContext)
+        public AxeCoreService(ILogger<AxeCoreService> logger, UxCheckmateDbContext dbContext, IPlaywrightService playwrightService)
         {
             _logger = logger;
             _dbContext = dbContext;
+            _playwrightService = playwrightService;
         }
 
-        public async Task<ICollection<AccessibilityIssue>> AnalyzeAndSaveAccessibilityReport(Report report)
+        public virtual async Task<ICollection<AccessibilityIssue>> AnalyzeAndSaveAccessibilityReport(Report report)
         {
             var issues = new List<AccessibilityIssue>();
 
-            // Initialize Playwright and launch a headless browser instance
-            using var playwright = await Playwright.CreateAsync();
-            await using var browser = await playwright.Chromium.LaunchAsync(new BrowserTypeLaunchOptions { Headless = true });
-            var context = await browser.NewContextAsync();
-            var page = await context.NewPageAsync();
-
+            IBrowserContext context = null;
             try
             {
                 _logger.LogInformation("Starting accessibility analysis for URL: {Url}", report.Url);
+                
+                // Request a new browser context from the PlaywrightService.
+                context = await _playwrightService.GetBrowserContextAsync();
+                var page = await context.NewPageAsync();
 
                 // Navigate to the target URL and wait until the page is fully loaded
                 await page.GotoAsync(report.Url, new PageGotoOptions { WaitUntil = WaitUntilState.Load });
@@ -147,11 +145,19 @@ namespace Uxcheckmate_Main.Services
             {
                 _logger.LogError("Error during accessibility analysis: {Message}", ex.Message);
             }
+            finally
+            {
+                // Close the browser context for this run so sessions don't overlap.
+                if (context != null)
+                {
+                    await context.CloseAsync();
+                }
+            }
 
             return issues;
         }
 
-        private static readonly Dictionary<string, string> AccessibilityCategoryMapping = new()
+        protected static readonly Dictionary<string, string> AccessibilityCategoryMapping = new()
         {
             { "color-contrast", "Color & Contrast" },
             { "focus-order", "Keyboard & Focus" },
@@ -172,7 +178,7 @@ namespace Uxcheckmate_Main.Services
             { "aria-hidden-focus", "ARIA & Semantic HTML" }
         };
 
-        private int DetermineSeverity(string impact)
+        protected int DetermineSeverity(string impact)
         {
             return impact switch
             {
@@ -185,5 +191,3 @@ namespace Uxcheckmate_Main.Services
         }
     }
 }
-
-

@@ -2,7 +2,11 @@ using NUnit.Framework;
 using Uxcheckmate_Main.Services;
 using System;
 using System.Collections.Generic;
+using System.Net.Http;
+using System.Threading.Tasks;
 using Moq;
+using Microsoft.Extensions.Logging;
+using SkiaSharp;
 
 namespace Uxcheckmate_Tests
 {
@@ -10,12 +14,16 @@ namespace Uxcheckmate_Tests
     public class ColorSchemeServiceTests
     {
         private ColorSchemeService _colorService;
-        private Mock<WebScraperService> _mockWebScraperService;
+        private Mock<WebScraperService> _webScraperServiceMock;
+        private Mock<ILogger<ColorSchemeService>> _loggerMock;
+        private Mock<IScreenshotService> _screenshotServiceMock;
         [SetUp]
         public void Setup()
         {
-            _mockWebScraperService = new Mock<WebScraperService>(null);
-            _colorService = new ColorSchemeService(_mockWebScraperService.Object);
+            _webScraperServiceMock = new Mock<WebScraperService>(new HttpClient(), Mock.Of<ILogger<WebScraperService>>());
+            _loggerMock = new Mock<ILogger<ColorSchemeService>>();
+            _screenshotServiceMock = new Mock<IScreenshotService>();
+            _colorService = new ColorSchemeService(_webScraperServiceMock.Object, _loggerMock.Object, _screenshotServiceMock.Object);
         }
         [Test]
         public void MaxDifference_AreColorsSimilar_True()
@@ -559,6 +567,51 @@ namespace Uxcheckmate_Tests
             };
             var issues = _colorService.CheckLegibility(extractedData);
             Assert.That(issues, Does.Contain("Low contrast in <span>: #CCCCCC on #DDDDDD"));
+        }
+        [Test]
+        public void ExtractColorPixelsCorrectCounts(){
+            byte[] testImage = GenerateTestImage();
+            var result = _colorService.ExtractColorPixels(testImage);
+            Assert.That(result, Is.Not.Empty);
+            Assert.That(result.ContainsKey("#FF0000"), Is.True); // Red
+            Assert.That(result.ContainsKey("#00FF00"), Is.True); // Green
+        }
+        [Test]
+        public void CalculateColorProportionsFromPixelsProportions()
+        {
+            var colorCounts = new Dictionary<string, int>
+            {
+                { "#FF0000", 9800 }, // 98%
+                { "#00FF00", 200 }   // 2%
+            };
+            var result = _colorService.CalculateColorProportionsFromPixels(colorCounts);
+            Assert.That(result["#FF0000"], Is.EqualTo(98.0).Within(0.1));
+            Assert.That(result["#00FF00"], Is.EqualTo(2.0).Within(0.1));
+            Assert.That(result.ContainsKey("Other"), Is.False, "Other should not be present when only two colors exist.");
+        }
+        [Test]
+        public async Task AnalyzeWebsiteColorsFromScreenshotAsyncInvalidScreenshotError()
+        {
+            var screenshotServiceMock = new Mock<IScreenshotService>();
+            screenshotServiceMock.Setup(s => s.CaptureFullPageScreenshot(It.IsAny<string>())).ReturnsAsync(new byte[0]);
+            var result = _colorService.AnalyzeWebsiteColorsFromScreenshot(new byte[0]);
+            Assert.That(result.ContainsKey("colorProportions"), Is.True);
+            Assert.That((bool)result["isBalanced"], Is.False);
+        }
+        private byte[] GenerateTestImage()
+        {
+            using var bitmap = new SkiaSharp.SKBitmap(100, 100);
+            using var canvas = new SkiaSharp.SKCanvas(bitmap);
+            using var paint = new SkiaSharp.SKPaint();
+            // Red Part
+            paint.Color = new SkiaSharp.SKColor(255, 0, 0);
+            canvas.DrawRect(0, 0, 50, 100, paint);
+            // Green Part
+            paint.Color = new SkiaSharp.SKColor(0, 255, 0);
+            canvas.DrawRect(50, 0, 50, 100, paint);
+            using var image = SkiaSharp.SKImage.FromBitmap(bitmap);
+            using var data = image.Encode(SkiaSharp.SKEncodedImageFormat.Png, 100);
+            return data.ToArray();
         }
     }
 }

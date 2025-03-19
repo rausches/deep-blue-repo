@@ -417,3 +417,5 @@ FodyWeavers.xsd
 
 # JetBrains Rider
 *.sln.iml
+Uxcheckmate/BDD_Tests/features/UrlValidation.feature.cs
+Uxcheckmate/BDD_Tests/StepDefinitions/UrlValidationSteps.cs

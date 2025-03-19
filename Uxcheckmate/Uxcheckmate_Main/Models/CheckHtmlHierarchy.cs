@@ -16,14 +16,11 @@ namespace Uxcheckmate_Main.Models
         public CheckHtmlHierarchy()
         {
         }
-        public static async Task<CheckHtmlHierarchy> CreateFromUrlAsync(string url)
+        public static CheckHtmlHierarchy CreateFromHtml(string htmlContent)
         {
-            using (HttpClient client = new HttpClient())
-            {
-                string fetchedHtml = await client.GetStringAsync(url);
-                return new CheckHtmlHierarchy(fetchedHtml);
-            }
+            return new CheckHtmlHierarchy(htmlContent);
         }
+
         // Hold Header Info
         private class HeadingInfo
         {

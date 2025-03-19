@@ -9,6 +9,9 @@ using System.Net.Http;
 using Microsoft.Build.Framework;
 using QuestPDF;
 using QuestPDF.Infrastructure;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Uxcheckmate_Main.Areas.Identity.Data;
 
 namespace Uxcheckmate_Main;
 
@@ -28,6 +31,18 @@ public class Program
                     .UseSqlServer(builder.Configuration.GetConnectionString("DBConnection")));
 
 
+        // Auth DB
+        builder.Services.AddDbContext<AuthDbContext>(options =>
+                options.UseSqlServer(
+                    builder.Configuration.GetConnectionString("AuthDBConnection"),
+                    sqlServerOptions => sqlServerOptions.EnableRetryOnFailure()
+                ));
+        builder.Services.AddDefaultIdentity<IdentityUser>(options => 
+                options.SignIn.RequireConfirmedAccount = false)
+                .AddEntityFrameworkStores<AuthDbContext>();
+
+
+
             builder.Services.AddHttpClient<IOpenAiService, OpenAiService>((httpClient, services) =>
             {
                 string openAiUrl = "https://api.openai.com/v1/chat/completions";
@@ -44,14 +59,24 @@ public class Program
 
         // Add services to the container.
         builder.Services.AddControllersWithViews();
+        builder.Services.AddRazorPages();
 
         // Register HttpClient and WebScraperService
         builder.Services.AddHttpClient<WebScraperService>();
 
+        // Register ScreenshotService
+        builder.Services.AddScoped<IScreenshotService, ScreenshotService>();
+        builder.Services.AddScoped<ScreenshotService>();
+
+        // Register PlaywrightService
+        builder.Services.AddScoped<IPlaywrightService, PlaywrightService>();
+        builder.Services.AddScoped<PlaywrightService>();
+
         // Register Pa11yUrlBasedService and Pa11yService
         builder.Services.AddScoped<IAxeCoreService, AxeCoreService>();
-        builder.Services.AddScoped<Pa11yUrlBasedService>();
-        Console.WriteLine("Pa11yUrlBasedService registered");
+
+        // Register ScreenshotService
+        builder.Services.AddScoped<IScreenshotService, ScreenshotService>();
 
         builder.Services.AddScoped<PdfExportService>();
 
@@ -61,6 +86,7 @@ public class Program
         builder.Services.AddScoped<IHeadingHierarchyService, HeadingHierarchyService>();
         builder.Services.AddScoped<IColorSchemeService, ColorSchemeService>();
         builder.Services.AddScoped<IDynamicSizingService, DynamicSizingService>();
+        builder.Services.AddScoped<IViewRenderService, ViewRenderService>();
         builder.Services.AddHttpClient<IFaviconDetectionService, FaviconDetectionService>();
 
 
@@ -80,11 +106,14 @@ public class Program
         app.UseStaticFiles();  // Ensure static files (CSS, JS, images) are served
 
         app.UseRouting();
+        app.UseAuthentication();
         app.UseAuthorization();
         // Map default route
         app.MapControllerRoute(
             name: "default",
             pattern: "{controller=Home}/{action=Index}/{id?}");
+
+        app.MapRazorPages(); // For indentity
 
         app.Run();
     }

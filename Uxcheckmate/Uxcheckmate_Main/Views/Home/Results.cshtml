@@ -1,114 +1,95 @@
 @model Uxcheckmate_Main.Models.Report
-<h1 class="text-center">UXCheckmate Analysis Reports</h1>
+@{
+    var firstScreenshot  = TempData["firstScreenshot"] as string;
+}
+@*
+============================================================================================
+                        HEADER (Screenshot, URL, #of issues)
+============================================================================================
+*@
 
-
-
-<h2 class="text-center">UX Design Issues</h2>
-
-@if (Model.DesignIssues == null || !Model.DesignIssues.Any())
-{
-    <div class="alert alert-success">
-        <strong>No UX issues found! Your site looks great.</strong>
+<div class="container">
+    <div class="row headerRow">
+        <div class="col-md-6">
+            <img src="@firstScreenshot " alt="Screenshot of the given website" class="img-fluid" />
+        </div>
+        <div class="col-md-6">
+            @* Display the URL associated with the report *@
+            <h1 id="reportHeader">@Model.Url</h1>
+            @* Display the total number of issues found *@
+            <p id="totalIssues">Total Issues Found: @(@Model.DesignIssues.Count() + @Model.AccessibilityIssues.Count()) </p>
+        </div> 
     </div>
-}
-else
-{
-    <table class="table table-striped table-bordered">
-        <thead class="thead-dark">
-            <tr>
-                <th>Category</th>
-                <th>Issue</th>
-                <th>Severity</th>
-            </tr>
-        </thead>
-        <tbody>
-        @foreach (var issue in Model.DesignIssues)
-        {
-            <tr>
-                <td>@(issue.Category?.Name ?? "Uncategorized")</td>
-                <td>@issue.Message</td>
-                <td>
-                    @if (issue.Severity == 3)
-                    {
-                        <span class="badge bg-danger">High</span>
-                    }
-                    else if (issue.Severity == 2)
-                    {
-                        <span class="badge bg-warning">Medium</span>
-                    }
-                    else
-                    {
-                        <span class="badge bg-info">Low</span>
-                    }
-                </td>
-            </tr>
-        }
-        </tbody>
-    </table>
-}
 
-<h3>Accessibility Issues</h3>
-<p>Total Issues: @Model.AccessibilityIssues.Count()</p>
+<br>
 
-@if (Model.AccessibilityIssues == null || !Model.AccessibilityIssues.Any())
-{
-    <div class="alert alert-success">
-        <strong>No accessibility issues found!</strong>
+<div id="reportContainer">
+    <div class="row sortSelectRow">
+        <div class="col-md-8"></div>
+        <div class="col-md-4 sortSelectCol">
+            @* Dropdown for selecting sort order of the issues *@
+            <select id="sortSelect" class="form-select mb-4" data-report-id="@Model.Id">
+                <option value="category" selected="@(ViewBag.CurrentSort == "category")">Category</option>
+                <option value="severity-high-low" selected="@(ViewBag.CurrentSort == "severity-high-low")">Severity (High to Low)</option>
+                <option value="severity-low-high" selected="@(ViewBag.CurrentSort == "severity-low-high")">Severity (Low to High)</option>
+            </select>
+        </div>
     </div>
-}
-else
-{
-    <table class="table table-striped table-bordered">
-        <thead class="thead-dark">
-            <tr>
-                <th>Category</th>
-                <th>Issue</th>
-                <th>Details</th>
-                <th>Location</th>
-                <th>Severity</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var categoryGroup in Model.AccessibilityIssues
-                         .GroupBy(issue => issue.Category?.Name)
-                         .OrderBy(g => g.Key == "Other" ? 1 : 0)
-                         .ThenBy(g => g.Key))
+
+
+@*
+============================================================================================
+                                    Design Issues
+============================================================================================
+*@
+    <div class="row designRow">
+        <div class="report-section mb-5">
+            <h3 class="section-header mb-4">Design Issues</h3>
+            @if (Model.DesignIssues == null || !Model.DesignIssues.Any())
             {
-                @foreach (var issue in categoryGroup)
-                {
-                    <tr>
-                        <td>@issue.Category?.Name</td>
-                        <td>@issue.Message</td>
-                        <td>@issue.Details</td>
-                        <td class="locationColumn">@issue.Selector</td>
-                        <td>
-                            @if (issue.Severity == 4)
-                            {
-                                <span class="badge bg-danger">Critical</span>
-                            }
-                            else if (issue.Severity == 3)
-                            {
-                                <span class="badge bg-warning">Severe</span>
-                            }
-                            else if (issue.Severity == 2)
-                            {
-                                <span class="badge bg-info">Moderate</span>
-                            }
-                            else
-                            {
-                                <span class="badge bg-light text-dark">Low</span>
-                            }
-                        </td>
-                    </tr>
-                }
+                <div class="alert alert-success">
+                    <strong>No UX issues found! Your site looks great.</strong>
+                </div>
             }
-        </tbody>
-    </table>
-}
+            else
+            {
+                <div id="designIssuesContainer">
+                    @* Partial view rendering design issues *@
+                    @await Html.PartialAsync("_DesignIssuesPartial", Model.DesignIssues)
+                </div>
+            }
+        </div>
+    </div>
 
-<a asp-action="DownloadReport" asp-route-id="@Model.Id" class="btn btn-primary">
-    Download PDF Report
-</a>
+<br>
+
+@*
+============================================================================================
+                                Accessibility Issues
+============================================================================================
+*@
+    <div class="row accessiblityRow">
+        <div class="report-section mb-5">
+            <h3 class="section-header mb-4">Accessibility Issues</h3>
+            <div id="accessibilityIssuesContainer">
+                @* Partial view rendering accessibility issues *@
+                @await Html.PartialAsync("_AccessibilityIssuesPartial", Model.AccessibilityIssues)
+            </div>
+        </div>
+    </div>
+
+@*
+============================================================================================
+                                Print PDF
+============================================================================================
+*@
+
+    <a asp-action="DownloadReport" asp-route-id="@Model.Id" class="btn btn-primary">
+        Download PDF Report
+    </a>
+
+</div> @* End tag for #reportContainer *@
+</div> @*End tag for .container *@
 
 @section Scripts {
     <script src="~/js/reportResults.js"></script>
