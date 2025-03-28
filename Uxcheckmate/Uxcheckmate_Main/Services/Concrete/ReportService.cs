@@ -18,11 +18,11 @@ namespace Uxcheckmate_Main.Services
         private readonly IHeadingHierarchyService _headingHierarchyService;
         private readonly IColorSchemeService _colorSchemeService;
         private readonly IDynamicSizingService _dynamicSizingService;
-        private readonly ILogger<WebScraperService> _webScraperLogger;
+        private readonly IWebScraperService _scraperService;
         private readonly IScreenshotService _screenshotService;
         // private readonly IFaviconDetectionService _faviconDetectionService; // Commented out
 
-        public ReportService(HttpClient httpClient, ILogger<ReportService> logger, UxCheckmateDbContext context, IOpenAiService openAiService, IBrokenLinksService brokenLinksService, IHeadingHierarchyService headingHierarchyService, IColorSchemeService colorSchemeService, IDynamicSizingService dynamicSizingService, IScreenshotService screenshotService, ILogger<WebScraperService> webScraperLogger) /*, IFaviconDetectionService faviconDetectionService*/
+        public ReportService(HttpClient httpClient, ILogger<ReportService> logger, UxCheckmateDbContext context, IOpenAiService openAiService, IBrokenLinksService brokenLinksService, IHeadingHierarchyService headingHierarchyService, IColorSchemeService colorSchemeService, IDynamicSizingService dynamicSizingService, IScreenshotService screenshotService, IWebScraperService scraperService) /*, IFaviconDetectionService faviconDetectionService*/
         {
             _httpClient = httpClient;
             _dbContext = context;
@@ -33,7 +33,7 @@ namespace Uxcheckmate_Main.Services
             _colorSchemeService = colorSchemeService;
             _dynamicSizingService = dynamicSizingService;
             _screenshotService = screenshotService;
-            _webScraperLogger = webScraperLogger;
+            _scraperService = scraperService;
             // _faviconDetectionService = faviconDetectionService; // Commented out
         }
 
@@ -50,12 +50,8 @@ namespace Uxcheckmate_Main.Services
                 throw new ArgumentException("URL cannot be empty.", nameof(url));
             }
 
-            // Create instance of the web scraper
-            var scraper = new WebScraperService(_httpClient, _webScraperLogger);
-            _logger.LogDebug("Scraping content from URL: {Url}", url);
-
             // Call the scraper
-            var scrapedData = await scraper.ScrapeAsync(url);
+            var scrapedData = await _scraperService.ScrapeAsync(url);
             _logger.LogDebug("Scraping completed for URL: {Url}", url);
 
             // Get list of design categories
