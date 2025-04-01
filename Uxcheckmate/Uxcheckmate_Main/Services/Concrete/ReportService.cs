@@ -63,7 +63,7 @@ namespace Uxcheckmate_Main.Services
             // Take screenshot once to be used by multiple analyzers
             Task<byte[]> screenshotTask = _screenshotService?.CaptureFullPageScreenshot(url) ?? Task.FromResult(new byte[0]);
 
-            // Instantate Design Issue list
+            // Use ConcurrentBag for thread-safe collection of results
             var scanResults = new ConcurrentBag<DesignIssue>();
 
             // Run analysis for each category in parallel
@@ -124,107 +124,110 @@ namespace Uxcheckmate_Main.Services
         public async Task<string> RunCustomAnalysisAsync(string url, string categoryName, string categoryDescription, Dictionary<string, object> scrapedData, Task<byte[]> screenshotTask = null)
         {
             _logger.LogInformation("Running custom analysis for category: {CategoryName}", categoryName);
-            // If no screenshot was provided, capture it now
-            if (screenshotTask == null)
-            {
-                screenshotTask = _screenshotService?.CaptureFullPageScreenshot(url) ?? Task.FromResult(new byte[0]);
-            }
+
+            screenshotTask ??= _screenshotService?.CaptureFullPageScreenshot(url) ?? Task.FromResult(new byte[0]);
 
             switch (categoryName)
             {
                 case "Broken Links":
-                    _logger.LogDebug("Delegating Broken Links analysis for URL: {Url}", url);
                     return await _brokenLinksService.BrokenLinkAnalysis(url, scrapedData);
 
                 case "Visual Hierarchy":
-                    _logger.LogDebug("Delegating Visual Hierarchy analysis for URL: {Url}", url);
                     return await _headingHierarchyService.AnalyzeAsync(scrapedData);
+
                 case "Color Scheme":
-                    _logger.LogDebug("Delegating Color Scheme analysis for URL: {Url}", url);
                     return await _colorSchemeService.AnalyzeWebsiteColorsAsync(scrapedData, screenshotTask);
 
                 case "Mobile Responsiveness":
-                    _logger.LogDebug("Delegating Dynamic Sizing analysis for URL: {Url}", url);
-                    var hasDynamicSizing = _dynamicSizingService.HasDynamicSizing(scrapedData["htmlContent"].ToString());
-                // Add your custom analysis here:
-                // Example: case "Category Name":
-                    // return await _servicename.method(url, scrapeddata)
-                    if (!hasDynamicSizing)
-                    {
-                        string prompt = $"The website at {url} is missing dynamic sizing elements (e.g., media queries, viewport meta tag, flexbox/grid layout). Please provide a recommendation on how to implement dynamic sizing.";
-                        return await _openAiService.AnalyzeWithOpenAI(url, "Dynamic Sizing", "Check if the website has proper dynamic sizing elements", scrapedData);
-                    }
-                    else
-                    {
-                        _logger.LogDebug("Dynamic sizing elements are present. No recommendations needed.");
-                        return string.Empty;
-                    }
+                    return await AnalyzeDynamicSizingAsync(url, scrapedData);
 
                 case "Favicon":
-                    _logger.LogDebug("Checking for favicon on URL: {Url}", url);
-                    bool hasFavicon = scrapedData.ContainsKey("hasFavicon") && scrapedData["hasFavicon"] is bool value && value;
+                    return await AnalyzeFaviconAsync(url, scrapedData);
 
-                    if (!hasFavicon)
-                    {
-                        _logger.LogWarning("❌ No favicon detected for URL: {Url}", url);
-                        return "No favicon found on this website. Consider adding a favicon for better branding and user recognition.";
-                    }
-                    else
-                    {
-                        _logger.LogInformation("✅ Favicon detected for URL: {Url}", url);
-                        return string.Empty;
-                    }
                 case "Font Legibility":
-                    if (scrapedData.TryGetValue("fonts", out var fontsObj) && fontsObj is List<string> fontsUsed)
-                    {
-                        _logger.LogInformation("Extracted fonts: {@Fonts}", fontsUsed); // Log extracted fonts
-
-                        // Normalize both lists to lowercase for case-insensitive comparison
-                        var illegibleFontsNormalized = FontLegibilityModel.IllegibleFonts
-                            .Select(f => f.ToLowerInvariant().Trim())
-                            .ToList();
-
-                        var fontsUsedNormalized = fontsUsed
-                            .Select(f => f.ToLowerInvariant().Trim().Trim('"'))
-                            .ToList();
-
-                        _logger.LogInformation("Normalized Illegible Fonts: {@IllegibleFonts}", illegibleFontsNormalized);
-                        _logger.LogInformation("Normalized Extracted Fonts: {@FontsUsed}", fontsUsedNormalized);
-
-                        // Debug log: Check EXACTLY what's in both lists
-                        _logger.LogInformation("Comparing extracted fonts with illegible fonts...");
-
-                        foreach (var font in fontsUsedNormalized)
-                        {
-                            if (illegibleFontsNormalized.Contains(font))
-                            {
-                                _logger.LogInformation("Match found: {Font} is illegible!", font);
-                            }
-                        }
-
-                        var illegibleFontsFound = fontsUsedNormalized.Intersect(illegibleFontsNormalized).ToList();
-
-                        if (illegibleFontsFound.Any())
-                        {
-                            string issueMessage = $"The following fonts are considered illegible: {string.Join(", ", illegibleFontsFound)}. Consider using more readable fonts for better accessibility.";
-                            _logger.LogInformation("Issue detected: {IssueMessage}", issueMessage);
-                            return issueMessage;
-                        }
-                        else
-                        {
-                            _logger.LogInformation("✅ No illegible fonts detected for URL: {Url}", url);
-                            return string.Empty;
-                        }
-                    }
-                    else
-                    {
-                        _logger.LogWarning("❌ Font extraction failed or no fonts found for URL: {Url}", url);
-                        return "No fonts were detected on this website. Ensure that text elements specify a font-family.";
-                    }
+                    return await AnalyzeFontLegibilityAsync(url, scrapedData);
 
                 default:
                     _logger.LogDebug("No custom analysis implemented for category: {CategoryName}", categoryName);
                     return string.Empty;
+            }
+        }
+
+        private async Task<string> AnalyzeDynamicSizingAsync(string url, Dictionary<string, object> scrapedData)
+        {
+            bool hasDynamicSizing = _dynamicSizingService.HasDynamicSizing(scrapedData["htmlContent"].ToString());
+
+            if (!hasDynamicSizing)
+            {
+                string prompt = $"The website at {url} is missing dynamic sizing elements (e.g., media queries, viewport meta tag, flexbox/grid layout). Please provide a recommendation on how to implement dynamic sizing.";
+                return await _openAiService.AnalyzeWithOpenAI(url, "Dynamic Sizing", prompt, scrapedData);
+            }
+
+            _logger.LogDebug("Dynamic sizing elements are present. No recommendations needed.");
+            return string.Empty;
+        }
+
+        private async Task<string> AnalyzeFaviconAsync(string url, Dictionary<string, object> scrapedData)
+        {
+            bool hasFavicon = scrapedData.TryGetValue("hasFavicon", out var hasFaviconObj) && hasFaviconObj is bool value && value;
+
+            if (!hasFavicon)
+            {
+                _logger.LogWarning("❌ No favicon detected for URL: {Url}", url);
+                return "No favicon found on this website. Consider adding a favicon for better branding and user recognition.";
+            }
+
+            _logger.LogInformation("✅ Favicon detected for URL: {Url}", url);
+            return string.Empty;
+        }
+
+        private async Task<string> AnalyzeFontLegibilityAsync(string url, Dictionary<string, object> scrapedData)
+        {
+            if (scrapedData.TryGetValue("fonts", out var fontsObj) && fontsObj is List<string> fontsUsed)
+            {
+                _logger.LogInformation("Extracted fonts: {@Fonts}", fontsUsed); // Log extracted fonts
+
+                // Normalize both lists to lowercase for case-insensitive comparison
+                var illegibleFontsNormalized = FontLegibilityModel.IllegibleFonts
+                    .Select(f => f.ToLowerInvariant().Trim())
+                    .ToList();
+
+                var fontsUsedNormalized = fontsUsed
+                    .Select(f => f.ToLowerInvariant().Trim().Trim('"'))
+                    .ToList();
+
+                _logger.LogInformation("Normalized Illegible Fonts: {@IllegibleFonts}", illegibleFontsNormalized);
+                _logger.LogInformation("Normalized Extracted Fonts: {@FontsUsed}", fontsUsedNormalized);
+
+                // Debug log: Check EXACTLY what's in both lists
+                _logger.LogInformation("Comparing extracted fonts with illegible fonts...");
+
+                foreach (var font in fontsUsedNormalized)
+                {
+                    if (illegibleFontsNormalized.Contains(font))
+                    {
+                        _logger.LogInformation("Match found: {Font} is illegible!", font);
+                    }
+                }
+
+                var illegibleFontsFound = fontsUsedNormalized.Intersect(illegibleFontsNormalized).ToList();
+
+                if (illegibleFontsFound.Any())
+                {
+                    string issueMessage = $"The following fonts are considered illegible: {string.Join(", ", illegibleFontsFound)}. Consider using more readable fonts for better accessibility.";
+                    _logger.LogInformation("Issue detected: {IssueMessage}", issueMessage);
+                    return issueMessage;
+                }
+                else
+                {
+                    _logger.LogInformation("✅ No illegible fonts detected for URL: {Url}", url);
+                    return string.Empty;
+                }
+            }
+            else
+            {
+                _logger.LogWarning("❌ Font extraction failed or no fonts found for URL: {Url}", url);
+                return "No fonts were detected on this website. Ensure that text elements specify a font-family.";
             }
         }
 
