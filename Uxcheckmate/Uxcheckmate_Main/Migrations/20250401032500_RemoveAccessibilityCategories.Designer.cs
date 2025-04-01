@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Uxcheckmate_Main.Models;
 
@@ -11,9 +12,11 @@ using Uxcheckmate_Main.Models;
 namespace Uxcheckmate_Main.Migrations
 {
     [DbContext(typeof(UxCheckmateDbContext))]
-    partial class UxCheckmateDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250401032500_RemoveAccessibilityCategories")]
+    partial class RemoveAccessibilityCategories
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -47,68 +50,6 @@ namespace Uxcheckmate_Main.Migrations
                         .HasName("PK__Accessib__3214EC274D88B479");
 
                     b.ToTable("AccessibilityCategory");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            Description = "Issues related to color contrast and visual accessibility.",
-                            Name = "Color & Contrast"
-                        },
-                        new
-                        {
-                            Id = 2,
-                            Description = "Problems with keyboard navigation and focus management.",
-                            Name = "Keyboard & Focus"
-                        },
-                        new
-                        {
-                            Id = 3,
-                            Description = "Issues with headings, ARIA landmarks, and document structure.",
-                            Name = "Page Structure & Landmarks"
-                        },
-                        new
-                        {
-                            Id = 4,
-                            Description = "Issues with forms, labels, and input fields.",
-                            Name = "Forms & Inputs"
-                        },
-                        new
-                        {
-                            Id = 5,
-                            Description = "Problems with links, buttons, and interactive elements.",
-                            Name = "Link & Buttons"
-                        },
-                        new
-                        {
-                            Id = 6,
-                            Description = "Issues related to videos, audio, images, and animations.",
-                            Name = "Multimedia & Animations"
-                        },
-                        new
-                        {
-                            Id = 7,
-                            Description = "Problems with session timeouts, auto-refreshing pages, and dynamic content updates.",
-                            Name = "Timeouts & Auto-Refresh"
-                        },
-                        new
-                        {
-                            Id = 8,
-                            Description = "Issues related to animations, scrolling, and movement.",
-                            Name = "Motion & Interaction"
-                        },
-                        new
-                        {
-                            Id = 9,
-                            Description = "Issues with incorrect or missing ARIA roles and attributes.",
-                            Name = "ARIA & Semantic HTML"
-                        },
-                        new
-                        {
-                            Id = 10,
-                            Description = "Unknown or experimental WCAG violations",
-                            Name = "Other"
-                        });
                 });
 
             modelBuilder.Entity("Uxcheckmate_Main.Models.AccessibilityIssue", b =>

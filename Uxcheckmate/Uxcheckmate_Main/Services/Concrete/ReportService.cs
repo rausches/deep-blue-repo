@@ -5,6 +5,8 @@ using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
 using Microsoft.EntityFrameworkCore;
 using Uxcheckmate_Main.Models;
+using System.Collections.Concurrent;
+using System.Threading.Tasks;
 
 namespace Uxcheckmate_Main.Services
 {
@@ -58,53 +60,75 @@ namespace Uxcheckmate_Main.Services
             var designCategories = await _dbContext.DesignCategories.ToListAsync();
             _logger.LogInformation("Found {Count} design categories.", designCategories.Count);
 
+            // Take screenshot once to be used by multiple analyzers
+            Task<byte[]> screenshotTask = _screenshotService?.CaptureFullPageScreenshot(url) ?? Task.FromResult(new byte[0]);
+
             // Instantate Design Issue list
-            var scanResults = new List<DesignIssue>();
+            var scanResults = new ConcurrentBag<DesignIssue>();
 
-            // For each category call service based on category scan method
-            foreach (var category in designCategories)
-            {
-                _logger.LogInformation("Analyzing category: {CategoryName} using scan method: {ScanMethod}", category.Name, category.ScanMethod);
-
-                string message = category.ScanMethod switch
+            // Run analysis for each category in parallel
+            await Parallel.ForEachAsync(
+                designCategories,
+                new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount * 2 },
+                async (category, cancellationToken) =>
                 {
-                    "OpenAI" => await _openAiService.AnalyzeWithOpenAI(url, category.Name, category.Description, scrapedData),
-                    "Custom" => await RunCustomAnalysisAsync(url, category.Name, category.Description, scrapedData),
-                    _ => ""
-                };
+                    _logger.LogInformation("Analyzing category: {CategoryName} using scan method: {ScanMethod}", category.Name, category.ScanMethod);
 
-                // Connect service response to dbset attributes
-                if (!string.IsNullOrEmpty(message))
-                {
-                    var designIssue = new DesignIssue
+                    string message;
+                    try
                     {
-                        CategoryId = category.Id,
-                        ReportId = report.Id,
-                        Message = message,
-                        Severity = DetermineSeverity(message)
-                    };
+                        message = category.ScanMethod switch
+                        {
+                            "OpenAI" => await _openAiService.AnalyzeWithOpenAI(url, category.Name, category.Description, scrapedData),
+                            "Custom" => await RunCustomAnalysisAsync(url, category.Name, category.Description, scrapedData, screenshotTask),
+                            _ => ""
+                        };
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Error analyzing category {CategoryName}: {ErrorMessage}", category.Name, ex.Message);
+                        message = "";
+                    }
 
-                    _dbContext.DesignIssues.Add(designIssue);
-                    scanResults.Add(designIssue);
-                    _logger.LogInformation("Design issue added for category {CategoryName} with severity {Severity}.", category.Name, designIssue.Severity);
-                }
-                else
-                {
-                    _logger.LogInformation("No issues found for category: {CategoryName}", category.Name);
-                }
-            }
+                    // Connect service response to dbset attributes
+                    if (!string.IsNullOrEmpty(message))
+                    {
+                        var designIssue = new DesignIssue
+                        {
+                            CategoryId = category.Id,
+                            ReportId = report.Id,
+                            Message = message,
+                            Severity = DetermineSeverity(message)
+                        };
+
+                        // Add to results collection
+                        scanResults.Add(designIssue);
+                        _logger.LogInformation("Design issue added for category {CategoryName} with severity {Severity}.", category.Name, designIssue.Severity);
+                    }
+                    else
+                    {
+                        _logger.LogInformation("No issues found for category: {CategoryName}", category.Name);
+                    }
+                });
+
+            // Add all design issues to the context
+            _dbContext.DesignIssues.AddRange(scanResults);
 
             // Save to database
             await _dbContext.SaveChangesAsync();
 
             // Return report
-            return scanResults;
+            return scanResults.ToList();
         }
 
-        public async Task<string> RunCustomAnalysisAsync(string url, string categoryName, string categoryDescription, Dictionary<string, object> scrapedData)
+        public async Task<string> RunCustomAnalysisAsync(string url, string categoryName, string categoryDescription, Dictionary<string, object> scrapedData, Task<byte[]> screenshotTask = null)
         {
             _logger.LogInformation("Running custom analysis for category: {CategoryName}", categoryName);
-            Task<byte[]> screenshotTask = _screenshotService?.CaptureFullPageScreenshot(url) ?? Task.FromResult(new byte[0]); // Full site screenshot for anaylsis
+            // If no screenshot was provided, capture it now
+            if (screenshotTask == null)
+            {
+                screenshotTask = _screenshotService?.CaptureFullPageScreenshot(url) ?? Task.FromResult(new byte[0]);
+            }
 
             switch (categoryName)
             {
