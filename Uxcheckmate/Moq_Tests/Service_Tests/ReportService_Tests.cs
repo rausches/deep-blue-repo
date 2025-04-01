@@ -17,7 +17,7 @@ namespace Service_Tests
         private Mock<IOpenAiService> _openAiServiceMock; 
         private Mock<IColorSchemeService> _colorSchemeServiceMock; 
         private UxCheckmateDbContext _context; 
-        private readonly ILogger<WebScraperService> webScraperLogger; 
+        private Mock<IWebScraperService> _webScraperServiceMock;
         private Mock<IScreenshotService> _screenshotServiceMock;
 
         [SetUp]
@@ -45,6 +45,7 @@ namespace Service_Tests
             _openAiServiceMock = new Mock<IOpenAiService>();
             _colorSchemeServiceMock = new Mock<IColorSchemeService>();
             _screenshotServiceMock = new Mock<IScreenshotService>();
+            _webScraperServiceMock = new Mock<IWebScraperService>();
 
             // Instantiate the ReportService with mocked dependencies
             _reportService = new ReportService(
@@ -57,7 +58,7 @@ namespace Service_Tests
                 _colorSchemeServiceMock.Object, 
                 Mock.Of<IDynamicSizingService>(), 
                 _screenshotServiceMock.Object,
-                webScraperLogger
+                _webScraperServiceMock.Object
             );
         }
 
@@ -157,7 +158,7 @@ namespace Service_Tests
                 Mock.Of<IColorSchemeService>(),
                 Mock.Of<IDynamicSizingService>(),
                 _screenshotServiceMock.Object,
-                webScraperLoggerMock
+                Mock.Of<IWebScraperService>()
             );
 
             var report = new Report { Url = "https://example.com" }; // Create a report with a sample URL

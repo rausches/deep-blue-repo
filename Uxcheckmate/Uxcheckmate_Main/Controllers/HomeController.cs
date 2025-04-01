@@ -46,7 +46,7 @@ public class HomeController : Controller
         return View();
     }
 
-[HttpPost]
+    [HttpPost]
     public async Task<IActionResult> Report(string url, string sortOrder = "category", bool isAjax = false)
     {
         if (string.IsNullOrEmpty(url))
