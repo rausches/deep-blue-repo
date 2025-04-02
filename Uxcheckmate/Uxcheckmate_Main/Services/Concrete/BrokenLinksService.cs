@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.ComponentModel;
 using System.Net;
 using System.Text;
@@ -20,7 +21,6 @@ namespace Uxcheckmate_Main.Services
             _httpClient = httpClient;
             _logger = logger;
         }
-
         public async Task<string> BrokenLinkAnalysis(string url, Dictionary<string, object> scrapedData)
         {
             _logger.LogInformation("Starting broken link analysis for URL: {Url}", url);
@@ -55,7 +55,6 @@ namespace Uxcheckmate_Main.Services
                 return string.Empty;
             }
         }
-
         private string MakeAbsoluteUrl(string baseUrl, string relativeUrl)
         {
             if (Uri.TryCreate(baseUrl, UriKind.Absolute, out Uri baseUri) &&
@@ -67,51 +66,48 @@ namespace Uxcheckmate_Main.Services
             _logger.LogWarning("Failed to convert relative URL '{RelativeUrl}' using base URL '{BaseUrl}'", relativeUrl, baseUrl);
             return relativeUrl; // Return as is if conversion fails.
         }
-
         public async Task<List<string>> CheckBrokenLinksAsync(List<string> links)
         {
-            var brokenLinks = new List<string>();
+            var brokenLinks = new ConcurrentBag<string>();
 
-            foreach (var link in links)
+            // Process links concurrently with a limit of 10 parallel tasks
+            await Parallel.ForEachAsync(links, new ParallelOptions { MaxDegreeOfParallelism = 10 }, async (link, ct) =>
             {
-                // Skip URLs with unsupported schemes ("mailto").
+                // Skip links that are not valid HTTP/HTTPS URLs
                 if (!Uri.TryCreate(link, UriKind.Absolute, out Uri uriResult) ||
                     (uriResult.Scheme != Uri.UriSchemeHttp && uriResult.Scheme != Uri.UriSchemeHttps))
                 {
                     _logger.LogDebug("Skipping unsupported URL: {Link}", link);
-                    continue;
+                    return;
                 }
 
                 try
                 {
                     _logger.LogDebug("Checking URL: {Link}", link);
-                    var response = await _httpClient.GetAsync(link);
 
-                    // If the response is not successful, record the broken link.
-                    if (response.StatusCode == HttpStatusCode.OK)
+                    // Send a GET request to the link, using the cancellation token for safety
+                    var response = await _httpClient.GetAsync(link, ct);
+
+                    // If the status code is not 200 OK, consider it broken and record it
+                    if (response.StatusCode != HttpStatusCode.OK)
                     {
-                        // Good link, do nothing
-                    }
-                    else
-                    {
-                        // Just treat it as broken, log @ info-level message
                         _logger.LogInformation(
                             "Link {Link} returned status {StatusCode}. Marking as broken.",
                             link, response.StatusCode
                         );
                         brokenLinks.Add($"{link} (Status: {response.StatusCode})");
                     }
-
                 }
                 catch (Exception ex)
                 {
-                    // Log the exception and mark the link as broken.
+                    // Catch network or timeout exceptions and mark the link as broken
                     _logger.LogInformation(ex, "Exception occurred while checking link: {Link}", link);
                     brokenLinks.Add($"{link} (Exception: {ex.Message})");
                 }
-            }
+            });
 
-            return brokenLinks;
+            // Convert the thread-safe ConcurrentBag to a List and return it
+            return brokenLinks.ToList();
         }
     }
 }

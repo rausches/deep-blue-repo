@@ -43,7 +43,22 @@ public partial class UxCheckmateDbContext : DbContext
         {
             entity.HasKey(e => e.Id).HasName("PK__Accessib__3214EC274D88B479");
         });
+        // Seeding AccessibilityCategory
+        modelBuilder.Entity<AccessibilityCategory>().HasData(
+        new AccessibilityCategory { Id = 1, Name = "Color & Contrast", Description = "Issues related to color contrast and visual accessibility." },
+        new AccessibilityCategory { Id = 2, Name = "Keyboard & Focus", Description = "Problems with keyboard navigation and focus management." },
+        new AccessibilityCategory { Id = 3, Name = "Page Structure & Landmarks", Description = "Issues with headings, ARIA landmarks, and document structure." },
+        new AccessibilityCategory { Id = 4, Name = "Forms & Inputs", Description = "Issues with forms, labels, and input fields." },
+        new AccessibilityCategory { Id = 5, Name = "Link & Buttons", Description = "Problems with links, buttons, and interactive elements." },
+        new AccessibilityCategory { Id = 6, Name = "Multimedia & Animations", Description = "Issues related to videos, audio, images, and animations." },
+        new AccessibilityCategory { Id = 7, Name = "Timeouts & Auto-Refresh", Description = "Problems with session timeouts, auto-refreshing pages, and dynamic content updates." },
+        new AccessibilityCategory { Id = 8, Name = "Motion & Interaction", Description = "Issues related to animations, scrolling, and movement." },
+        new AccessibilityCategory { Id = 9, Name = "ARIA & Semantic HTML", Description = "Issues with incorrect or missing ARIA roles and attributes." },
+        new AccessibilityCategory { Id = 10, Name = "Other", Description = "Unknown or experimental WCAG violations" }
+        );
 
+        OnModelCreatingPartial(modelBuilder);
+        
         modelBuilder.Entity<AccessibilityIssue>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("PK__Accessib__3214EC2759D39646");

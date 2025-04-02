@@ -8,7 +8,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Uxcheckmate_Main.Services
 {
-    public class WebScraperService
+    public class WebScraperService : IWebScraperService
     {
         private readonly HttpClient _httpClient;
         private readonly ILogger<WebScraperService> _logger;

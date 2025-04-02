@@ -10,7 +10,7 @@ CREATE TABLE [Report] (
 CREATE TABLE [AccessibilityCategory] (
     [ID] INT IDENTITY(1,1),
     [Name] VARCHAR(128) NOT NULL,
-    [Description] TEXT,
+    [Description] VARCHAR(MAX),
     PRIMARY KEY([ID])
 );
 
@@ -18,8 +18,10 @@ CREATE TABLE [AccessibilityIssue] (
     [ID] INT IDENTITY(1,1),
     [CategoryID] INT NOT NULL,
     [ReportID] INT NOT NULL,
-    [Message] TEXT NOT NULL,
-    [Selector] VARCHAR(128) NOT NULL,
+    [Message] VARCHAR(MAX) NOT NULL,
+    [Details] VARCHAR(MAX) NOT NULL,
+    [Selector] VARCHAR(MAX) NOT NULL,
+    [WCAG] VARCHAR(MAX) NOT NULL,
     [Severity] INT NOT NULL,
     PRIMARY KEY([ID]),
     CONSTRAINT FK_AccessibilityIssue_CategoryID FOREIGN KEY ([CategoryID]) REFERENCES [AccessibilityCategory]([ID]) ON DELETE CASCADE,
@@ -29,7 +31,8 @@ CREATE TABLE [AccessibilityIssue] (
 CREATE TABLE [DesignCategory] (
     [ID] INT IDENTITY(1,1),
     [Name] VARCHAR(128) NOT NULL,
-    [Description] TEXT,
+    [Description] VARCHAR(MAX),
+    [ScanMethod] VARCHAR(128),
     PRIMARY KEY([ID])
 );
 
@@ -37,7 +40,7 @@ CREATE TABLE [DesignIssue] (
     [ID] INT IDENTITY(1,1),
     [CategoryID] INT NOT NULL,
     [ReportID] INT NOT NULL,
-    [Message] TEXT NOT NULL,
+    [Message] VARCHAR(MAX) NOT NULL,
     [Severity] INT NOT NULL,
     PRIMARY KEY([ID]),
     CONSTRAINT FK_DesignIssue_CategoryID FOREIGN KEY ([CategoryID]) REFERENCES [DesignCategory]([ID]) ON DELETE CASCADE,
