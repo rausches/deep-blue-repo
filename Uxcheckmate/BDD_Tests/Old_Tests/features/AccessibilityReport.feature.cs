@@ -10,7 +10,7 @@
 // ------------------------------------------------------------------------------
 #region Designer generated code
 #pragma warning disable
-namespace BDD_Tests.Features
+namespace BDD_Tests.Old_Tests.Features
 {
     using Reqnroll;
     using System;
@@ -20,19 +20,18 @@ namespace BDD_Tests.Features
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Reqnroll", "2.0.0.0")]
     [System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     [NUnit.Framework.TestFixtureAttribute()]
-    [NUnit.Framework.DescriptionAttribute("Validate web-scraping.dev/products URL")]
+    [NUnit.Framework.DescriptionAttribute("Checks for accessibility")]
     [NUnit.Framework.FixtureLifeCycleAttribute(NUnit.Framework.LifeCycle.InstancePerTestCase)]
-    public partial class ValidateWeb_Scraping_DevProductsURLFeature
+    public partial class ChecksForAccessibilityFeature
     {
         
         private global::Reqnroll.ITestRunner testRunner;
         
         private static string[] featureTags = ((string[])(null));
         
-        private static global::Reqnroll.FeatureInfo featureInfo = new global::Reqnroll.FeatureInfo(new System.Globalization.CultureInfo("en-US"), "features", "Validate web-scraping.dev/products URL", "  As a user, I want to validate that the Report method correctly processes the UR" +
-                "L \'https://web-scraping.dev/products\'", global::Reqnroll.ProgrammingLanguage.CSharp, featureTags);
+        private static global::Reqnroll.FeatureInfo featureInfo = new global::Reqnroll.FeatureInfo(new System.Globalization.CultureInfo("en-US"), "Old_Tests/features", "Checks for accessibility", "    As a user, I want to see a report that is easy to read and follow.", global::Reqnroll.ProgrammingLanguage.CSharp, featureTags);
         
-#line 1 "UrlValidation.feature"
+#line 1 "AccessibilityReport.feature"
 #line hidden
         
         [NUnit.Framework.OneTimeSetUpAttribute()]
@@ -84,14 +83,14 @@ namespace BDD_Tests.Features
         }
         
         [NUnit.Framework.TestAttribute()]
-        [NUnit.Framework.DescriptionAttribute("User submits the web-scraping.dev/products URL")]
-        public async System.Threading.Tasks.Task UserSubmitsTheWeb_Scraping_DevProductsURL()
+        [NUnit.Framework.DescriptionAttribute("User\'s site has an image with a missing alt tag")]
+        public async System.Threading.Tasks.Task UsersSiteHasAnImageWithAMissingAltTag()
         {
             string[] tagsOfScenario = ((string[])(null));
             System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
-            global::Reqnroll.ScenarioInfo scenarioInfo = new global::Reqnroll.ScenarioInfo("User submits the web-scraping.dev/products URL", null, tagsOfScenario, argumentsOfScenario, featureTags);
+            global::Reqnroll.ScenarioInfo scenarioInfo = new global::Reqnroll.ScenarioInfo("User\'s site has an image with a missing alt tag", null, tagsOfScenario, argumentsOfScenario, featureTags);
 #line 4
-  this.ScenarioInitialize(scenarioInfo);
+this.ScenarioInitialize(scenarioInfo);
 #line hidden
             if ((global::Reqnroll.TagHelper.ContainsIgnoreTag(scenarioInfo.CombinedTags) || global::Reqnroll.TagHelper.ContainsIgnoreTag(featureTags)))
             {
@@ -101,13 +100,25 @@ namespace BDD_Tests.Features
             {
                 await this.ScenarioStartAsync();
 #line 5
-    await testRunner.GivenAsync("the user provides the URL \"https://web-scraping.dev/products\"", ((string)(null)), ((global::Reqnroll.Table)(null)), "Given ");
+await testRunner.GivenAsync("David has submitted his site for a scan", ((string)(null)), ((global::Reqnroll.Table)(null)), "Given ");
 #line hidden
 #line 6
-    await testRunner.WhenAsync("the Report method processes the URL", ((string)(null)), ((global::Reqnroll.Table)(null)), "When ");
+await testRunner.AndAsync("one of the images on the site is missing and alt-tag", ((string)(null)), ((global::Reqnroll.Table)(null)), "And ");
 #line hidden
 #line 7
-    await testRunner.ThenAsync("the result should be a ViewResult", ((string)(null)), ((global::Reqnroll.Table)(null)), "Then ");
+await testRunner.AndAsync("his report loads", ((string)(null)), ((global::Reqnroll.Table)(null)), "And ");
+#line hidden
+#line 8
+await testRunner.ThenAsync("he will see a header for Accessibility Recommendations", ((string)(null)), ((global::Reqnroll.Table)(null)), "Then ");
+#line hidden
+#line 9
+await testRunner.ThenAsync("he will see a subheader for Image Alt Tags", ((string)(null)), ((global::Reqnroll.Table)(null)), "Then ");
+#line hidden
+#line 10
+await testRunner.ThenAsync("he will see the line of html where the image is", ((string)(null)), ((global::Reqnroll.Table)(null)), "Then ");
+#line hidden
+#line 11
+await testRunner.ThenAsync("he will see a recommendation that says “This image is missing an alt-text tag.”", ((string)(null)), ((global::Reqnroll.Table)(null)), "Then ");
 #line hidden
             }
             await this.ScenarioCleanupAsync();

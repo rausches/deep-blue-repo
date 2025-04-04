@@ -5,7 +5,7 @@ using Moq;
 using NUnit.Framework;
 using Uxcheckmate_Main.Services;
 
-namespace Uxcheckmate_Main.Tests
+namespace Service_Tests
 {
     [TestFixture]
     public class PlaywrightServiceTests

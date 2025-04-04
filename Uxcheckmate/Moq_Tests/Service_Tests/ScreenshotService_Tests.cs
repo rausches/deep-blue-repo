@@ -6,7 +6,7 @@ using Uxcheckmate_Main.Services;
 using Microsoft.Playwright;
 using NUnit.Framework;
 
-namespace Uxcheckmate_Main.Tests
+namespace Service_Tests
 {
     public class ScreenshotServiceTests
     {

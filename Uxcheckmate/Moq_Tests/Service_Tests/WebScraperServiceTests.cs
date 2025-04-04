@@ -5,7 +5,7 @@ using Uxcheckmate_Main.Services;
 using Microsoft.Extensions.Logging;
 using Moq;
 
-namespace Nunit_Tests
+namespace Service_Tests
 {
     [TestFixture]
     public class WebScraperServiceLiveTests

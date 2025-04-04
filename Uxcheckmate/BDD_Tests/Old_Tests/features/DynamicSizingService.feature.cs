@@ -10,7 +10,7 @@
 // ------------------------------------------------------------------------------
 #region Designer generated code
 #pragma warning disable
-namespace BDD_Tests.Features
+namespace BDD_Tests.Old_Tests.Features
 {
     using Reqnroll;
     using System;
@@ -20,19 +20,18 @@ namespace BDD_Tests.Features
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Reqnroll", "2.0.0.0")]
     [System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     [NUnit.Framework.TestFixtureAttribute()]
-    [NUnit.Framework.DescriptionAttribute("Accessibility Report Generation")]
+    [NUnit.Framework.DescriptionAttribute("Dynamic Sizing in HTML")]
     [NUnit.Framework.FixtureLifeCycleAttribute(NUnit.Framework.LifeCycle.InstancePerTestCase)]
-    public partial class AccessibilityReportGenerationFeature
+    public partial class DynamicSizingInHTMLFeature
     {
         
         private global::Reqnroll.ITestRunner testRunner;
         
         private static string[] featureTags = ((string[])(null));
         
-        private static global::Reqnroll.FeatureInfo featureInfo = new global::Reqnroll.FeatureInfo(new System.Globalization.CultureInfo("en-US"), "features", "Accessibility Report Generation", "  As a Web Developer (Sarah),\r\n  I want to submit my URL and receive an accessibi" +
-                "lity report,\r\n  So that I know if my site meets accessibility standards.", global::Reqnroll.ProgrammingLanguage.CSharp, featureTags);
+        private static global::Reqnroll.FeatureInfo featureInfo = new global::Reqnroll.FeatureInfo(new System.Globalization.CultureInfo("en-US"), "Old_Tests/features", "Dynamic Sizing in HTML", null, global::Reqnroll.ProgrammingLanguage.CSharp, featureTags);
         
-#line 1 "Pa11yAccessiblity.feature"
+#line 1 "DynamicSizingService.feature"
 #line hidden
         
         [NUnit.Framework.OneTimeSetUpAttribute()]
@@ -84,14 +83,14 @@ namespace BDD_Tests.Features
         }
         
         [NUnit.Framework.TestAttribute()]
-        [NUnit.Framework.DescriptionAttribute("Site has an image without an alt tag")]
-        public async System.Threading.Tasks.Task SiteHasAnImageWithoutAnAltTag()
+        [NUnit.Framework.DescriptionAttribute("HTML contains responsive elements")]
+        public async System.Threading.Tasks.Task HTMLContainsResponsiveElements()
         {
             string[] tagsOfScenario = ((string[])(null));
             System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
-            global::Reqnroll.ScenarioInfo scenarioInfo = new global::Reqnroll.ScenarioInfo("Site has an image without an alt tag", null, tagsOfScenario, argumentsOfScenario, featureTags);
-#line 6
-  this.ScenarioInitialize(scenarioInfo);
+            global::Reqnroll.ScenarioInfo scenarioInfo = new global::Reqnroll.ScenarioInfo("HTML contains responsive elements", null, tagsOfScenario, argumentsOfScenario, featureTags);
+#line 4
+this.ScenarioInitialize(scenarioInfo);
 #line hidden
             if ((global::Reqnroll.TagHelper.ContainsIgnoreTag(scenarioInfo.CombinedTags) || global::Reqnroll.TagHelper.ContainsIgnoreTag(featureTags)))
             {
@@ -100,31 +99,34 @@ namespace BDD_Tests.Features
             else
             {
                 await this.ScenarioStartAsync();
+#line 5
+await testRunner.GivenAsync("I am David", ((string)(null)), ((global::Reqnroll.Table)(null)), "Given ");
+#line hidden
+#line 6
+await testRunner.AndAsync("my site has no dynamic sizing elements", ((string)(null)), ((global::Reqnroll.Table)(null)), "And ");
+#line hidden
 #line 7
-    await testRunner.GivenAsync("Sarah submits her URL \"missingAlt\"", ((string)(null)), ((global::Reqnroll.Table)(null)), "Given ");
+await testRunner.WhenAsync("I enter the url of my site", ((string)(null)), ((global::Reqnroll.Table)(null)), "When ");
 #line hidden
 #line 8
-    await testRunner.AndAsync("the site contains an image without an alt tag", ((string)(null)), ((global::Reqnroll.Table)(null)), "And ");
+await testRunner.AndAsync("the report loads", ((string)(null)), ((global::Reqnroll.Table)(null)), "And ");
 #line hidden
 #line 9
-    await testRunner.WhenAsync("the accessibility report loads", ((string)(null)), ((global::Reqnroll.Table)(null)), "When ");
-#line hidden
-#line 10
-    await testRunner.ThenAsync("she sees an error for an image without an alt tag", ((string)(null)), ((global::Reqnroll.Table)(null)), "Then ");
+await testRunner.ThenAsync("the report should let me know I need to add dynamic sizing and why", ((string)(null)), ((global::Reqnroll.Table)(null)), "Then ");
 #line hidden
             }
             await this.ScenarioCleanupAsync();
         }
         
         [NUnit.Framework.TestAttribute()]
-        [NUnit.Framework.DescriptionAttribute("Site has no accessibility errors")]
-        public async System.Threading.Tasks.Task SiteHasNoAccessibilityErrors()
+        [NUnit.Framework.DescriptionAttribute("HTML does not contain responsive elements")]
+        public async System.Threading.Tasks.Task HTMLDoesNotContainResponsiveElements()
         {
             string[] tagsOfScenario = ((string[])(null));
             System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
-            global::Reqnroll.ScenarioInfo scenarioInfo = new global::Reqnroll.ScenarioInfo("Site has no accessibility errors", null, tagsOfScenario, argumentsOfScenario, featureTags);
+            global::Reqnroll.ScenarioInfo scenarioInfo = new global::Reqnroll.ScenarioInfo("HTML does not contain responsive elements", null, tagsOfScenario, argumentsOfScenario, featureTags);
 #line 12
-  this.ScenarioInitialize(scenarioInfo);
+this.ScenarioInitialize(scenarioInfo);
 #line hidden
             if ((global::Reqnroll.TagHelper.ContainsIgnoreTag(scenarioInfo.CombinedTags) || global::Reqnroll.TagHelper.ContainsIgnoreTag(featureTags)))
             {
@@ -134,16 +136,19 @@ namespace BDD_Tests.Features
             {
                 await this.ScenarioStartAsync();
 #line 13
-    await testRunner.GivenAsync("Sarah submits her URL \"perfectSite\"", ((string)(null)), ((global::Reqnroll.Table)(null)), "Given ");
+await testRunner.GivenAsync("I am Priya", ((string)(null)), ((global::Reqnroll.Table)(null)), "Given ");
 #line hidden
 #line 14
-    await testRunner.AndAsync("the site has no accessibility issues", ((string)(null)), ((global::Reqnroll.Table)(null)), "And ");
+await testRunner.AndAsync("my site has proper dynamic sizing elements", ((string)(null)), ((global::Reqnroll.Table)(null)), "And ");
 #line hidden
 #line 15
-    await testRunner.WhenAsync("the accessibility report loads", ((string)(null)), ((global::Reqnroll.Table)(null)), "When ");
+await testRunner.WhenAsync("I enter the url of my site", ((string)(null)), ((global::Reqnroll.Table)(null)), "When ");
 #line hidden
 #line 16
-    await testRunner.ThenAsync("she sees a message that there were no errors found", ((string)(null)), ((global::Reqnroll.Table)(null)), "Then ");
+await testRunner.AndAsync("the report loads", ((string)(null)), ((global::Reqnroll.Table)(null)), "And ");
+#line hidden
+#line 17
+await testRunner.ThenAsync("the report should not tell me that it may look bad on a phone", ((string)(null)), ((global::Reqnroll.Table)(null)), "Then ");
 #line hidden
             }
             await this.ScenarioCleanupAsync();

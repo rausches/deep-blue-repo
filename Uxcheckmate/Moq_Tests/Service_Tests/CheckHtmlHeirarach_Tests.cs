@@ -2,7 +2,7 @@ using NUnit.Framework;
 using Uxcheckmate_Main.Models;
 using System.Collections.Generic;
 
-namespace Nunit_Tests
+namespace Service_Tests
 {
     public class CheckHtmlHierarchy_Tests
     {
