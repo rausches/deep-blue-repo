@@ -28,8 +28,8 @@ public class Program
 
         builder.Services.AddDbContext<UxCheckmateDbContext>(options =>
                 options.UseLazyLoadingProxies()
-                    .UseSqlServer(builder.Configuration.GetConnectionString("DBConnection")));
-
+                    .UseSqlServer(builder.Configuration.GetConnectionString("DBConnection"),
+                    sqlOptions => sqlOptions.EnableRetryOnFailure()));
 
         // Auth DB
         builder.Services.AddDbContext<AuthDbContext>(options =>
