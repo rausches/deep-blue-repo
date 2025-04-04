@@ -8,7 +8,7 @@ using Moq;
 using Microsoft.Extensions.Logging;
 using SkiaSharp;
 
-namespace Uxcheckmate_Tests
+namespace Service_Tests
 {
     [TestFixture]
     public class ColorSchemeServiceTests

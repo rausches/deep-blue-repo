@@ -7,7 +7,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.EntityFrameworkCore;
 using System.IO;
 
-namespace Uxcheckmate_Tests.Services
+namespace Service_Tests
 {
     [TestFixture]
     public class DynamicSizingServiceTests

@@ -6,7 +6,7 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using Uxcheckmate_Main.Controllers;
 
-namespace Uxcheckmate_Main.Tests
+namespace UrlValidation_Tests
 {
     [TestFixture]
     public class HomeControllerTests
