@@ -122,7 +122,7 @@ else
                         @* Display each issue in the category *@
                         @foreach (var issue in categoryGroup)
                         {
-                            <div class="issueContainer p-3 mb-3 border rounded">
+                            <div class="issueContainer p-3 mb-3 border rounded" id="designIssueItem">
                                 <div class="row">
                                     @* Issue message and severity badge *@
                                     <div class="col-md-11">@issue.Message</div>

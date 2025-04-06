@@ -77,7 +77,6 @@ public class Program
 
         // Register ScreenshotService
         builder.Services.AddScoped<IScreenshotService, ScreenshotService>();
-
         builder.Services.AddScoped<PdfExportService>();
 
         // Register Report Services
