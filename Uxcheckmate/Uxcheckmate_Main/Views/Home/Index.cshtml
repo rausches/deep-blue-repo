@@ -19,7 +19,7 @@
                     <div class="form-group">
                         <div class="input-container">
                             <input type="text" id="urlInput" name="Url" asp-for="Url" placeholder="https://uxcheckmate.com">
-                            <button type="submit">GET AUDIT →</button>
+                            <button type="submit" id="getAuditBtn">GET AUDIT →</button>
                         </div>
                         <span asp-validation-for="Url" class="text-danger"></span>
                     </div>
@@ -57,7 +57,7 @@
                             <p class="messageScanningIssues" style="display: none;">Evaluating Site Responsiveness...</p>
                         </div>
 
-                        <div class="loading-screenshot">
+                        <div class="loading-screenshot" id="screenshotPlaceholder">
                             <div class="spinner"></div>
                         </div>
                             @* <div class="spinner"></div> *@
