@@ -12,4 +12,4 @@ Feature: User enters in url and recieves analysis report
     And he will see the site URL
     And he will see how many issues his site has
     And he will see a container for design issues with subrows of issues
-    And he will see a container for accessibility issues with subrows of issues
+    Then he will see the broken links row reporting missing or invalid links
