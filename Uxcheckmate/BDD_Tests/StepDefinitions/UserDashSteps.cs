@@ -113,6 +113,36 @@ namespace BDD_Tests.StepDefinitions
             Assert.That(isAuthenticated, Is.False, "User is still authenticated after logout.");
         }
 
+        [Given("user has logged in to an account with a previously submitted report")]
+        public void GivenUserIsLoggedInWithReport()
+        {
+            driver = new ChromeDriver();
+            driver.Navigate().GoToUrl("http://localhost:5000/");
+            driver.FindElement(By.LinkText("Login")).Click();
+            var emailInput = driver.FindElement(By.Id("Input_Email"));
+            var passwordInput = driver.FindElement(By.Id("Input_Password"));
+            // If authdb is reset need to readd the user
+            emailInput.Clear();
+            emailInput.SendKeys("testuser@tests.com");
+            passwordInput.Clear();
+            passwordInput.SendKeys("1P@ssword2");
+            var loginButton = driver.FindElement(By.CssSelector("button[type='submit']"));
+            loginButton.Click();
+        }
+
+        [When("they go to user dashboard")]
+        public void WhenTheyClickUserDashboard()
+        {
+            var dashboardLink = driver.FindElement(By.LinkText("Dashboard"));
+            dashboardLink.Click();
+        }
+
+        [Then("they should see that report")]
+        public void ThenTheyShouldSeePreviousReport()
+        {
+            Assert.That(driver.PageSource.Contains("Report ID"), Is.True, "Report ID was not found on the dashboard page.");
+        }
+
 
         [AfterScenario]
         public void Cleanup()

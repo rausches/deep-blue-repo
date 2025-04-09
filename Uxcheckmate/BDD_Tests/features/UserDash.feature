@@ -19,3 +19,9 @@ Scenario: Test login with valid credentials
     And they click log in button
     Then they should see user dashboard
 
+# Should currently fail Selenium test below until ux-96 implemented
+Scenario: View previous report after login
+    Given user has logged in to an account with a previously submitted report
+    When they go to user dashboard
+    Then they should see that report
+
