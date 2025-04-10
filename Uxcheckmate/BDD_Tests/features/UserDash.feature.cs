@@ -89,7 +89,7 @@ namespace BDD_Tests.Features
             string[] tagsOfScenario = ((string[])(null));
             System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
             global::Reqnroll.ScenarioInfo scenarioInfo = new global::Reqnroll.ScenarioInfo("Reach user Dashboard", null, tagsOfScenario, argumentsOfScenario, featureTags);
-#line 4
+#line 5
 this.ScenarioInitialize(scenarioInfo);
 #line hidden
             if ((global::Reqnroll.TagHelper.ContainsIgnoreTag(scenarioInfo.CombinedTags) || global::Reqnroll.TagHelper.ContainsIgnoreTag(featureTags)))
@@ -99,13 +99,13 @@ this.ScenarioInitialize(scenarioInfo);
             else
             {
                 await this.ScenarioStartAsync();
-#line 5
+#line 6
     await testRunner.GivenAsync("user is logged in", ((string)(null)), ((global::Reqnroll.Table)(null)), "Given ");
 #line hidden
-#line 6
+#line 7
     await testRunner.WhenAsync("they click user dash", ((string)(null)), ((global::Reqnroll.Table)(null)), "When ");
 #line hidden
-#line 7
+#line 8
     await testRunner.ThenAsync("they should be in user dash page", ((string)(null)), ((global::Reqnroll.Table)(null)), "Then ");
 #line hidden
             }
@@ -119,7 +119,7 @@ this.ScenarioInitialize(scenarioInfo);
             string[] tagsOfScenario = ((string[])(null));
             System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
             global::Reqnroll.ScenarioInfo scenarioInfo = new global::Reqnroll.ScenarioInfo("Logout from user dashboard", null, tagsOfScenario, argumentsOfScenario, featureTags);
-#line 9
+#line 10
 this.ScenarioInitialize(scenarioInfo);
 #line hidden
             if ((global::Reqnroll.TagHelper.ContainsIgnoreTag(scenarioInfo.CombinedTags) || global::Reqnroll.TagHelper.ContainsIgnoreTag(featureTags)))
@@ -129,13 +129,13 @@ this.ScenarioInitialize(scenarioInfo);
             else
             {
                 await this.ScenarioStartAsync();
-#line 10
+#line 11
     await testRunner.GivenAsync("user is logged in", ((string)(null)), ((global::Reqnroll.Table)(null)), "Given ");
 #line hidden
-#line 11
+#line 12
     await testRunner.WhenAsync("they click logout button", ((string)(null)), ((global::Reqnroll.Table)(null)), "When ");
 #line hidden
-#line 12
+#line 13
     await testRunner.ThenAsync("they should be logged out", ((string)(null)), ((global::Reqnroll.Table)(null)), "Then ");
 #line hidden
             }
@@ -151,7 +151,7 @@ this.ScenarioInitialize(scenarioInfo);
                     "login"};
             System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
             global::Reqnroll.ScenarioInfo scenarioInfo = new global::Reqnroll.ScenarioInfo("Test login with valid credentials", null, tagsOfScenario, argumentsOfScenario, featureTags);
-#line 16
+#line 17
 this.ScenarioInitialize(scenarioInfo);
 #line hidden
             if ((global::Reqnroll.TagHelper.ContainsIgnoreTag(scenarioInfo.CombinedTags) || global::Reqnroll.TagHelper.ContainsIgnoreTag(featureTags)))
@@ -161,16 +161,16 @@ this.ScenarioInitialize(scenarioInfo);
             else
             {
                 await this.ScenarioStartAsync();
-#line 17
+#line 18
     await testRunner.GivenAsync("user clicks login link", ((string)(null)), ((global::Reqnroll.Table)(null)), "Given ");
 #line hidden
-#line 18
+#line 19
     await testRunner.WhenAsync("they enter the username and password", ((string)(null)), ((global::Reqnroll.Table)(null)), "When ");
 #line hidden
-#line 19
+#line 20
     await testRunner.AndAsync("they click log in button", ((string)(null)), ((global::Reqnroll.Table)(null)), "And ");
 #line hidden
-#line 20
+#line 21
     await testRunner.ThenAsync("they should see user dashboard", ((string)(null)), ((global::Reqnroll.Table)(null)), "Then ");
 #line hidden
             }
@@ -184,7 +184,7 @@ this.ScenarioInitialize(scenarioInfo);
             string[] tagsOfScenario = ((string[])(null));
             System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
             global::Reqnroll.ScenarioInfo scenarioInfo = new global::Reqnroll.ScenarioInfo("View previous report after login", null, tagsOfScenario, argumentsOfScenario, featureTags);
-#line 22
+#line 24
 this.ScenarioInitialize(scenarioInfo);
 #line hidden
             if ((global::Reqnroll.TagHelper.ContainsIgnoreTag(scenarioInfo.CombinedTags) || global::Reqnroll.TagHelper.ContainsIgnoreTag(featureTags)))
@@ -194,13 +194,13 @@ this.ScenarioInitialize(scenarioInfo);
             else
             {
                 await this.ScenarioStartAsync();
-#line 23
+#line 25
     await testRunner.GivenAsync("user has logged in to an account with a previously submitted report", ((string)(null)), ((global::Reqnroll.Table)(null)), "Given ");
 #line hidden
-#line 24
+#line 26
     await testRunner.WhenAsync("they go to user dashboard", ((string)(null)), ((global::Reqnroll.Table)(null)), "When ");
 #line hidden
-#line 25
+#line 27
     await testRunner.ThenAsync("they should see that report", ((string)(null)), ((global::Reqnroll.Table)(null)), "Then ");
 #line hidden
             }
