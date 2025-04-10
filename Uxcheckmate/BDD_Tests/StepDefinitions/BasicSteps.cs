@@ -65,8 +65,7 @@ namespace BDD_Tests.StepDefinitions
         public void ThenTheUserShouldSeeTheResultView()
         {
             Assert.That(driver.Url, Does.Contain("/Home/Report"), "Did not navigate to Report View.");
-            Assert.That(driver.PageSource.Contains("Accessibility Score") || driver.PageSource.Contains("Report"),
-                Is.True, "Expected content not found on result view.");
+            Assert.That(driver.PageSource.Contains("Report"),Is.True, "Expected content not found on result view.");
         }
 
     }
