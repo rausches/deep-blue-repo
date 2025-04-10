@@ -84,12 +84,14 @@ namespace BDD_Tests.Features
         
         [NUnit.Framework.TestAttribute()]
         [NUnit.Framework.DescriptionAttribute("David analyzes his site and views the results")]
+        [NUnit.Framework.CategoryAttribute("analyze")]
         public async System.Threading.Tasks.Task DavidAnalyzesHisSiteAndViewsTheResults()
         {
-            string[] tagsOfScenario = ((string[])(null));
+            string[] tagsOfScenario = new string[] {
+                    "analyze"};
             System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
             global::Reqnroll.ScenarioInfo scenarioInfo = new global::Reqnroll.ScenarioInfo("David analyzes his site and views the results", null, tagsOfScenario, argumentsOfScenario, featureTags);
-#line 3
+#line 4
   this.ScenarioInitialize(scenarioInfo);
 #line hidden
             if ((global::Reqnroll.TagHelper.ContainsIgnoreTag(scenarioInfo.CombinedTags) || global::Reqnroll.TagHelper.ContainsIgnoreTag(featureTags)))
@@ -99,37 +101,37 @@ namespace BDD_Tests.Features
             else
             {
                 await this.ScenarioStartAsync();
-#line 5
-    await testRunner.GivenAsync("David is on the homepage", ((string)(null)), ((global::Reqnroll.Table)(null)), "Given ");
-#line hidden
 #line 6
-    await testRunner.AndAsync("he enters \"https://momkage-lexy.github.io/\" into the submission box", ((string)(null)), ((global::Reqnroll.Table)(null)), "And ");
+    await testRunner.GivenAsync("the user navigates to the site", ((string)(null)), ((global::Reqnroll.Table)(null)), "Given ");
 #line hidden
 #line 7
-    await testRunner.AndAsync("he clicks the analyze button", ((string)(null)), ((global::Reqnroll.Table)(null)), "And ");
+    await testRunner.WhenAsync("the user enters a URL to analyze with \"https://momkage-lexy.github.io/\"", ((string)(null)), ((global::Reqnroll.Table)(null)), "When ");
 #line hidden
-#line 9
-    await testRunner.ThenAsync("he will see a loading overlay", ((string)(null)), ((global::Reqnroll.Table)(null)), "Then ");
+#line 8
+    await testRunner.AndAsync("the user starts the analysis", ((string)(null)), ((global::Reqnroll.Table)(null)), "And ");
 #line hidden
 #line 10
-    await testRunner.AndAsync("he will be directed to the results view", ((string)(null)), ((global::Reqnroll.Table)(null)), "And ");
+    await testRunner.ThenAsync("he will see a loading overlay", ((string)(null)), ((global::Reqnroll.Table)(null)), "Then ");
 #line hidden
 #line 11
-    await testRunner.AndAsync("he will see the site URL", ((string)(null)), ((global::Reqnroll.Table)(null)), "And ");
+    await testRunner.AndAsync("he will be directed to the results view", ((string)(null)), ((global::Reqnroll.Table)(null)), "And ");
 #line hidden
 #line 12
-    await testRunner.AndAsync("he will see how many issues his site has", ((string)(null)), ((global::Reqnroll.Table)(null)), "And ");
+    await testRunner.AndAsync("he will see the site URL", ((string)(null)), ((global::Reqnroll.Table)(null)), "And ");
 #line hidden
 #line 13
-    await testRunner.AndAsync("he will see a container for design issues with subrows of issues", ((string)(null)), ((global::Reqnroll.Table)(null)), "And ");
+    await testRunner.AndAsync("he will see how many issues his site has", ((string)(null)), ((global::Reqnroll.Table)(null)), "And ");
 #line hidden
 #line 14
-    await testRunner.AndAsync("he clicks the broken links section", ((string)(null)), ((global::Reqnroll.Table)(null)), "And ");
+    await testRunner.AndAsync("he will see a container for design issues with subrows of issues", ((string)(null)), ((global::Reqnroll.Table)(null)), "And ");
 #line hidden
 #line 15
-    await testRunner.ThenAsync("he will see the broken links row reporting missing or invalid links", ((string)(null)), ((global::Reqnroll.Table)(null)), "Then ");
+    await testRunner.AndAsync("he clicks the broken links section", ((string)(null)), ((global::Reqnroll.Table)(null)), "And ");
 #line hidden
 #line 16
+    await testRunner.ThenAsync("he will see the broken links row reporting missing or invalid links", ((string)(null)), ((global::Reqnroll.Table)(null)), "Then ");
+#line hidden
+#line 17
     await testRunner.AndAsync("the broken links listed will be accurate", ((string)(null)), ((global::Reqnroll.Table)(null)), "And ");
 #line hidden
             }

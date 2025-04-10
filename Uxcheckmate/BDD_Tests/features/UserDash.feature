@@ -15,14 +15,15 @@ Scenario: Logout from user dashboard
 # Selenium Test Below
 @login 
 Scenario: Test login with valid credentials
-    Given user clicks login link
-    When they enter the username and password
-    And they click log in button
+    Given the user navigates to the site
+    And the user logs in
     Then they should see user dashboard
 
 # Should currently fail Selenium test below until ux-96 implemented
 Scenario: View previous report after login
-    Given user has logged in to an account with a previously submitted report
+    Given the user navigates to the site
+    And the user logs in
+    # And they have submitted previous report which default account has
     When they go to user dashboard
     Then they should see that report
 

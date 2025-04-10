@@ -162,15 +162,12 @@ this.ScenarioInitialize(scenarioInfo);
             {
                 await this.ScenarioStartAsync();
 #line 18
-    await testRunner.GivenAsync("user clicks login link", ((string)(null)), ((global::Reqnroll.Table)(null)), "Given ");
+    await testRunner.GivenAsync("the user navigates to the site", ((string)(null)), ((global::Reqnroll.Table)(null)), "Given ");
 #line hidden
 #line 19
-    await testRunner.WhenAsync("they enter the username and password", ((string)(null)), ((global::Reqnroll.Table)(null)), "When ");
+    await testRunner.AndAsync("the user logs in", ((string)(null)), ((global::Reqnroll.Table)(null)), "And ");
 #line hidden
 #line 20
-    await testRunner.AndAsync("they click log in button", ((string)(null)), ((global::Reqnroll.Table)(null)), "And ");
-#line hidden
-#line 21
     await testRunner.ThenAsync("they should see user dashboard", ((string)(null)), ((global::Reqnroll.Table)(null)), "Then ");
 #line hidden
             }
@@ -184,7 +181,7 @@ this.ScenarioInitialize(scenarioInfo);
             string[] tagsOfScenario = ((string[])(null));
             System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
             global::Reqnroll.ScenarioInfo scenarioInfo = new global::Reqnroll.ScenarioInfo("View previous report after login", null, tagsOfScenario, argumentsOfScenario, featureTags);
-#line 24
+#line 23
 this.ScenarioInitialize(scenarioInfo);
 #line hidden
             if ((global::Reqnroll.TagHelper.ContainsIgnoreTag(scenarioInfo.CombinedTags) || global::Reqnroll.TagHelper.ContainsIgnoreTag(featureTags)))
@@ -194,13 +191,16 @@ this.ScenarioInitialize(scenarioInfo);
             else
             {
                 await this.ScenarioStartAsync();
-#line 25
-    await testRunner.GivenAsync("user has logged in to an account with a previously submitted report", ((string)(null)), ((global::Reqnroll.Table)(null)), "Given ");
+#line 24
+    await testRunner.GivenAsync("the user navigates to the site", ((string)(null)), ((global::Reqnroll.Table)(null)), "Given ");
 #line hidden
-#line 26
-    await testRunner.WhenAsync("they go to user dashboard", ((string)(null)), ((global::Reqnroll.Table)(null)), "When ");
+#line 25
+    await testRunner.AndAsync("the user logs in", ((string)(null)), ((global::Reqnroll.Table)(null)), "And ");
 #line hidden
 #line 27
+    await testRunner.WhenAsync("they go to user dashboard", ((string)(null)), ((global::Reqnroll.Table)(null)), "When ");
+#line hidden
+#line 28
     await testRunner.ThenAsync("they should see that report", ((string)(null)), ((global::Reqnroll.Table)(null)), "Then ");
 #line hidden
             }
