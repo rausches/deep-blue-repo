@@ -57,7 +57,6 @@ public class HomeController : Controller
 
         try
         {
-
             // Check if the URL is reachable
             using (var httpClient = new HttpClient())
             {
