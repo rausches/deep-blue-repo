@@ -1,10 +1,11 @@
 Feature: User enters in url and recieves analysis report
 
+  @analyze
   Scenario: David analyzes his site and views the results
 
-    Given David is on the homepage
-    And he enters "https://momkage-lexy.github.io/" into the submission box
-    And he clicks the analyze button
+    Given the user navigates to the site
+    When the user enters a URL to analyze with "https://momkage-lexy.github.io/"
+    And the user starts the analysis
 
     Then he will see a loading overlay
     And he will be directed to the results view

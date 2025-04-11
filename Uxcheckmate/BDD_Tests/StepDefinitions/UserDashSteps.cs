@@ -9,54 +9,19 @@ using Uxcheckmate_Main.Services;
 using Uxcheckmate_Main.Models;
 using NUnit.Framework;
 using OpenQA.Selenium;
-using OpenQA.Selenium.Chrome;
-
 
 namespace BDD_Tests.StepDefinitions
 {
     [Binding]
     public class UserDashSteps
     {
-        private IWebDriver driver;
+        private readonly IWebDriver driver;
         private HomeController _controller;
         private IActionResult _result;
-
-        [Given("user clicks login link")]
-        public void GivenUserClicksLoginLink()
+        public UserDashSteps(IWebDriver webDriver)
         {
-            driver = new ChromeDriver();
-            driver.Navigate().GoToUrl("http://localhost:5000/");
-            driver.FindElement(By.LinkText("Login")).Click();
+            driver = webDriver;
         }
-
-        [When("they enter the username and password")]
-        public void WhenTheyEnterTheUsernameAndPassword()
-        {
-            var emailInput = driver.FindElement(By.Id("Input_Email"));
-            var passwordInput = driver.FindElement(By.Id("Input_Password"));
-            // If authdb is reset need to readd the user
-            emailInput.Clear();
-            emailInput.SendKeys("testuser@tests.com");
-            passwordInput.Clear();
-            passwordInput.SendKeys("1P@ssword2");
-        }
-
-        [When("they click log in button")]
-        public void WhenTheyClickLogInButton()
-        {
-            var loginButton = driver.FindElement(By.CssSelector("button[type='submit']"));
-            loginButton.Click();
-        }
-
-        [Then("they should see user dashboard")]
-        public void ThenTheyShouldBeLoggedIn()
-        {
-            var dashboardLink = driver.FindElement(By.LinkText("Dashboard"));
-            dashboardLink.Click();
-            string currentUrl = driver.Url;
-            Assert.That(currentUrl, Does.Contain("/Home/UserDash"), "User is not on the dashboard page.");
-        }
-
         [Given("user is logged in")]
         public void GivenUserIsLoggedIn()
         {
@@ -82,13 +47,11 @@ namespace BDD_Tests.StepDefinitions
                 ControllerContext = controllerContext
             };
         }
-
         [When("they click user dash")]
         public void WhenTheyClickUserDash()
         {
             _result = _controller.UserDash();
         }
-
         [Then("they should be in user dash page")]
         public void ThenTheyShouldSeeALogout()
         {
@@ -96,7 +59,6 @@ namespace BDD_Tests.StepDefinitions
             Assert.That(viewResult, Is.Not.Null);
             Assert.That(viewResult.ViewName, Is.Null.Or.Empty);
         }
-
         [When("they click logout button")]
         public void WhenTheyClickLogoutButton()
         {
@@ -105,19 +67,32 @@ namespace BDD_Tests.StepDefinitions
             var controllerContext = new ControllerContext { HttpContext = httpContext };
             _controller.ControllerContext = controllerContext;
         }
-
         [Then("they should be logged out")]
         public void ThenTheyShouldBeLoggedOut()
         {
             var isAuthenticated = _controller.HttpContext.User.Identity?.IsAuthenticated ?? false;
             Assert.That(isAuthenticated, Is.False, "User is still authenticated after logout.");
         }
-
-
-        [AfterScenario]
-        public void Cleanup()
+        // Selenium Additions Below
+        [Then("they should see user dashboard")]
+        public void ThenTheyShouldBeLoggedIn()
         {
-            driver?.Quit();
+            var dashboardLink = driver.FindElement(By.LinkText("Dashboard"));
+            dashboardLink.Click();
+            string currentUrl = driver.Url;
+            Assert.That(currentUrl, Does.Contain("/Home/UserDash"), "User is not on the dashboard page.");
         }
+        [When("they go to user dashboard")]
+        public void WhenTheyGoToUserDashboard()
+        {
+            var dashboardLink = driver.FindElement(By.LinkText("Dashboard"));
+            dashboardLink.Click();
+        }
+        [Then("they should see that report")]
+        public void ThenTheyShouldSeeThatReport()
+        {
+            Assert.That(driver.PageSource.Contains("Report ID"), Is.True, "Report ID was not found on the dashboard page.");
+        }
+        
     }
 }
