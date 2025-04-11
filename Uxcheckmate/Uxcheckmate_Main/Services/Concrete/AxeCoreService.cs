@@ -80,7 +80,7 @@ namespace Uxcheckmate_Main.Services
                 ");
 
                 string jsonString = axeResultsJson.ToString();
-                _logger.LogDebug("Raw axe-core JSON output: {JsonString}", jsonString);
+               // _logger.LogDebug("Raw axe-core JSON output: {JsonString}", jsonString);
 
                 // Deserialize the JSON result into an AxeCoreResults object
                 var axeResults = JsonSerializer.Deserialize<AxeCoreResults>(jsonString, new JsonSerializerOptions
