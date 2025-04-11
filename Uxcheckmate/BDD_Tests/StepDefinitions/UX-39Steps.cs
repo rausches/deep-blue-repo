@@ -1,3 +1,4 @@
+using iText.Commons.Bouncycastle.Security;
 using Microsoft.Extensions.Logging;
 using Moq;
 using NUnit.Framework;
@@ -15,6 +16,7 @@ namespace Uxcheckmate.BDD_Tests.StepDefinitions
         private readonly IWebDriver _driver;
         private readonly IReportService _reportService;
         private readonly IWebScraperService _scraperService;
+        private readonly DynamicScraperService _dynamicScraperService;
         private readonly ScenarioContext _scenarioContext;
         private readonly string _scannedUrl = "https://momkage-lexy.github.io/";
         private string _scannedHtml;
@@ -34,13 +36,20 @@ namespace Uxcheckmate.BDD_Tests.StepDefinitions
             new Mock<IColorSchemeService>().Object,
             new Mock<IDynamicSizingService>().Object,
             new Mock<IScreenshotService>().Object,
-            new Mock<IWebScraperService>().Object
+            new Mock<IWebScraperService>().Object,
+            new Mock<IDynamicScraperService>().Object,
+            new Mock<IPopUpsService>().Object
             );
 
             _reportService = reportService;
             _scraperService = new WebScraperService(
                 new HttpClient(),
                 new LoggerFactory().CreateLogger<WebScraperService>()
+            );
+
+            _dynamicScraperService = new DynamicScraperService(
+                new HttpClient(),
+                new LoggerFactory().CreateLogger<DynamicScraperService>()
             );
 
             _driver.Navigate().GoToUrl(_scannedUrl);
@@ -206,6 +215,49 @@ namespace Uxcheckmate.BDD_Tests.StepDefinitions
             }
         }
 
-        
+        [Then("he clicks the pop ups section")]
+        public async Task ThenHeClicksThePopUpsSection()
+        {
+            var wait = new WebDriverWait(_driver, TimeSpan.FromSeconds(10));
+
+            // Find and click the accordion button that opens the Pop Ups section
+            var button = wait.Until(driver => driver.FindElement(By.XPath("//button[contains(., 'Pop Ups')]")));
+            button.Click();
+        }
+
+        [Then("he will see the pop ups row reporting too many pop ups")]
+        public async Task ThenHeWillSeeThePopUpsRowReportTooManyPopUps()
+        {
+            var wait = new WebDriverWait(_driver, TimeSpan.FromSeconds(180));
+
+            // Call web scraper to organize html elements
+            var scrapedData = _scraperService.ExtractHtmlElements(_scannedHtml, _scannedUrl);
+            var dynamicData = _dynamicScraperService.ExtractDynamicElements(_scannedUrl);
+
+            // Create Broken Links Service Instance
+            var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
+            var logger = loggerFactory.CreateLogger<PopUpsService>();
+            //var httpClient = new HttpClient();
+            var PopUpsService = new PopUpsService();
+
+            // Call service method to check for Pop Ups
+            string expectedReport = await popUpsService.PopUpsAnalysis(scrapedData, dynamicData);
+
+            // Wait until the element with ID "broken-links" is both visible and has non-empty text
+            var contentElement = wait.Until(driver =>
+            {
+                // Attempt to find the element in the DOM
+                var el = driver.FindElement(By.Id("pop-ups"));
+
+                // Only return the element if it is displayed AND contains some text
+                return el.Displayed && !string.IsNullOrWhiteSpace(el.Text) ? el : null;
+            });
+
+            string actualReport = contentElement.Text;
+            Console.WriteLine(actualReport);
+
+            Assert.That(actualReport, Does.Contain(expectedReport), $"Expected UI to contain pop up message");
+                    
+        }
     }
 }
