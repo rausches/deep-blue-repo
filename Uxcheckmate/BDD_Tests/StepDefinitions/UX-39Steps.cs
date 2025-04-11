@@ -42,11 +42,12 @@ namespace Uxcheckmate.BDD_Tests.StepDefinitions
                 new HttpClient(),
                 new LoggerFactory().CreateLogger<WebScraperService>()
             );
-
-            _driver.Navigate().GoToUrl(_scannedUrl);
+            // Took out below since it would stop anaylsis and just go to the site
+            // _driver.Navigate().GoToUrl(_scannedUrl);
             _scannedHtml = _driver.PageSource;
         }
 
+        /**
         [Given("David is on the homepage")]
         public void GivenDavidIsOnTheHomepage()
         {
@@ -64,7 +65,7 @@ namespace Uxcheckmate.BDD_Tests.StepDefinitions
         {
             _driver.FindElement(By.Id("analyzeBtn")).Click();
         }
-
+        */
         [Then("he will see a loading overlay")]
         public void ThenHeWillSeeALoadingOverlay()
         {

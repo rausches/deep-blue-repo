@@ -19,6 +19,7 @@ namespace Uxcheckmate.BDD_Tests.StepDefinitions
         [BeforeScenario]
         public void BeforeScenario()
         {
+            RunTestServer.StartServer();
             _driver = new ChromeDriver();
             _scenarioContext.ScenarioContainer.RegisterInstanceAs<IWebDriver>(_driver);
         }
@@ -26,6 +27,7 @@ namespace Uxcheckmate.BDD_Tests.StepDefinitions
         [AfterScenario]
         public void AfterScenario()
         {
+            RunTestServer.StopServer();
             _driver?.Quit();
         }
     }
