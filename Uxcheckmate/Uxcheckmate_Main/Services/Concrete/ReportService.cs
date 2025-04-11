@@ -1,4 +1,4 @@
-using System.Net; 
+using System.Net;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -8,6 +8,7 @@ using Uxcheckmate_Main.Models;
 using System.Collections.Concurrent;
 using System.Threading.Tasks;
 using System.Diagnostics;
+
 
 namespace Uxcheckmate_Main.Services
 {
@@ -23,8 +24,11 @@ namespace Uxcheckmate_Main.Services
         private readonly IDynamicSizingService _dynamicSizingService;
         private readonly IWebScraperService _scraperService;
         private readonly IScreenshotService _screenshotService;
+        private readonly IPlaywrightScraperService _playwrightScraperService;
+        private readonly IPopUpsService _popUpsService;
 
-        public ReportService(HttpClient httpClient, ILogger<ReportService> logger, UxCheckmateDbContext context, IOpenAiService openAiService, IBrokenLinksService brokenLinksService, IHeadingHierarchyService headingHierarchyService, IColorSchemeService colorSchemeService, IDynamicSizingService dynamicSizingService, IScreenshotService screenshotService, IWebScraperService scraperService)
+
+        public ReportService(HttpClient httpClient, ILogger<ReportService> logger, UxCheckmateDbContext context, IOpenAiService openAiService, IBrokenLinksService brokenLinksService, IHeadingHierarchyService headingHierarchyService, IColorSchemeService colorSchemeService, IDynamicSizingService dynamicSizingService, IScreenshotService screenshotService, IWebScraperService scraperService, IPlaywrightScraperService playwrightScraperService, IPopUpsService popUpsService)
         {
             _httpClient = httpClient;
             _dbContext = context;
@@ -36,13 +40,17 @@ namespace Uxcheckmate_Main.Services
             _dynamicSizingService = dynamicSizingService;
             _screenshotService = screenshotService;
             _scraperService = scraperService;
+            _playwrightScraperService = playwrightScraperService;
+            _popUpsService = popUpsService;
         }
+
 
         public async Task<ICollection<DesignIssue>> GenerateReportAsync(Report report)
         {
             // Initialize url to report attribute
             var url = report.Url;
             _logger.LogInformation("Starting report generation for URL: {Url}", url);
+
 
             // If there is no url throw an exception
             if (string.IsNullOrEmpty(url))
@@ -51,9 +59,22 @@ namespace Uxcheckmate_Main.Services
                 throw new ArgumentException("URL cannot be empty.", nameof(url));
             }
 
+
             // Call the scraper
             var scrapedData = await _scraperService.ScrapeAsync(url);
             _logger.LogDebug("Scraping completed for URL: {Url}", url);
+            var assets = await _playwrightScraperService.ScrapeAsync(url);
+            _logger.LogDebug("Scraped assets for URL: {Url}", url);
+
+           /* foreach (var css in assets.ExternalCssContents)
+            {
+                _logger.LogInformation("External CSS Content Preview:\n{Css}", css.Substring(0, Math.Min(200, css.Length)));
+            }
+
+            foreach (var js in assets.ExternalJsContents)
+            {
+                _logger.LogInformation("External JS Content Preview:\n{Js}", js.Substring(0, Math.Min(200, js.Length)));
+            }*/
 
             // Get list of design categories
             var designCategories = await _dbContext.DesignCategories.ToListAsync();
@@ -141,7 +162,10 @@ namespace Uxcheckmate_Main.Services
 
                 case "Font Legibility":
                     return await AnalyzeFontLegibilityAsync(url, scrapedData);
-
+               
+                case "Pop Ups":
+                    return await _popUpsService.RunPopupAnalysisAsync(url, scrapedData);
+             
                 default:
                     _logger.LogDebug("No custom analysis implemented for category: {CategoryName}", categoryName);
                     return string.Empty;
