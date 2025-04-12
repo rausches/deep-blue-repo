@@ -1,3 +1,4 @@
+namespace Uxcheckmate_Main.DTO;
 public class DesignIssueDTO
 {
     public string Message { get; set; }
