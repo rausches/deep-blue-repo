@@ -1,11 +1,14 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using Microsoft.EntityFrameworkCore;
 using Moq;
 using System.Net.Http;
 using Uxcheckmate_Main.Controllers;
 using Uxcheckmate_Main.Models;
 using Uxcheckmate_Main.Services;
+
+namespace Moq_Tests;
 public static class TestBuilder
 {
     public static HomeController BuildHomeController(HttpContext httpContext, UxCheckmateDbContext context)
