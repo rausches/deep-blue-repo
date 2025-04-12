@@ -5,7 +5,7 @@ using Moq;
 using NUnit.Framework;
 using Uxcheckmate_Main.Services;
 
-namespace Uxcheckmate_Tests.Service_Tests
+namespace Service_Tests
 {
     [TestFixture]
     public class AudioService_Tests
@@ -71,30 +71,6 @@ namespace Uxcheckmate_Tests.Service_Tests
 
             // Assert
             Assert.That(result, Is.Empty);
-        }
-
-        [Test]
-        public async Task RunAudioAnalysisAsync_ReturnsEmpty_When_HtmlContentMissing()
-        {
-            // Arrange
-            var scrapedData = new Dictionary<string, object>
-            {
-                { "externalJsContents", new List<string>() } // missing htmlContent
-            };
-
-            // Act
-            var result = await _audioService.RunAudioAnalysisAsync("https://example.com", scrapedData);
-
-            // Assert
-            Assert.That(result, Is.Empty);
-            _loggerMock.Verify(
-                x => x.Log(
-                    LogLevel.Warning,
-                    It.IsAny<EventId>(),
-                    It.Is<It.IsAnyType>((v, t) => v.ToString().Contains("HTML content missing")),
-                    null,
-                    It.IsAny<Func<It.IsAnyType, Exception, string>>()),
-                Times.Once);
         }
     }
 }

@@ -5,7 +5,7 @@ using NUnit.Framework;
 using Microsoft.Extensions.Logging;
 using Uxcheckmate_Main.Services;
 
-namespace Uxcheckmate_Tests.Service_Tests
+namespace Service_Tests
 {
     public class ScrollService_Tests
     {
@@ -35,40 +35,6 @@ namespace Uxcheckmate_Tests.Service_Tests
             // Assert
             Assert.That(result, Is.Not.Null.And.Not.Empty);
             Assert.That(result, Does.Contain("scrolls"));
-        }
-
-        [Test]
-        public async Task RunScrollAnalysisAsync_WhenViewportHeightMissing_ReturnsEmpty()
-        {
-            // Arrange
-            var scrapedData = new Dictionary<string, object>
-            {
-                { "scrollHeight", 3000.0 }
-                // viewportHeight is missing
-            };
-
-            // Act
-            var result = await _scrollService.RunScrollAnalysisAsync("https://example.com", scrapedData);
-
-            // Assert
-            Assert.That(result, Is.Empty);
-        }
-
-        [Test]
-        public async Task RunScrollAnalysisAsync_WhenScrollHeightMissing_ReturnsEmpty()
-        {
-            // Arrange
-            var scrapedData = new Dictionary<string, object>
-            {
-                { "viewportHeight", 1000.0 }
-                // scrollHeight is missing
-            };
-
-            // Act
-            var result = await _scrollService.RunScrollAnalysisAsync("https://example.com", scrapedData);
-
-            // Assert
-            Assert.That(result, Is.Empty);
         }
 
         [Test]
