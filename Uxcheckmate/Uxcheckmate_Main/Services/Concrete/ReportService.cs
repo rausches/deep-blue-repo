@@ -26,9 +26,10 @@ namespace Uxcheckmate_Main.Services
         private readonly IScreenshotService _screenshotService;
         private readonly IPlaywrightScraperService _playwrightScraperService;
         private readonly IPopUpsService _popUpsService;
+        private readonly IAnimationService _animationService;
 
 
-        public ReportService(HttpClient httpClient, ILogger<ReportService> logger, UxCheckmateDbContext context, IOpenAiService openAiService, IBrokenLinksService brokenLinksService, IHeadingHierarchyService headingHierarchyService, IColorSchemeService colorSchemeService, IDynamicSizingService dynamicSizingService, IScreenshotService screenshotService, IWebScraperService scraperService, IPlaywrightScraperService playwrightScraperService, IPopUpsService popUpsService)
+        public ReportService(HttpClient httpClient, ILogger<ReportService> logger, UxCheckmateDbContext context, IOpenAiService openAiService, IBrokenLinksService brokenLinksService, IHeadingHierarchyService headingHierarchyService, IColorSchemeService colorSchemeService, IDynamicSizingService dynamicSizingService, IScreenshotService screenshotService, IWebScraperService scraperService, IPlaywrightScraperService playwrightScraperService, IPopUpsService popUpsService, IAnimationService animationService)
         {
             _httpClient = httpClient;
             _dbContext = context;
@@ -42,6 +43,7 @@ namespace Uxcheckmate_Main.Services
             _scraperService = scraperService;
             _playwrightScraperService = playwrightScraperService;
             _popUpsService = popUpsService;
+            _animationService = animationService;
         }
 
 
@@ -65,6 +67,9 @@ namespace Uxcheckmate_Main.Services
             _logger.LogDebug("Scraping completed for URL: {Url}", url);
             var assets = await _playwrightScraperService.ScrapeAsync(url);
             _logger.LogDebug("Scraped assets for URL: {Url}", url);
+
+            // Merge Static and Dynamic content into one dictionary
+            scrapedData = MergeScrapedData(scrapedData, assets);
 
            /* foreach (var css in assets.ExternalCssContents)
             {
@@ -165,6 +170,9 @@ namespace Uxcheckmate_Main.Services
                
                 case "Pop Ups":
                     return await _popUpsService.RunPopupAnalysisAsync(url, scrapedData);
+
+                case "Animations":
+                    return await _animationService.RunAnimationAnalysisAsync(url, scrapedData);
              
                 default:
                     _logger.LogDebug("No custom analysis implemented for category: {CategoryName}", categoryName);
@@ -256,5 +264,14 @@ namespace Uxcheckmate_Main.Services
             return aiText.Contains("critical", StringComparison.OrdinalIgnoreCase) ? 3 :
                    aiText.Contains("should", StringComparison.OrdinalIgnoreCase) ? 2 : 1;
         }
+        private Dictionary<string, object> MergeScrapedData(Dictionary<string, object> baseData, ScrapedContent assets)
+        {
+            baseData["externalCssContents"] = assets.ExternalCssContents;
+            baseData["externalJsContents"] = assets.ExternalJsContents;
+            baseData["inlineCss"] = assets.InlineCss;
+            baseData["inlineJs"] = assets.InlineJs;
+            return baseData;
+        }
+
     }
 }

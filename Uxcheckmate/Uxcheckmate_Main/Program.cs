@@ -88,7 +88,9 @@ public class Program
         builder.Services.AddScoped<IDynamicSizingService, DynamicSizingService>();
         builder.Services.AddScoped<IViewRenderService, ViewRenderService>();
         builder.Services.AddHttpClient<IFaviconDetectionService, FaviconDetectionService>();
-
+        builder.Services.AddScoped<IPlaywrightScraperService, PlaywrightScraperService>();
+        builder.Services.AddScoped<IPopUpsService, PopUpsService>();
+        builder.Services.AddScoped<IAnimationService, AnimationService>();
 
         var app = builder.Build();
 
