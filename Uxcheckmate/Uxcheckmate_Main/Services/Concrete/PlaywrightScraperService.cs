@@ -57,6 +57,9 @@ namespace Uxcheckmate_Main.Services
 
             // Use helper functions injected via scrape-assets.js to fetch content from external JS files
             var externalJsContents = await page.EvaluateAsync<string[]>("() => window.scrapeExternalJs()");
+            var scrollHeight = await page.EvaluateAsync<double>("() => document.documentElement.scrollHeight");
+            var viewportHeight = await page.EvaluateAsync<double>("() => window.innerHeight");
+
 
             // Clean up by closing the page and context
             await page.CloseAsync();
@@ -71,7 +74,9 @@ namespace Uxcheckmate_Main.Services
                 ExternalCssContents = externalCssContents.ToList(),
                 InlineJs = inlineJs.ToList(),
                 ExternalJsLinks = externalJs.ToList(),
-                ExternalJsContents = externalJsContents.ToList()
+                ExternalJsContents = externalJsContents.ToList(),
+                ScrollHeight = scrollHeight,
+                ViewportHeight = viewportHeight
             };
         }
     }

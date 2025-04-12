@@ -91,6 +91,9 @@ public class Program
         builder.Services.AddScoped<IPlaywrightScraperService, PlaywrightScraperService>();
         builder.Services.AddScoped<IPopUpsService, PopUpsService>();
         builder.Services.AddScoped<IAnimationService, AnimationService>();
+        builder.Services.AddScoped<IAudioService, AudioService>();
+        builder.Services.AddScoped<IScrollService, ScrollService>();
+
 
         var app = builder.Build();
 

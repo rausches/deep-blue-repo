@@ -27,9 +27,11 @@ namespace Uxcheckmate_Main.Services
         private readonly IPlaywrightScraperService _playwrightScraperService;
         private readonly IPopUpsService _popUpsService;
         private readonly IAnimationService _animationService;
+        private readonly IAudioService _audioService;
+        private readonly IScrollService _scrollService;
 
 
-        public ReportService(HttpClient httpClient, ILogger<ReportService> logger, UxCheckmateDbContext context, IOpenAiService openAiService, IBrokenLinksService brokenLinksService, IHeadingHierarchyService headingHierarchyService, IColorSchemeService colorSchemeService, IDynamicSizingService dynamicSizingService, IScreenshotService screenshotService, IWebScraperService scraperService, IPlaywrightScraperService playwrightScraperService, IPopUpsService popUpsService, IAnimationService animationService)
+        public ReportService(HttpClient httpClient, ILogger<ReportService> logger, UxCheckmateDbContext context, IOpenAiService openAiService, IBrokenLinksService brokenLinksService, IHeadingHierarchyService headingHierarchyService, IColorSchemeService colorSchemeService, IDynamicSizingService dynamicSizingService, IScreenshotService screenshotService, IWebScraperService scraperService, IPlaywrightScraperService playwrightScraperService, IPopUpsService popUpsService, IAnimationService animationService, IAudioService audioService, IScrollService scrollService)
         {
             _httpClient = httpClient;
             _dbContext = context;
@@ -44,6 +46,8 @@ namespace Uxcheckmate_Main.Services
             _playwrightScraperService = playwrightScraperService;
             _popUpsService = popUpsService;
             _animationService = animationService;
+            _audioService = audioService;
+            _scrollService = scrollService;
         }
 
 
@@ -60,7 +64,6 @@ namespace Uxcheckmate_Main.Services
                 _logger.LogError("URL is null or empty.");
                 throw new ArgumentException("URL cannot be empty.", nameof(url));
             }
-
 
             // Call the scraper
             var scrapedData = await _scraperService.ScrapeAsync(url);
@@ -173,7 +176,13 @@ namespace Uxcheckmate_Main.Services
 
                 case "Animations":
                     return await _animationService.RunAnimationAnalysisAsync(url, scrapedData);
-             
+
+                case "Audio":
+                    return await _audioService.RunAudioAnalysisAsync(url, scrapedData);
+
+                case "Number of scrolls":
+                    return await _scrollService.RunScrollAnalysisAsync(url, scrapedData);
+
                 default:
                     _logger.LogDebug("No custom analysis implemented for category: {CategoryName}", categoryName);
                     return string.Empty;
@@ -270,6 +279,12 @@ namespace Uxcheckmate_Main.Services
             baseData["externalJsContents"] = assets.ExternalJsContents;
             baseData["inlineCss"] = assets.InlineCss;
             baseData["inlineJs"] = assets.InlineJs;
+            baseData["scrollHeight"] = assets.ScrollHeight;
+            baseData["viewportHeight"] = assets.ViewportHeight;
+            _logger.LogDebug("ScrollHeight Merged: {Value}", assets.ScrollHeight);
+            _logger.LogDebug("ViewportHeight Merged: {Value}", assets.ViewportHeight);
+
+
             return baseData;
         }
 

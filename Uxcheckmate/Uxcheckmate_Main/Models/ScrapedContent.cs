@@ -12,5 +12,7 @@ namespace Uxcheckmate_Main.Models
         public List<string> InlineJs { get; set; } = new();
         public List<string> ExternalJsLinks { get; set; } = new(); 
         public List<string> ExternalJsContents { get; set; } = new(); 
+        public double ScrollHeight { get; set; }
+        public double ViewportHeight { get; set; }
     }
 }

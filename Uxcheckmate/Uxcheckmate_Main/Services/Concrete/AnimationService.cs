@@ -115,14 +115,13 @@ namespace Uxcheckmate_Main.Services
                 if (animationScore == 0)
                 {
                     _logger.LogInformation("No animation detected.");
-                    return "";
+                    return string.Empty;
                 }
 
                 // If Animations found, return string
                 _logger.LogInformation("Animation behavior detected with {Score} instances.", animationScore);
 
-                return $"Detected {animationScore} animation-related behaviors. " +
-                       $"Consider whether these animations enhance or hinder the user experience. {findings}";
+                return $"Detected {animationScore} animation-related behaviors. Consider whether these animations enhance or hinder the user experience.\n\n {string.Join("\n- ", findings)}";
             });
         }
     }
