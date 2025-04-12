@@ -2,6 +2,18 @@ using System.IO;
 using NUnit.Framework;
 using Microsoft.Extensions.Configuration;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Controllers;
+using Microsoft.AspNetCore.Mvc.ViewEngines;
+using Microsoft.Extensions.Logging;
+using Moq;
+using System.Linq;
+using System.Net.Http;
+using System.Security.Claims;
+using System.Threading.Tasks;
+using Uxcheckmate_Main.Controllers;
+using Uxcheckmate_Main.Services;
 using Uxcheckmate_Main.Models;
 
 namespace Database_Tests
@@ -9,6 +21,7 @@ namespace Database_Tests
     public class Database_Tests
     {
         private UxCheckmateDbContext _context;
+        private DbContextOptions<UxCheckmateDbContext> _options;
         [SetUp]
         public void Setup()
         {
@@ -29,11 +42,8 @@ namespace Database_Tests
                 throw new InvalidOperationException("DBConnection was not found in appsettings.json!");
             }
 
-            var options = new DbContextOptionsBuilder<UxCheckmateDbContext>()
-                .UseSqlServer(dbConnectionString)  // Directly use the string, not relying on named connections
-                .Options;
-
-            _context = new UxCheckmateDbContext(options);
+            _options = new DbContextOptionsBuilder<UxCheckmateDbContext>().UseSqlServer(dbConnectionString).Options;
+            _context = new UxCheckmateDbContext(_options);
 
         }
 
@@ -49,26 +59,80 @@ namespace Database_Tests
         {
             var DesignCategory = _context.DesignCategories.ToList();
             Assert.That(DesignCategory, Is.Not.Empty);
-            Assert.That(DesignCategory.Any(d => d.Id == 1 && d.Name == "Visual Hierarchy"), Is.True);
-            Assert.That(DesignCategory.Any(d => d.Id == 2 && d.Name == "Broken Links"), Is.True);
+            Assert.That(DesignCategory.Any(d => d.Id == 18 && d.Name == "Visual Hierarchy"), Is.True);
+            Assert.That(DesignCategory.Any(d => d.Id == 19 && d.Name == "Broken Links"), Is.True);
         }
 
         [Test]
         public void Add_Test_Issue_Test()
         {
-            var category = new DesignIssue { CategoryId = 1, ReportId = 1, Message = "Test Message", Severity = 1 };
+            var category = new DesignIssue { CategoryId = 18, ReportId = 1, Message = "Test Message", Severity = 1 };
             _context.DesignIssues.Add(category);
             _context.SaveChanges();
             var testCategory = _context.DesignIssues.FirstOrDefault(c => c.Message == "Test Message");
             Assert.That(testCategory, Is.Not.Null);
-            Assert.That(testCategory.CategoryId, Is.EqualTo(1));
+            Assert.That(testCategory.CategoryId, Is.EqualTo(18));
             Assert.That(testCategory.ReportId, Is.EqualTo(1));
             Assert.That(testCategory.Severity, Is.EqualTo(1));
         }
 
+        // Singular URL Tests
+        [Test]
+        public async Task DeleteOldReportAndMakeNewOne()
+        {
+            var userId = "testUserID";
+            var url = "https://example.com/";
+            _context.Reports.Add(new Report
+            {
+                Url = url,
+                Date = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(-1)),
+                UserID = userId
+            });
+            await _context.SaveChangesAsync();
+            var httpContext = new DefaultHttpContext
+            {
+                User = new ClaimsPrincipal(new ClaimsIdentity(new[]
+                {
+                    new Claim(ClaimTypes.NameIdentifier, userId)
+                }, "TestAuth"))
+            };
+            var controller = TestBuilder.BuildHomeController(httpContext, _context);
+            await controller.Report(url);
+            var userReports = await _context.Reports.Where(r => r.Url == url && r.UserID == userId).ToListAsync();
+            Assert.That(userReports.Count, Is.EqualTo(1), "Only one report should remain after replacement.");
+        }
+        [Test]
+        public async Task OtherUsersReportNotDeleted()
+        {
+            var url = "https://example.com/";
+            var user1 = "testUserID1";
+            var user2 = "testUserID2";
+            _context.Reports.AddRange(
+                new Report { Url = url, UserID = user1, Date = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(-2)) },
+                new Report { Url = url, UserID = user2, Date = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(-2)) }
+            );
+            await _context.SaveChangesAsync();
+            var httpContext = new DefaultHttpContext
+            {
+                User = new ClaimsPrincipal(new ClaimsIdentity(new[]
+                {
+                    new Claim(ClaimTypes.NameIdentifier, user1)
+                }, "TestAuth"))
+            };
+            var controller = TestBuilder.BuildHomeController(httpContext, _context);
+            await controller.Report(url);
+            var reports = await _context.Reports.Where(r => r.Url == url).ToListAsync();
+            Assert.That(reports.Count, Is.EqualTo(2), "Each user should have one report.");
+            Assert.That(reports.Any(r => r.UserID == user1), Is.True);
+            Assert.That(reports.Any(r => r.UserID == user2), Is.True);
+        }
         [TearDown]
         public void TearDown()
         {
+            // Cleaning the url test data
+            var testUserIds = new[] { "testUserID", "testUserID1", "testUserID2" };
+            var testReports = _context.Reports.Where(r => testUserIds.Contains(r.UserID));
+            _context.Reports.RemoveRange(testReports);
             var testCategories = _context.DesignIssues.Where(c => c.Message == "Test Message");
             _context.DesignIssues.RemoveRange(testCategories);
             _context.SaveChanges();
