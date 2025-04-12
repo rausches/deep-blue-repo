@@ -9,16 +9,16 @@ using Uxcheckmate_Main.Services;
 namespace Service_Tests
 {
     [TestFixture]
-    public class PopupDetectionServiceTests
+    public class PopUpsServiceTests
     {
-        private Mock<ILogger<PopupDetectionService>> _mockLogger;
-        private PopupDetectionService _service;
+        private Mock<ILogger<PopUpsService>> _mockLogger;
+        private PopUpsService _service;
 
         [SetUp]
         public void SetUp()
         {
-            _mockLogger = new Mock<ILogger<PopupDetectionService>>();
-            _service = new PopupDetectionService(_mockLogger.Object);
+            _mockLogger = new Mock<ILogger<PopUpsService>>();
+            _service = new PopUpsService(_mockLogger.Object);
         }
 
         [Test]
