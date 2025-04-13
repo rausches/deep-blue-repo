@@ -68,5 +68,13 @@ namespace BDD_Tests.StepDefinitions
             Assert.That(driver.PageSource.Contains("Report"),Is.True, "Expected content not found on result view.");
         }
 
+        [When("the user enters {string} to analyze")]
+        public void WhenTheUserEntersToAnalyze(string url)
+        {
+            var wait = new WebDriverWait(driver, TimeSpan.FromSeconds(10));
+            var input = wait.Until(d => d.FindElement(By.Id("urlInput")));
+            input.Clear();
+            input.SendKeys(url);
+        }
     }
 }
