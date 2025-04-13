@@ -135,13 +135,14 @@ namespace Uxcheckmate_Main.Services
                         _logger.LogInformation("No issues found for category: {CategoryName}", category.Name);
                     }
                 });
-
-            // Add all design issues to the context
-            _dbContext.DesignIssues.AddRange(scanResults);
-
-            // Save to database
-            await _dbContext.SaveChangesAsync();
-
+            if (report.Id > 0){
+                // Add all design issues to the context
+                _dbContext.DesignIssues.AddRange(scanResults);
+                // Save to database
+                await _dbContext.SaveChangesAsync();
+            }else{
+                _logger.LogInformation("Skipping saving DesignIssues");    
+            }
             // Return report
             return scanResults.ToList();
         }

@@ -113,19 +113,48 @@ public class HomeController : Controller
                 AccessibilityIssues = new List<AccessibilityIssue>(),
                 DesignIssues = new List<DesignIssue>()
             };
-            _context.Reports.Add(report);
-            await _context.SaveChangesAsync();
-            _logger.LogInformation("Report record created with ID: {ReportId}", report.Id);
+            if (!string.IsNullOrEmpty(userId)){
+                // Seeing if user already has a report under the url
+                var existingReport = await _context.Reports.Include(r => r.AccessibilityIssues).Include(r => r.DesignIssues).FirstOrDefaultAsync(r => r.Url == url && r.UserID == userId);
+                if (existingReport != null){
+                    // Deleting old report information [May decide to archive in later sprint]
+                    _context.AccessibilityIssues.RemoveRange(existingReport.AccessibilityIssues);
+                    _context.DesignIssues.RemoveRange(existingReport.DesignIssues);
+                    _context.Reports.Remove(existingReport);
+                    await _context.SaveChangesAsync();
 
+                    _context.Entry(existingReport).State = EntityState.Detached;
+                    _logger.LogInformation("Old report for user {UserId} and URL {Url} removed.", userId, url);
+                }
+                _context.Reports.Add(report);
+                await _context.SaveChangesAsync();
+                _logger.LogInformation("New report saved to DB with ID: {ReportId}", report.Id);
+            }else{
+                _logger.LogInformation("User not authenticated. Generating a report without saving to DB.");
+            }
             // Run accessibility and design analysis
-            await _axeCoreService.AnalyzeAndSaveAccessibilityReport(report);
-            await _reportService.GenerateReportAsync(report);
-
+            var accessibilityIssues = await _axeCoreService.AnalyzeAndSaveAccessibilityReport(report);
+            var designIssues = await _reportService.GenerateReportAsync(report);
+            if (string.IsNullOrEmpty(userId)){
+                report.AccessibilityIssues = accessibilityIssues.ToList();
+                report.DesignIssues = designIssues.ToList();
+                foreach (var issue in report.AccessibilityIssues){
+                    issue.Category = await _context.AccessibilityCategories.FindAsync(issue.CategoryId);
+                }
+                foreach (var issue in report.DesignIssues){
+                    issue.Category = await _context.DesignCategories.FindAsync(issue.CategoryId);
+                }
+            }
+            Report fullReport;
+            if (!string.IsNullOrEmpty(userId)){
             // Fetch the full report including related issues and categories
-            var fullReport = await _context.Reports
+            fullReport = await _context.Reports
                 .Include(r => r.AccessibilityIssues).ThenInclude(a => a.Category)
                 .Include(r => r.DesignIssues).ThenInclude(d => d.Category)
                 .FirstOrDefaultAsync(r => r.Id == report.Id);
+            }else{
+                fullReport = report;
+            }
 
             // Handle the case where the report could not be fetched
             if (fullReport == null)
@@ -153,6 +182,27 @@ public class HomeController : Controller
                 "severity-low-high" => fullReport.AccessibilityIssues.OrderBy(i => i.Severity).ThenBy(i => i.Category.Name).ToList(),
                 _ => fullReport.AccessibilityIssues.OrderBy(i => i.Category.Name).ThenByDescending(i => i.Severity).ToList()
             };
+
+            // Add to TempData for PDF Printing when not logged in
+            if (string.IsNullOrEmpty(userId)){
+                var tempReport = new
+                {
+                    Url = report.Url,
+                    Date = report.Date,
+                    DesignIssues = report.DesignIssues.Select(d => new {
+                        d.Message,
+                        d.Severity,
+                        Category = d.Category?.Name
+                    }),
+                    AccessibilityIssues = report.AccessibilityIssues.Select(a => new {
+                        a.Message,
+                        a.Severity,
+                        a.WCAG,
+                        Category = a.Category?.Name
+                    })
+                };
+                TempData["Report"] = JsonSerializer.Serialize(tempReport);
+            }
 
             // If the request is an AJAX call, return the partial view
             if (isAjax)
@@ -203,18 +253,57 @@ public class HomeController : Controller
     }
 
     [HttpGet]
-    public async Task<IActionResult> DownloadReport(int id)
+    public async Task<IActionResult> DownloadReport(int id = 0)
     {
-        var report = await _context.Reports
-            .Include(r => r.AccessibilityIssues)
-            .Include(r => r.DesignIssues)
-            .FirstOrDefaultAsync(r => r.Id == id);
+        Report report;
 
-        if (report == null)
-        {
-            return NotFound("Report not found.");
+        if (id > 0){
+            report = await _context.Reports
+                .Include(r => r.AccessibilityIssues)
+                .Include(r => r.DesignIssues)
+                .FirstOrDefaultAsync(r => r.Id == id);
+
+            if (report == null)
+            {
+                return NotFound("Report not found.");
+            }
+        }else{
+            // Check TempData
+            if (!TempData.TryGetValue("Report", out var serializedReportObj) || serializedReportObj is not string serializedReport){
+                return NotFound("Report Data Missing");
+            }
+            try{
+                var reportDTO = JsonSerializer.Deserialize<ReportDTO>(serializedReport, new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
+                });
+                if (reportDTO == null){
+                    return BadRequest("Failed to parse unsaved report.");
+                }
+                // Map reportDTO to Report
+                report = new Report
+                {
+                    Url = reportDTO.Url,
+                    Date = reportDTO.Date,
+                    AccessibilityIssues = reportDTO.AccessibilityIssues.Select(a => new AccessibilityIssue
+                    {
+                        Message = a.Message,
+                        Severity = a.Severity,
+                        WCAG = a.WCAG,
+                        Category = new AccessibilityCategory { Name = a.Category }
+                    }).ToList(),
+                    DesignIssues = reportDTO.DesignIssues.Select(d => new DesignIssue
+                    {
+                        Message = d.Message,
+                        Severity = d.Severity,
+                        Category = new DesignCategory { Name = d.Category }
+                    }).ToList()
+                };
+            }catch (Exception ex){
+                _logger.LogError(ex, "Error deserializing report from TempData.");
+                return BadRequest("Unable to process the report.");
+            }
         }
-
         var pdfBytes = _pdfExportService.GenerateReportPdf(report);
         return File(pdfBytes, "application/pdf", $"UXCheckmate_Report_{report.Id}.pdf");
     }
