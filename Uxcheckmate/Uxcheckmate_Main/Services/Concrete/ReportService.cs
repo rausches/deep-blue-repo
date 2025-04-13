@@ -65,11 +65,14 @@ namespace Uxcheckmate_Main.Services
                 throw new ArgumentException("URL cannot be empty.", nameof(url));
             }
 
-            // Call the scraper
-            var scrapedData = await _scraperService.ScrapeAsync(url);
-            _logger.LogDebug("Scraping completed for URL: {Url}", url);
-            var assets = await _playwrightScraperService.ScrapeAsync(url);
-            _logger.LogDebug("Scraped assets for URL: {Url}", url);
+            // Call the scrapers in parallel
+            var staticScrapeTask = _scraperService.ScrapeAsync(url);
+            var dynamicScrapeTask = _playwrightScraperService.ScrapeAsync(url);
+
+            await Task.WhenAll(staticScrapeTask, dynamicScrapeTask);
+
+            var scrapedData = staticScrapeTask.Result;
+            var assets = dynamicScrapeTask.Result;
 
             // Merge Static and Dynamic content into one dictionary
             scrapedData = MergeScrapedData(scrapedData, assets);
@@ -282,9 +285,6 @@ namespace Uxcheckmate_Main.Services
             baseData["inlineJs"] = assets.InlineJs;
             baseData["scrollHeight"] = assets.ScrollHeight;
             baseData["viewportHeight"] = assets.ViewportHeight;
-            _logger.LogDebug("ScrollHeight Merged: {Value}", assets.ScrollHeight);
-            _logger.LogDebug("ViewportHeight Merged: {Value}", assets.ViewportHeight);
-
 
             return baseData;
         }
