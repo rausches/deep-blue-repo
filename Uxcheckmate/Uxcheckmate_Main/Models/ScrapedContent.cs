@@ -5,20 +5,14 @@ namespace Uxcheckmate_Main.Models
 {
     public class ScrapedContent
     {
-        public string html { get; set; }
-        public string cssFile { get; set; }
-        public string jsFile { get; set; }
-        public List<string> cssFiles { get; set; } = new List<string>();
-        public List<string> jsFiles { get; set; } = new List<string>();
-        public Dictionary<string, string> cssSelectors { get; set; } = new Dictionary<string, string>();
-        public Dictionary<string, string> htmlElements { get; set; } = new Dictionary<string, string>();
-        public Dictionary<string, int> elementCounts { get; set; } = new Dictionary<string, int>();
-
-        // method to extract inline css and js into a separate file and append to lists below
-        // list of css files 
-        // list of js files
-        // method to extract css from css files and map [selector: rules]
-        // method to extract html from html file and map [element: content]
-        // method to map html elements to count
+        public string Url { get; set; } = "";
+        public List<string> InlineCss { get; set; } = new();
+        public List<string> ExternalCssLinks { get; set; } = new(); 
+        public List<string> ExternalCssContents { get; set; } = new();
+        public List<string> InlineJs { get; set; } = new();
+        public List<string> ExternalJsLinks { get; set; } = new(); 
+        public List<string> ExternalJsContents { get; set; } = new(); 
+        public double ScrollHeight { get; set; }
+        public double ViewportHeight { get; set; }
     }
 }

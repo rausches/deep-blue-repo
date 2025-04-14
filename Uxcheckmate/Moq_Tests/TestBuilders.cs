@@ -29,7 +29,12 @@ public static class TestBuilder
                 new Mock<IColorSchemeService>().Object,
                 new Mock<IDynamicSizingService>().Object,
                 new Mock<IScreenshotService>().Object,
-                new Mock<IWebScraperService>().Object
+                new Mock<IWebScraperService>().Object,
+                new Mock<IPlaywrightScraperService>().Object,
+                new Mock<IPopUpsService>().Object,
+                new Mock<IAnimationService>().Object,
+                new Mock<IAudioService>().Object,
+                new Mock<IScrollService>().Object
             ),
             new Mock<PdfExportService>().Object,
             new Mock<IScreenshotService>().Object,

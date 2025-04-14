@@ -20,18 +20,19 @@ namespace BDD_Tests.Features
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Reqnroll", "2.0.0.0")]
     [System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     [NUnit.Framework.TestFixtureAttribute()]
-    [NUnit.Framework.DescriptionAttribute("User enters in url and recieves analysis report")]
+    [NUnit.Framework.DescriptionAttribute("Report Generation")]
     [NUnit.Framework.FixtureLifeCycleAttribute(NUnit.Framework.LifeCycle.InstancePerTestCase)]
-    public partial class UserEntersInUrlAndRecievesAnalysisReportFeature
+    public partial class ReportGenerationFeature
     {
         
         private global::Reqnroll.ITestRunner testRunner;
         
         private static string[] featureTags = ((string[])(null));
         
-        private static global::Reqnroll.FeatureInfo featureInfo = new global::Reqnroll.FeatureInfo(new System.Globalization.CultureInfo("en-US"), "features", "User enters in url and recieves analysis report", null, global::Reqnroll.ProgrammingLanguage.CSharp, featureTags);
+        private static global::Reqnroll.FeatureInfo featureInfo = new global::Reqnroll.FeatureInfo(new System.Globalization.CultureInfo("en-US"), "features", "Report Generation", "As a user, I want to view the results of the analysis so that I know how to impro" +
+                "ve it.", global::Reqnroll.ProgrammingLanguage.CSharp, featureTags);
         
-#line 1 "UX-39.feature"
+#line 1 "ReportGeneration.feature"
 #line hidden
         
         [NUnit.Framework.OneTimeSetUpAttribute()]
@@ -83,14 +84,12 @@ namespace BDD_Tests.Features
         }
         
         [NUnit.Framework.TestAttribute()]
-        [NUnit.Framework.DescriptionAttribute("David analyzes his site and views the results")]
-        [NUnit.Framework.CategoryAttribute("analyze")]
-        public async System.Threading.Tasks.Task DavidAnalyzesHisSiteAndViewsTheResults()
+        [NUnit.Framework.DescriptionAttribute("User generates a report for a valid URL")]
+        public async System.Threading.Tasks.Task UserGeneratesAReportForAValidURL()
         {
-            string[] tagsOfScenario = new string[] {
-                    "analyze"};
+            string[] tagsOfScenario = ((string[])(null));
             System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
-            global::Reqnroll.ScenarioInfo scenarioInfo = new global::Reqnroll.ScenarioInfo("David analyzes his site and views the results", null, tagsOfScenario, argumentsOfScenario, featureTags);
+            global::Reqnroll.ScenarioInfo scenarioInfo = new global::Reqnroll.ScenarioInfo("User generates a report for a valid URL", null, tagsOfScenario, argumentsOfScenario, featureTags);
 #line 4
   this.ScenarioInitialize(scenarioInfo);
 #line hidden
@@ -101,38 +100,29 @@ namespace BDD_Tests.Features
             else
             {
                 await this.ScenarioStartAsync();
-#line 6
+#line 5
     await testRunner.GivenAsync("the user navigates to the site", ((string)(null)), ((global::Reqnroll.Table)(null)), "Given ");
 #line hidden
+#line 6
+    await testRunner.WhenAsync("the user enters \"https://example.com\" to analyze", ((string)(null)), ((global::Reqnroll.Table)(null)), "When ");
+#line hidden
 #line 7
-    await testRunner.WhenAsync("the user enters a URL to analyze with \"https://momkage-lexy.github.io/\"", ((string)(null)), ((global::Reqnroll.Table)(null)), "When ");
+    await testRunner.WhenAsync("the user starts the analysis", ((string)(null)), ((global::Reqnroll.Table)(null)), "When ");
 #line hidden
 #line 8
-    await testRunner.AndAsync("the user starts the analysis", ((string)(null)), ((global::Reqnroll.Table)(null)), "And ");
+    await testRunner.ThenAsync("the system displays a loading overlay", ((string)(null)), ((global::Reqnroll.Table)(null)), "Then ");
+#line hidden
+#line 9
+    await testRunner.ThenAsync("the report view is displayed", ((string)(null)), ((global::Reqnroll.Table)(null)), "Then ");
 #line hidden
 #line 10
-    await testRunner.ThenAsync("he will see a loading overlay", ((string)(null)), ((global::Reqnroll.Table)(null)), "Then ");
+    await testRunner.AndAsync("the analyzed URL is shown on the page", ((string)(null)), ((global::Reqnroll.Table)(null)), "And ");
 #line hidden
 #line 11
-    await testRunner.AndAsync("he will be directed to the results view", ((string)(null)), ((global::Reqnroll.Table)(null)), "And ");
+    await testRunner.AndAsync("the user sees how many issues were found", ((string)(null)), ((global::Reqnroll.Table)(null)), "And ");
 #line hidden
 #line 12
-    await testRunner.AndAsync("he will see the site URL", ((string)(null)), ((global::Reqnroll.Table)(null)), "And ");
-#line hidden
-#line 13
-    await testRunner.AndAsync("he will see how many issues his site has", ((string)(null)), ((global::Reqnroll.Table)(null)), "And ");
-#line hidden
-#line 14
-    await testRunner.AndAsync("he will see a container for design issues with subrows of issues", ((string)(null)), ((global::Reqnroll.Table)(null)), "And ");
-#line hidden
-#line 15
-    await testRunner.AndAsync("he clicks the broken links section", ((string)(null)), ((global::Reqnroll.Table)(null)), "And ");
-#line hidden
-#line 16
-    await testRunner.ThenAsync("he will see the broken links row reporting missing or invalid links", ((string)(null)), ((global::Reqnroll.Table)(null)), "Then ");
-#line hidden
-#line 17
-    await testRunner.AndAsync("the broken links listed will be accurate", ((string)(null)), ((global::Reqnroll.Table)(null)), "And ");
+    await testRunner.AndAsync("each issue category header is visible", ((string)(null)), ((global::Reqnroll.Table)(null)), "And ");
 #line hidden
             }
             await this.ScenarioCleanupAsync();
