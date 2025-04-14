@@ -18,37 +18,18 @@ namespace BDD_Tests.StepDefinitions
         private readonly ScenarioContext _scenarioContext;
         private readonly string _url = "https://momkage-lexy.github.io/";
         private readonly WebScraperService _scraperService;
-
-
         private readonly string _html;
 
         public BrokenLinksSteps(IWebDriver driver, ScenarioContext scenarioContext)
         {
             _driver = driver;
             _scenarioContext = scenarioContext;
-            _scenarioContext["skipServer"] = true;
 
             var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
+
+            // Web Scraper Instance
             var logger = loggerFactory.CreateLogger<WebScraperService>();
             _scraperService = new WebScraperService(new HttpClient(), logger);
-
-            _driver.Navigate().GoToUrl(_url);
-            _html = _driver.PageSource;
-            _driver.Navigate().GoToUrl("http://localhost:5000");
-        }
-
-        [Given("the user has generated a report for \"(.*)\"")]
-        public void GivenTheUserHasGeneratedAReport(string siteUrl)
-        {
-            var wait = new WebDriverWait(_driver, TimeSpan.FromSeconds(180));
-            var input = wait.Until(d => d.FindElement(By.Id("urlInput")));
-            input.Clear();
-            input.SendKeys(siteUrl);
-
-            var button = _driver.FindElement(By.Id("analyzeBtn"));
-            button.Click();
-
-            wait.Until(d => d.FindElement(By.Id("reportContainer"))); // Wait for report
         }
 
         [When("the user clicks the broken links section")]
@@ -66,7 +47,6 @@ namespace BDD_Tests.StepDefinitions
         {
             var section = _driver.FindElement(By.XPath("//button[contains(., 'Broken Links')]"));
             Assert.That(section.Displayed, Is.True);
-                        var wait = new WebDriverWait(_driver, TimeSpan.FromSeconds(10));
         }
 
         [Then("the broken links row reports missing or invalid links")]
@@ -80,7 +60,7 @@ namespace BDD_Tests.StepDefinitions
             var wait = new WebDriverWait(_driver, TimeSpan.FromSeconds(15));
             
             // Call web scraper to organize html elements
-            var scrapedData = _scraperService.ExtractHtmlElements(_html, _url);
+            var scrapedData = await _scraperService.ScrapeAsync(_url);
 
             // Create Broken Links Service Instance
             var logger = LoggerFactory.Create(builder => builder.AddConsole()).CreateLogger<BrokenLinksService>();

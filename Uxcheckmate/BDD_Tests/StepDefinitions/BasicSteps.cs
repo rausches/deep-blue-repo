@@ -18,9 +18,12 @@ namespace BDD_Tests.StepDefinitions
         private readonly IWebDriver driver;
         private HomeController _controller;
         private IActionResult _result;
-        public BasicSteps(IWebDriver webDriver)
+        private readonly ScenarioContext _scenarioContext;
+        private ScrapedContent _scrapedData;
+        public BasicSteps(IWebDriver webDriver, ScenarioContext scenarioContext)
         {
             driver = webDriver;
+            _scenarioContext = scenarioContext;
         }
         // Mock additions
         [Given("the user navigates to the site")]
@@ -75,6 +78,21 @@ namespace BDD_Tests.StepDefinitions
             var input = wait.Until(d => d.FindElement(By.Id("urlInput")));
             input.Clear();
             input.SendKeys(url);
+        }
+
+        [Given("the user has generated a report for \"(.*)\"")]
+        public void GivenTheUserHasGeneratedAReport(string siteUrl)
+        {
+            driver.Navigate().GoToUrl("http://localhost:5000");
+            var wait = new WebDriverWait(driver, TimeSpan.FromSeconds(180));
+            var input = wait.Until(d => d.FindElement(By.Id("urlInput")));
+            input.Clear();
+            input.SendKeys(siteUrl);
+
+            var button = driver.FindElement(By.Id("analyzeBtn"));
+            button.Click();
+
+            wait.Until(d => d.FindElement(By.Id("reportContainer"))); // Wait for report
         }
     }
 }
