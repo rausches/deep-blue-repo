@@ -19,7 +19,12 @@ namespace Uxcheckmate.BDD_Tests.StepDefinitions
         [BeforeScenario]
         public void BeforeScenario()
         {
-            RunTestServer.StartServer();
+            if (!_scenarioContext.ContainsKey("skipServer"))
+            {
+                RunTestServer.StartServer();
+            }
+            // commented out below because i need to navigate to an external site before analysis and this is blocking it
+           // RunTestServer.StartServer();
             _driver = new ChromeDriver();
             _scenarioContext.ScenarioContainer.RegisterInstanceAs<IWebDriver>(_driver);
         }

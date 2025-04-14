@@ -7,6 +7,8 @@ using Microsoft.EntityFrameworkCore;
 using Uxcheckmate_Main.Models;
 using System.Collections.Concurrent;
 using System.Threading.Tasks;
+using System.Diagnostics;
+
 
 namespace Uxcheckmate_Main.Services
 {
@@ -22,9 +24,14 @@ namespace Uxcheckmate_Main.Services
         private readonly IDynamicSizingService _dynamicSizingService;
         private readonly IWebScraperService _scraperService;
         private readonly IScreenshotService _screenshotService;
-        // private readonly IFaviconDetectionService _faviconDetectionService; // Commented out
+        private readonly IPlaywrightScraperService _playwrightScraperService;
+        private readonly IPopUpsService _popUpsService;
+        private readonly IAnimationService _animationService;
+        private readonly IAudioService _audioService;
+        private readonly IScrollService _scrollService;
 
-        public ReportService(HttpClient httpClient, ILogger<ReportService> logger, UxCheckmateDbContext context, IOpenAiService openAiService, IBrokenLinksService brokenLinksService, IHeadingHierarchyService headingHierarchyService, IColorSchemeService colorSchemeService, IDynamicSizingService dynamicSizingService, IScreenshotService screenshotService, IWebScraperService scraperService) /*, IFaviconDetectionService faviconDetectionService*/
+
+        public ReportService(HttpClient httpClient, ILogger<ReportService> logger, UxCheckmateDbContext context, IOpenAiService openAiService, IBrokenLinksService brokenLinksService, IHeadingHierarchyService headingHierarchyService, IColorSchemeService colorSchemeService, IDynamicSizingService dynamicSizingService, IScreenshotService screenshotService, IWebScraperService scraperService, IPlaywrightScraperService playwrightScraperService, IPopUpsService popUpsService, IAnimationService animationService, IAudioService audioService, IScrollService scrollService)
         {
             _httpClient = httpClient;
             _dbContext = context;
@@ -36,14 +43,20 @@ namespace Uxcheckmate_Main.Services
             _dynamicSizingService = dynamicSizingService;
             _screenshotService = screenshotService;
             _scraperService = scraperService;
-            // _faviconDetectionService = faviconDetectionService; // Commented out
+            _playwrightScraperService = playwrightScraperService;
+            _popUpsService = popUpsService;
+            _animationService = animationService;
+            _audioService = audioService;
+            _scrollService = scrollService;
         }
+
 
         public async Task<ICollection<DesignIssue>> GenerateReportAsync(Report report)
         {
             // Initialize url to report attribute
             var url = report.Url;
             _logger.LogInformation("Starting report generation for URL: {Url}", url);
+
 
             // If there is no url throw an exception
             if (string.IsNullOrEmpty(url))
@@ -52,16 +65,31 @@ namespace Uxcheckmate_Main.Services
                 throw new ArgumentException("URL cannot be empty.", nameof(url));
             }
 
-            // Call the scraper
-            var scrapedData = await _scraperService.ScrapeAsync(url);
-            _logger.LogDebug("Scraping completed for URL: {Url}", url);
+            // Call the scrapers in parallel
+            var staticScrapeTask = _scraperService.ScrapeAsync(url);
+            var dynamicScrapeTask = _playwrightScraperService.ScrapeAsync(url);
+
+            await Task.WhenAll(staticScrapeTask, dynamicScrapeTask);
+
+            var scrapedData = staticScrapeTask.Result;
+            var assets = dynamicScrapeTask.Result;
+
+            // Merge Static and Dynamic content into one dictionary
+            scrapedData = MergeScrapedData(scrapedData, assets);
+
+           /* foreach (var css in assets.ExternalCssContents)
+            {
+                _logger.LogInformation("External CSS Content Preview:\n{Css}", css.Substring(0, Math.Min(200, css.Length)));
+            }
+
+            foreach (var js in assets.ExternalJsContents)
+            {
+                _logger.LogInformation("External JS Content Preview:\n{Js}", js.Substring(0, Math.Min(200, js.Length)));
+            }*/
 
             // Get list of design categories
             var designCategories = await _dbContext.DesignCategories.ToListAsync();
             _logger.LogInformation("Found {Count} design categories.", designCategories.Count);
-
-            // Take screenshot once to be used by multiple analyzers
-            Task<byte[]> screenshotTask = _screenshotService?.CaptureFullPageScreenshot(url) ?? Task.FromResult(new byte[0]);
 
             // Use ConcurrentBag for thread-safe collection of results
             var scanResults = new ConcurrentBag<DesignIssue>();
@@ -80,7 +108,7 @@ namespace Uxcheckmate_Main.Services
                         message = category.ScanMethod switch
                         {
                             "OpenAI" => await _openAiService.AnalyzeWithOpenAI(url, category.Name, category.Description, scrapedData),
-                            "Custom" => await RunCustomAnalysisAsync(url, category.Name, category.Description, scrapedData, screenshotTask),
+                            "Custom" => await RunCustomAnalysisAsync(url, category.Name, category.Description, scrapedData),
                             _ => ""
                         };
                     }
@@ -122,11 +150,10 @@ namespace Uxcheckmate_Main.Services
             return scanResults.ToList();
         }
 
-        public async Task<string> RunCustomAnalysisAsync(string url, string categoryName, string categoryDescription, Dictionary<string, object> scrapedData, Task<byte[]> screenshotTask = null)
+        public async Task<string> RunCustomAnalysisAsync(string url, string categoryName, string categoryDescription, Dictionary<string, object> scrapedData)
         {
             _logger.LogInformation("Running custom analysis for category: {CategoryName}", categoryName);
-
-            screenshotTask ??= _screenshotService?.CaptureFullPageScreenshot(url) ?? Task.FromResult(new byte[0]);
+            Task<byte[]> screenshotTask = _screenshotService?.CaptureFullPageScreenshot(url) ?? Task.FromResult(new byte[0]); // Full site screenshot for anaylsis
 
             switch (categoryName)
             {
@@ -147,6 +174,18 @@ namespace Uxcheckmate_Main.Services
 
                 case "Font Legibility":
                     return await AnalyzeFontLegibilityAsync(url, scrapedData);
+               
+                case "Pop Ups":
+                    return await _popUpsService.RunPopupAnalysisAsync(url, scrapedData);
+
+                case "Animations":
+                    return await _animationService.RunAnimationAnalysisAsync(url, scrapedData);
+
+                case "Audio":
+                    return await _audioService.RunAudioAnalysisAsync(url, scrapedData);
+
+                case "Number of scrolls":
+                    return await _scrollService.RunScrollAnalysisAsync(url, scrapedData);
 
                 default:
                     _logger.LogDebug("No custom analysis implemented for category: {CategoryName}", categoryName);
@@ -238,5 +277,17 @@ namespace Uxcheckmate_Main.Services
             return aiText.Contains("critical", StringComparison.OrdinalIgnoreCase) ? 3 :
                    aiText.Contains("should", StringComparison.OrdinalIgnoreCase) ? 2 : 1;
         }
+        private Dictionary<string, object> MergeScrapedData(Dictionary<string, object> baseData, ScrapedContent assets)
+        {
+            baseData["externalCssContents"] = assets.ExternalCssContents;
+            baseData["externalJsContents"] = assets.ExternalJsContents;
+            baseData["inlineCss"] = assets.InlineCss;
+            baseData["inlineJs"] = assets.InlineJs;
+            baseData["scrollHeight"] = assets.ScrollHeight;
+            baseData["viewportHeight"] = assets.ViewportHeight;
+
+            return baseData;
+        }
+
     }
 }

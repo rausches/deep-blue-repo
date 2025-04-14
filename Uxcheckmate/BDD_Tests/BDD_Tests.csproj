@@ -7,6 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="DotNetSeleniumExtras.WaitHelpers" Version="3.11.0" />
     <PackageReference Include="FluentAssertions" Version="8.2.0" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="9.0.2" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.13.0" />
@@ -29,6 +30,8 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Uxcheckmate_Main\Uxcheckmate_Main.csproj" />
+      <None Include="..\Uxcheckmate_Main\wwwroot\js\playwrightScraperHelper.js" Link="wwwroot\js\playwrightScraperHelper.js">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
-
 </Project>

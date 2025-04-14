@@ -7,5 +7,6 @@ namespace Uxcheckmate_Main.Services
     public interface IPlaywrightService
     {
         Task<IBrowserContext> GetBrowserContextAsync();
+        Task<IBrowser> GetBrowserAsync();
     }
 }
