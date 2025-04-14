@@ -54,7 +54,18 @@ public class HomeController : Controller
             ModelState.AddModelError("url", "URL cannot be empty.");
             return View("Index");
         }
+            // Normalize the URL *before* checking if it's reachable
+            url = url.Trim();
 
+            // If user didn’t type http:// or https://, prepend https://
+            if (!url.StartsWith("http://", StringComparison.OrdinalIgnoreCase) &&
+                !url.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
+            {
+                url = "https://" + url;
+            }
+
+            // Remove trailing slash
+            url = url.TrimEnd('/');
         try
         {
             // Check if the URL is reachable
