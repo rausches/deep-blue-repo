@@ -57,6 +57,18 @@ public class Program
                 );
             });
 
+            // Enable session in Program.cs
+            builder.Services.AddSession(options =>
+            {
+                options.IdleTimeout = TimeSpan.FromMinutes(30); // Set session timeout
+                options.Cookie.HttpOnly = true;
+                options.Cookie.IsEssential = true;
+            });
+
+            // var app = builder.Build();
+            // app.UseSession(); // Add this before app.UseEndpoints()
+
+
         // Add services to the container.
         builder.Services.AddControllersWithViews();
         builder.Services.AddRazorPages();
@@ -106,6 +118,7 @@ public class Program
         app.UseStaticFiles();  // Ensure static files (CSS, JS, images) are served
 
         app.UseRouting();
+        app.UseSession(); // Enable session middleware
         app.UseAuthentication();
         app.UseAuthorization();
         // Map default route

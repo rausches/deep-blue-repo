@@ -195,7 +195,7 @@ Report Loader wrapper style
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(255, 255, 255, 0.5);
+  /* background-color: rgba(255, 255, 255, 0.5); */
   display: flex;
   /* flex-direction: column; */
   align-items: center;
@@ -243,16 +243,18 @@ Report scanning wrapper style
 
 #scanningWrapper {
   position: fixed;
-  top: 0;
+  top: 51px;
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(255, 255, 255, 0.5);
+  background: var(--bg-color);
+  /* background-color: rgba(255, 255, 255, 0.8); */
   display: flex;
   align-items: center;
   justify-content: center;
   box-sizing: border-box;
   z-index: 9999; 
+  overflow-y: auto; /* Enable vertical scrolling */
 }
 
 #scanningContainer {
@@ -262,31 +264,55 @@ Report scanning wrapper style
   justify-content: center;
   text-align: center; 
   padding: 20px;
-  background-color: rgba(24, 106, 168, 0.5); 
+  margin-bottom: auto;
+  /* background-color: rgba(24, 106, 168, 0.5);  */
   /* background-color: var(--bg-color);  */
   border-radius: 10px; 
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); 
+  /* box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);  */
 }
 
-.scan-status h1, .scan-status p {
+
+
+.scan-status h1, .scan-status p, #skeleton-text {
   font-family:"DM Serif Text", serif;
-  margin: 0;
+  margin: 15px;
   padding: 10px 0;
   color: #001521;
   font-weight: bold;
 }
 
+#skeleton-text {
+  color: #ffffff;
+}
+
+
 .loading-screenshot {
   width: 600px; 
   height: 300px; 
-  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  /* background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%); */
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite;
   border-radius: 10px; 
   display: flex;
   align-items: center;
   justify-content: center;
+  background-color:white
+}
 
+.placeholder-glow {
+  animation: fadeGlow 1.5s infinite;
+}
+
+@keyframes fadeGlow {
+  0% {
+      opacity: 0.5;
+  }
+  50% {
+      opacity: 1;
+  }
+  100% {
+      opacity: 0.5;
+  }
 }
 
 @keyframes shimmer {
