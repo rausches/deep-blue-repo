@@ -25,11 +25,11 @@ namespace Uxcheckmate_Main.Services
 
         public async Task<ScrapedContent> ScrapeAsync(string url)
         {
-            // Create a new browser context (isolated session)
-            var context = await _playwrightService.GetBrowserContextAsync();
+            // Run in unique headless browser
+            var browser = await _playwrightService.GetBrowserAsync(); 
+            var context = await browser.NewContextAsync();   
+            var page    = await context.NewPageAsync(); 
 
-            // Open a new page in the browser context
-            var page = await context.NewPageAsync();
 
             // Navigate to the URL and wait until network is idle 
             await page.GotoAsync(url, new PageGotoOptions { WaitUntil = WaitUntilState.NetworkIdle });
