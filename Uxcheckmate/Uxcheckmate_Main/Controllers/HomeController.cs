@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Uxcheckmate_Main.Models;
 using Uxcheckmate_Main.Services;
+using Uxcheckmate_Main.DTO;
 using Microsoft.EntityFrameworkCore;
 using System.Text.Json;
 using System.Diagnostics;
@@ -10,6 +11,7 @@ using Microsoft.Playwright;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.Mvc.ViewEngines;
+
 
 namespace Uxcheckmate_Main.Controllers;
 
@@ -241,9 +243,36 @@ public class HomeController : Controller
         return View("ErrorPage");
     }
     [Authorize] // Have to be logged in/Authorized to access
-    public IActionResult UserDash()
+    public async Task<IActionResult> UserDash()
     {
-        return View();
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var reports = await _context.Reports
+            .Where(r => r.UserID == userId)
+            .Include(r => r.DesignIssues).ThenInclude(d => d.Category)
+            .Include(r => r.AccessibilityIssues).ThenInclude(a => a.Category)
+            .OrderByDescending(r => r.Date)
+            .ThenByDescending(r => r.Id)
+            .ToListAsync();
+        var reportDTOs = reports.Select(r => new ReportDTO
+        {
+            Id = r.Id,
+            Url = r.Url,
+            Date = r.Date,
+            DesignIssues = r.DesignIssues.Select(d => new DesignIssueDTO
+            {
+                Message = d.Message,
+                Severity = d.Severity,
+                Category = d.Category?.Name
+            }).ToList(),
+            AccessibilityIssues = r.AccessibilityIssues.Select(a => new AccessibilityIssueDTO
+            {
+                Message = a.Message,
+                Severity = a.Severity,
+                WCAG = a.WCAG,
+                Category = a.Category?.Name
+            }).ToList()
+        }).ToList();
+        return View(reportDTOs);
     }
 
 
