@@ -36,6 +36,7 @@ function handleUserUrl(event) {
     var urlInput = document.getElementById('urlInput').value.trim();
     var responseMessage = document.getElementById('responseMessage');
     var loaderWrapper = document.getElementById('loaderWrapper');
+    var scanningWrapper = document.getElementById('scanningWrapper');
     
 
     // Check if the URL is empty
@@ -81,15 +82,20 @@ function handleUserUrl(event) {
     
     // Hide the confirmation message and show loader
     responseMessage.innerHTML = "";
-    // loaderWrapper.style.display = 'flex'; // Show loader state
+    loaderWrapper.style.display = 'flex';
 
-    if (loaderWrapper) {
-        loaderWrapper.style.display = 'flex'; // Show loader state
-    } else {
-        console.error("Element with ID 'loaderWrapper' not found.");
-    }
+    // document.getElementById('urlForm').submit();    
 
-    showScanningTransition(); 
+    // Delay the redirect to the results page
+    setTimeout(function () {
+        loaderWrapper.style.display = 'none';
+        scanningWrapper.style.display = 'block';
+
+        // Submit the form after showing the scanning state
+        setTimeout(function () {
+            document.getElementById('urlForm').submit(); // Submit form after 2 seconds of scanning state
+        }, 2000);
+    }, 3000);
 
     closePopup();
 

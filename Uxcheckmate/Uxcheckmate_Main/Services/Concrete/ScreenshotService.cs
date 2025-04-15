@@ -43,8 +43,6 @@ namespace Uxcheckmate_Main.Services
                 // Navigate to the specified URL
                 await page.GotoAsync(url);
 
-                _logger.LogInformation("Capturing full-page screenshot for {Url}", url);
-
                 // Ensure FullPage option is set to False to capture only the viewport of the page
                 screenshotOptions.FullPage = false;
 
@@ -56,7 +54,7 @@ namespace Uxcheckmate_Main.Services
                 // This allows the image to be displayed in the browser without saving it to disk
                 // The base64 string is prefixed with the data:image/png;base64, so the browser knows it is an image
                 // This uses the MIME type for PNG images image/png
-                return $"data:image/png;base64,{Convert.ToBase64String(screenshotBytes)}";                
+                return $"data:image/png;base64,{Convert.ToBase64String(screenshotBytes)}";
             }
             catch (Exception ex)
             {
