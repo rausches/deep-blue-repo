@@ -21,7 +21,7 @@ namespace Uxcheckmate_Main.Services
         private readonly IBrokenLinksService _brokenLinksService;
         private readonly IHeadingHierarchyService _headingHierarchyService;
         private readonly IColorSchemeService _colorSchemeService;
-        private readonly IDynamicSizingService _dynamicSizingService;
+        private readonly IMobileResponsivenessService _mobileResponsivenessService;
         private readonly IWebScraperService _scraperService;
         private readonly IScreenshotService _screenshotService;
         private readonly IPlaywrightScraperService _playwrightScraperService;
@@ -31,7 +31,7 @@ namespace Uxcheckmate_Main.Services
         private readonly IScrollService _scrollService;
 
 
-        public ReportService(HttpClient httpClient, ILogger<ReportService> logger, UxCheckmateDbContext context, IOpenAiService openAiService, IBrokenLinksService brokenLinksService, IHeadingHierarchyService headingHierarchyService, IColorSchemeService colorSchemeService, IDynamicSizingService dynamicSizingService, IScreenshotService screenshotService, IWebScraperService scraperService, IPlaywrightScraperService playwrightScraperService, IPopUpsService popUpsService, IAnimationService animationService, IAudioService audioService, IScrollService scrollService)
+        public ReportService(HttpClient httpClient, ILogger<ReportService> logger, UxCheckmateDbContext context, IOpenAiService openAiService, IBrokenLinksService brokenLinksService, IHeadingHierarchyService headingHierarchyService, IColorSchemeService colorSchemeService, IMobileResponsivenessService mobileResponsivenessService, IScreenshotService screenshotService, IWebScraperService scraperService, IPlaywrightScraperService playwrightScraperService, IPopUpsService popUpsService, IAnimationService animationService, IAudioService audioService, IScrollService scrollService)
         {
             _httpClient = httpClient;
             _dbContext = context;
@@ -40,7 +40,7 @@ namespace Uxcheckmate_Main.Services
             _brokenLinksService = brokenLinksService;
             _headingHierarchyService = headingHierarchyService;
             _colorSchemeService = colorSchemeService;
-            _dynamicSizingService = dynamicSizingService;
+            _mobileResponsivenessService = mobileResponsivenessService;
             _screenshotService = screenshotService;
             _scraperService = scraperService;
             _playwrightScraperService = playwrightScraperService;
@@ -167,7 +167,7 @@ namespace Uxcheckmate_Main.Services
                     return await _colorSchemeService.AnalyzeWebsiteColorsAsync(scrapedData, screenshotTask);
 
                 case "Mobile Responsiveness":
-                    return await AnalyzeDynamicSizingAsync(url, scrapedData);
+                    return await _mobileResponsivenessService.RunMobileAnalysisAsync(url, scrapedData);
 
                 case "Favicon":
                     return await AnalyzeFaviconAsync(url, scrapedData);
@@ -193,9 +193,9 @@ namespace Uxcheckmate_Main.Services
             }
         }
 
-        private async Task<string> AnalyzeDynamicSizingAsync(string url, Dictionary<string, object> scrapedData)
+     /*   private async Task<string> AnalyzeDynamicSizingAsync(string url, Dictionary<string, object> scrapedData)
         {
-            bool hasDynamicSizing = _dynamicSizingService.HasDynamicSizing(scrapedData["htmlContent"].ToString());
+            bool hasDynamicSizing = _MobileResponsivenessIMobileResponsivenessService.HasDynamicSizing(scrapedData["htmlContent"].ToString());
 
             if (!hasDynamicSizing)
             {
@@ -205,7 +205,7 @@ namespace Uxcheckmate_Main.Services
 
             _logger.LogDebug("Dynamic sizing elements are present. No recommendations needed.");
             return string.Empty;
-        }
+        }*/
 
         private async Task<string> AnalyzeFaviconAsync(string url, Dictionary<string, object> scrapedData)
         {
@@ -279,15 +279,31 @@ namespace Uxcheckmate_Main.Services
         }
         private Dictionary<string, object> MergeScrapedData(Dictionary<string, object> baseData, ScrapedContent assets)
         {
-            baseData["externalCssContents"] = assets.ExternalCssContents;
-            baseData["externalJsContents"] = assets.ExternalJsContents;
+            baseData["url"] = assets.Url;
+            baseData["html"] = assets.Html;
+
             baseData["inlineCss"] = assets.InlineCss;
             baseData["inlineJs"] = assets.InlineJs;
+
+            baseData["inlineCssList"] = assets.InlineCssList;
+            baseData["inlineJsList"] = assets.InlineJsList;
+
+            baseData["externalCssLinks"] = assets.ExternalCssLinks;
+            baseData["externalJsLinks"] = assets.ExternalJsLinks;
+
+            baseData["externalCssContents"] = assets.ExternalCssContents;
+            baseData["externalJsContents"] = assets.ExternalJsContents;
+
             baseData["scrollHeight"] = assets.ScrollHeight;
             baseData["viewportHeight"] = assets.ViewportHeight;
 
+            baseData["scrollWidth"] = assets.ScrollWidth;
+            baseData["viewportWidth"] = assets.ViewportWidth;
+            baseData["viewportLabel"] = assets.ViewportLabel;
+
             return baseData;
         }
+
 
     }
 }

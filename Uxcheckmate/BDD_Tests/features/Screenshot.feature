@@ -8,3 +8,4 @@ Scenario: User initiates screenshot analysis
     When the analysis is complete
     Then David should be redirected to the report page without a full page reload
     And David should see the screenshot in the report page
+ 
