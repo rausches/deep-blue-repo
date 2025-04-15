@@ -20,16 +20,16 @@ namespace BDD_Tests.Features
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Reqnroll", "2.0.0.0")]
     [System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     [NUnit.Framework.TestFixtureAttribute()]
-    [NUnit.Framework.DescriptionAttribute("Capturing webpage screenshot")]
+    [NUnit.Framework.DescriptionAttribute("Webpage screenshot")]
     [NUnit.Framework.FixtureLifeCycleAttribute(NUnit.Framework.LifeCycle.InstancePerTestCase)]
-    public partial class CapturingWebpageScreenshotFeature
+    public partial class WebpageScreenshotFeature
     {
         
         private global::Reqnroll.ITestRunner testRunner;
         
         private static string[] featureTags = ((string[])(null));
         
-        private static global::Reqnroll.FeatureInfo featureInfo = new global::Reqnroll.FeatureInfo(new System.Globalization.CultureInfo("en-US"), "features", "Capturing webpage screenshot", null, global::Reqnroll.ProgrammingLanguage.CSharp, featureTags);
+        private static global::Reqnroll.FeatureInfo featureInfo = new global::Reqnroll.FeatureInfo(new System.Globalization.CultureInfo("en-US"), "features", "Webpage screenshot", null, global::Reqnroll.ProgrammingLanguage.CSharp, featureTags);
         
 #line 1 "Screenshot.feature"
 #line hidden
@@ -83,12 +83,12 @@ namespace BDD_Tests.Features
         }
         
         [NUnit.Framework.TestAttribute()]
-        [NUnit.Framework.DescriptionAttribute("User initiates screenshot analysis")]
-        public async System.Threading.Tasks.Task UserInitiatesScreenshotAnalysis()
+        [NUnit.Framework.DescriptionAttribute("Given the user navigates to the site")]
+        public async System.Threading.Tasks.Task GivenTheUserNavigatesToTheSite()
         {
             string[] tagsOfScenario = ((string[])(null));
             System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
-            global::Reqnroll.ScenarioInfo scenarioInfo = new global::Reqnroll.ScenarioInfo("User initiates screenshot analysis", null, tagsOfScenario, argumentsOfScenario, featureTags);
+            global::Reqnroll.ScenarioInfo scenarioInfo = new global::Reqnroll.ScenarioInfo("Given the user navigates to the site", null, tagsOfScenario, argumentsOfScenario, featureTags);
 #line 3
 this.ScenarioInitialize(scenarioInfo);
 #line hidden
@@ -100,26 +100,16 @@ this.ScenarioInitialize(scenarioInfo);
             {
                 await this.ScenarioStartAsync();
 #line 4
-    await testRunner.GivenAsync("David has submitted a valid URL for analysis", ((string)(null)), ((global::Reqnroll.Table)(null)), "Given ");
+    await testRunner.WhenAsync("the user enters a URL to analyze with", ((string)(null)), ((global::Reqnroll.Table)(null)), "When ");
 #line hidden
 #line 5
-    await testRunner.AndAsync("David clicks the \"Get Audit\" button", ((string)(null)), ((global::Reqnroll.Table)(null)), "And ");
-#line hidden
-#line 6
-    await testRunner.AndAsync("a logo loader appears for two seconds", ((string)(null)), ((global::Reqnroll.Table)(null)), "And ");
+    await testRunner.WhenAsync("the user starts the analysis", ((string)(null)), ((global::Reqnroll.Table)(null)), "When ");
 #line hidden
 #line 7
-    await testRunner.ThenAsync("David should see a confirmation message and a placeholder displaying the website " +
-                        "screenshot being captured", ((string)(null)), ((global::Reqnroll.Table)(null)), "Then ");
+    await testRunner.ThenAsync("the user will see a loading overlay", ((string)(null)), ((global::Reqnroll.Table)(null)), "Then ");
 #line hidden
 #line 8
-    await testRunner.WhenAsync("the analysis is complete", ((string)(null)), ((global::Reqnroll.Table)(null)), "When ");
-#line hidden
-#line 9
-    await testRunner.ThenAsync("David should be redirected to the report page without a full page reload", ((string)(null)), ((global::Reqnroll.Table)(null)), "Then ");
-#line hidden
-#line 10
-    await testRunner.AndAsync("David should see the screenshot in the report page", ((string)(null)), ((global::Reqnroll.Table)(null)), "And ");
+    await testRunner.ThenAsync("the user should see the result view with the website screenshot", ((string)(null)), ((global::Reqnroll.Table)(null)), "Then ");
 #line hidden
             }
             await this.ScenarioCleanupAsync();

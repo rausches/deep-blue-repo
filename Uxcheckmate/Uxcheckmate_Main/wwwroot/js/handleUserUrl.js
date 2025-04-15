@@ -1,4 +1,4 @@
-﻿// JavaScript file to handle user input URL
+﻿﻿// JavaScript file to handle user input URL
 // Function to validate the URL format
 document.addEventListener("DOMContentLoaded", function () {
     // Get urlInput
@@ -24,6 +24,7 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 });
 
+// Function to validate the URL format
 function validateURL(urlInput) {
     var urlRegex = /^(https?:\/\/)([\w-]+\.)+[\w-]+(\/[\w-]*)*$/;
     return urlRegex.test(urlInput);
