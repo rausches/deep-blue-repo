@@ -10,6 +10,7 @@
     <PackageReference Include="DotNetSeleniumExtras.WaitHelpers" Version="3.11.0" />
     <PackageReference Include="FluentAssertions" Version="8.2.0" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="9.0.2" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="9.0.4" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.13.0" />
     <PackageReference Include="moq" Version="4.20.72" />
     <PackageReference Include="Moq.EntityFrameworkCore" Version="9.0.0.1" />
@@ -33,5 +34,8 @@
       <None Include="..\Uxcheckmate_Main\wwwroot\js\playwrightScraperHelper.js" Link="wwwroot\js\playwrightScraperHelper.js">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Moq_Tests\Moq_Tests.csproj" />
   </ItemGroup>
 </Project>

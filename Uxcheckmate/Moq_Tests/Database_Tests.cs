@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.AspNetCore.Mvc.ViewEngines;
 using Microsoft.Extensions.Logging;
 using Moq;
+using Moq_Tests;
 using System.Linq;
 using System.Net.Http;
 using System.Security.Claims;
@@ -66,13 +67,21 @@ namespace Database_Tests
         [Test]
         public void Add_Test_Issue_Test()
         {
-            var category = new DesignIssue { CategoryId = 18, ReportId = 1, Message = "Test Message", Severity = 1 };
+            var report = new Report
+            {
+                Url = "https://fakenonexistenturl.com",
+                Date = DateOnly.FromDateTime(DateTime.UtcNow),
+                UserID = "testUser"
+            };
+            _context.Reports.Add(report);
+            _context.SaveChanges();
+            var category = new DesignIssue { CategoryId = 18, ReportId = report.Id, Message = "Test Message", Severity = 1 };
             _context.DesignIssues.Add(category);
             _context.SaveChanges();
             var testCategory = _context.DesignIssues.FirstOrDefault(c => c.Message == "Test Message");
             Assert.That(testCategory, Is.Not.Null);
             Assert.That(testCategory.CategoryId, Is.EqualTo(18));
-            Assert.That(testCategory.ReportId, Is.EqualTo(1));
+            Assert.That(testCategory.ReportId, Is.EqualTo(report.Id));
             Assert.That(testCategory.Severity, Is.EqualTo(1));
         }
 
