@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Moq;
+using Moq_Tests;
 using Reqnroll;
 using System.Security.Claims;
 using Uxcheckmate_Main.Controllers;
@@ -32,25 +34,26 @@ namespace BDD_Tests.StepDefinitions
                 new Claim(ClaimTypes.Role, "User")
             }, "mock"));
             var httpContext = new DefaultHttpContext { User = user };
-            var controllerContext = new ControllerContext { HttpContext = httpContext };
-            var logger = Mock.Of<ILogger<HomeController>>();
-            var httpClient = new HttpClient();
-            var db = Mock.Of<UxCheckmateDbContext>();
-            var openAi = Mock.Of<IOpenAiService>();
-            var axeCore = Mock.Of<IAxeCoreService>();
-            var report = Mock.Of<IReportService>();
-            var pdf = Mock.Of<PdfExportService>();
-            var shot = Mock.Of<IScreenshotService>();
-            var viewRenderer = Mock.Of<IViewRenderService>();
-            _controller = new HomeController(logger, httpClient, db, openAi, axeCore, report, pdf, shot, viewRenderer)
+            // In Memory DB Setup
+            var options = new DbContextOptionsBuilder<UxCheckmateDbContext>().UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString()).Options;
+            var context = new UxCheckmateDbContext(options);
+            // Moqing report
+            context.Reports.Add(new Report
             {
-                ControllerContext = controllerContext
-            };
+                Id = 1,
+                Url = "https://example.com",
+                Date = DateOnly.FromDateTime(DateTime.UtcNow),
+                UserID = "priUser",
+                AccessibilityIssues = new List<AccessibilityIssue>(),
+                DesignIssues = new List<DesignIssue>()
+            });
+            context.SaveChanges();
+            _controller = TestBuilder.BuildHomeController(httpContext, context);
         }
         [When("they click user dash")]
-        public void WhenTheyClickUserDash()
+        public async Task WhenTheyClickUserDash()
         {
-            _result = _controller.UserDash();
+            _result = await _controller.UserDash();
         }
         [Then("they should be in user dash page")]
         public void ThenTheyShouldSeeALogout()

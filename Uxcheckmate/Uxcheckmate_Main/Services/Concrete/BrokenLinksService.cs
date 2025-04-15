@@ -1,5 +1,6 @@
 using System.Collections.Concurrent;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Net;
 using System.Text;
 using System.Text.Json;
@@ -20,11 +21,14 @@ namespace Uxcheckmate_Main.Services
         {
             _httpClient = httpClient;
             _logger = logger;
+
+            // Set a short timeout to prevent hanging
+            _httpClient.Timeout = TimeSpan.FromSeconds(5);
         }
         public async Task<string> BrokenLinkAnalysis(string url, Dictionary<string, object> scrapedData)
         {
             _logger.LogInformation("Starting broken link analysis for URL: {Url}", url);
-
+            
             // Retrieve the "links" from the scraped data; if not available, use an empty list.
             List<string> links = scrapedData.ContainsKey("links") && scrapedData["links"] != null 
                                     ? scrapedData["links"] as List<string> 
@@ -33,15 +37,16 @@ namespace Uxcheckmate_Main.Services
             _logger.LogDebug("Found {LinkCount} links in scraped data.", links.Count);
 
             // Convert relative URLs to absolute URLs based on the provided base URL.
-            links = links.Select(link =>
-            {
-                var absoluteUrl = MakeAbsoluteUrl(url, link);
-                _logger.LogDebug("Converted link '{Link}' to absolute URL '{AbsoluteUrl}'", link, absoluteUrl);
-                return absoluteUrl;
-            }).ToList();
+            links = links
+                .Select(link => MakeAbsoluteUrl(url, link))
+                .Distinct()
+                .ToList();
 
             // Check for broken links.
+            //var sw = Stopwatch.StartNew();
             var brokenLinks = await CheckBrokenLinksAsync(links);
+            //sw.Stop();
+            //_logger.LogInformation("Broken link analysis took {Time}ms", sw.ElapsedMilliseconds);
 
             if (brokenLinks.Any())
             {
@@ -55,6 +60,7 @@ namespace Uxcheckmate_Main.Services
                 return string.Empty;
             }
         }
+
         private string MakeAbsoluteUrl(string baseUrl, string relativeUrl)
         {
             if (Uri.TryCreate(baseUrl, UriKind.Absolute, out Uri baseUri) &&
@@ -62,16 +68,17 @@ namespace Uxcheckmate_Main.Services
             {
                 return absoluteUri.ToString();
             }
-            // Log a warning if conversion fails.
+            // Log a warning if conversion fails
             _logger.LogWarning("Failed to convert relative URL '{RelativeUrl}' using base URL '{BaseUrl}'", relativeUrl, baseUrl);
             return relativeUrl; // Return as is if conversion fails.
         }
+
         public async Task<List<string>> CheckBrokenLinksAsync(List<string> links)
         {
             var brokenLinks = new ConcurrentBag<string>();
-
-            // Process links concurrently with a limit of 10 parallel tasks
-            await Parallel.ForEachAsync(links, new ParallelOptions { MaxDegreeOfParallelism = 10 }, async (link, ct) =>
+            
+            // Process links concurrently with a limit of 20 parallel tasks
+            await Parallel.ForEachAsync(links, new ParallelOptions { MaxDegreeOfParallelism = 20 }, async (link, ct) =>
             {
                 // Skip links that are not valid HTTP/HTTPS URLs
                 if (!Uri.TryCreate(link, UriKind.Absolute, out Uri uriResult) ||
@@ -83,10 +90,20 @@ namespace Uxcheckmate_Main.Services
 
                 try
                 {
-                    _logger.LogDebug("Checking URL: {Link}", link);
+                    HttpResponseMessage response;
 
-                    // Send a GET request to the link, using the cancellation token for safety
-                    var response = await _httpClient.GetAsync(link, ct);
+                    // Attempt a HEAD request first 
+                    var headRequest = new HttpRequestMessage(HttpMethod.Head, link);
+                    response = await _httpClient.SendAsync(headRequest, HttpCompletionOption.ResponseHeadersRead, ct);
+
+                    // Fallback
+                    if (response.StatusCode == HttpStatusCode.MethodNotAllowed)
+                    {
+                        _logger.LogDebug("HEAD not allowed for {Link}, falling back to GET", link);
+
+                        // Send a GET request to the link, using the cancellation token for safety
+                        response = await _httpClient.GetAsync(link, ct);
+                    }
 
                     // If the status code is not 200 OK, consider it broken and record it
                     if (response.StatusCode != HttpStatusCode.OK)
@@ -105,7 +122,7 @@ namespace Uxcheckmate_Main.Services
                     brokenLinks.Add($"{link} (Exception: {ex.Message})");
                 }
             });
-
+            
             // Convert the thread-safe ConcurrentBag to a List and return it
             return brokenLinks.ToList();
         }

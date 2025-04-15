@@ -1,5 +1,29 @@
 ﻿// JavaScript file to handle user input URL
 // Function to validate the URL format
+document.addEventListener("DOMContentLoaded", function () {
+    // Get urlInput
+    const form = document.getElementById("urlForm");
+    const urlInput = document.getElementById("urlInput");
+
+    form.addEventListener("submit", function (event) {
+        // Grab the user input
+        let rawUrl = urlInput.value.trim();
+
+        // If user typed neither "http://" nor "https://", prepend "https://"
+        if (!rawUrl.startsWith("http://") && !rawUrl.startsWith("https://")) {
+            rawUrl = "https://" + rawUrl;
+        }
+
+        // Remove trailing slash
+        if (rawUrl.endsWith("/")) {
+            rawUrl = rawUrl.slice(0, -1);
+        }
+
+        // Put the corrected value back in the input for submission
+        urlInput.value = rawUrl;
+    });
+});
+
 function validateURL(urlInput) {
     var urlRegex = /^(https?:\/\/)([\w-]+\.)+[\w-]+(\/[\w-]*)*$/;
     return urlRegex.test(urlInput);
