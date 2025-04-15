@@ -85,7 +85,7 @@ public class Program
         builder.Services.AddScoped<IBrokenLinksService, BrokenLinksService>();
         builder.Services.AddScoped<IHeadingHierarchyService, HeadingHierarchyService>();
         builder.Services.AddScoped<IColorSchemeService, ColorSchemeService>();
-        builder.Services.AddScoped<IDynamicSizingService, DynamicSizingService>();
+        builder.Services.AddScoped<IMobileResponsivenessService, MobileResponsivenessService>();
         builder.Services.AddScoped<IViewRenderService, ViewRenderService>();
         builder.Services.AddHttpClient<IFaviconDetectionService, FaviconDetectionService>();
         builder.Services.AddScoped<IPlaywrightScraperService, PlaywrightScraperService>();
