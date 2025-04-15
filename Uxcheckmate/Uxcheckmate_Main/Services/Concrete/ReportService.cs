@@ -97,7 +97,7 @@ namespace Uxcheckmate_Main.Services
             // Run analysis for each category in parallel
             await Parallel.ForEachAsync(
                 designCategories,
-                new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount * 2 },
+                new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount * 10 },
                 async (category, cancellationToken) =>
                 {
                     _logger.LogInformation("Analyzing category: {CategoryName} using scan method: {ScanMethod}", category.Name, category.ScanMethod);
