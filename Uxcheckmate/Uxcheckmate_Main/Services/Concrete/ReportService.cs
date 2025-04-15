@@ -167,7 +167,7 @@ namespace Uxcheckmate_Main.Services
                     return await _colorSchemeService.AnalyzeWebsiteColorsAsync(scrapedData, screenshotTask);
 
                 case "Mobile Responsiveness":
-                    return await _mobileResponsivenessService.(url, scrapedData);
+                    return await _mobileResponsivenessService.RunMobileAnalysisAsync(url, scrapedData);
 
                 case "Favicon":
                     return await AnalyzeFaviconAsync(url, scrapedData);

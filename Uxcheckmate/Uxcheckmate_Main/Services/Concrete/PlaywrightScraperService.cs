@@ -51,7 +51,6 @@ namespace Uxcheckmate_Main.Services
             // Extract all external JavaScript links
             var externalJs = await page.EvalOnSelectorAllAsync<string[]>("script[src]", "elements => elements.map(e => e.src)");
 
-
             // Use helper functions injected via scrape-assets.js to fetch content from external CSS files
             var externalCssContents = await page.EvaluateAsync<string[]>("() => window.scrapeExternalCss()");
 
