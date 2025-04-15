@@ -99,9 +99,13 @@ public class HomeController : Controller
 
             // Check if the user is authenticated and get the user ID
             string? userId = null;
+            bool isAdmin = false;
             if (User.Identity.IsAuthenticated)
             {
                 userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                    var roleClaims = User.FindAll(ClaimTypes.Role);
+                    isAdmin = roleClaims.Any(c => c.Value == "Admin");
+
             }
 
             // Create and save the report record.
