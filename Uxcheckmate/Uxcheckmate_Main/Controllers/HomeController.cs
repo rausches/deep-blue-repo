@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Uxcheckmate_Main.Models;
 using Uxcheckmate_Main.Services;
+using Uxcheckmate_Main.DTO;
 using Microsoft.EntityFrameworkCore;
 using System.Text.Json;
 using System.Diagnostics;
@@ -10,7 +11,7 @@ using Microsoft.Playwright;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.Mvc.ViewEngines;
-using System.IO;
+
 
 namespace Uxcheckmate_Main.Controllers;
 
@@ -40,162 +41,202 @@ public class HomeController : Controller
         _screenshotService = screenshotService;
         _viewRenderService = viewRenderService;
     }
+
+    [HttpGet]
     public IActionResult Index()
     {
-
         return View();
     }
 
     [HttpPost]
     public async Task<IActionResult> Report(string url, string sortOrder = "category", bool isAjax = false)
     {
-        if (!ValidateUrl(url))
-        {
-            return View("Index");
-        }
-
-        if (!await IsUrlReachable(url))
-        {
-            TempData["UrlUnreachable"] = "The URL you entered seems incorrect or no longer exists. Please try again.";
-            return RedirectToAction("Index");
-        }
-
-        var websiteScreenshot = await CaptureScreenshot(url);
-
-        if (string.IsNullOrEmpty(websiteScreenshot))
-        {
-            ModelState.AddModelError("", "An error occurred while capturing the screenshot.");
-            return View("Index");
-        }
-        TempData["WebsiteScreenshot"] = websiteScreenshot;
-
-
-        // Create and save the report record.
-        var report = await CreateAndSaveReport(url);
-
-        // Run analysis and generate the report
-        await RunAnalysis(report);
-
-        // Fetch the full report including related issues and categories
-        var fullReport = await FetchFullReport(report.Id);
-        if (fullReport == null)
-        {
-            ModelState.AddModelError("", "An error occurred while fetching the report.");
-            return View("Index");
-        }
-        // Sort the report issues
-        SortReportIssues(fullReport, sortOrder);
-
-        ViewBag.CurrentSort = sortOrder;
-
-        return View("Results", fullReport);
-    }
-
-    private bool ValidateUrl(string url)
-    {
         if (string.IsNullOrEmpty(url))
         {
             ModelState.AddModelError("url", "URL cannot be empty.");
-            return false;
+            return View("Index");
         }
-        return true;
-    }
+            // Normalize the URL *before* checking if it's reachable
+            url = url.Trim();
 
-    private async Task<bool> IsUrlReachable(string url)
-    {
-        try
-        {
-            using var httpClient = new HttpClient();
-            var request = new HttpRequestMessage(HttpMethod.Get, url);
-            _logger.LogInformation("Request Headers: {Headers}", request.Headers);
-
-            var response = await httpClient.SendAsync(request);
-            _logger.LogInformation("Response Headers: {Headers}", response.Headers);
-
-            return response.IsSuccessStatusCode;
-        }
-        catch (HttpRequestException ex)
-        {
-            _logger.LogError(ex, "The URL is unreachable: {Url}", url);
-            return false;
-        }
-    }
-
-    private async Task<string?> CaptureScreenshot(string url)
-    {
-        if (string.IsNullOrEmpty(url))
-        {
-            _logger.LogError("URL is empty or null.");
-            return null;
-        }
-
-        try
-        {
-            var screenshotOptions = new PageScreenshotOptions { FullPage = true };
-            var screenshot = await _screenshotService.CaptureScreenshot(screenshotOptions, url);
-
-            if (string.IsNullOrEmpty(screenshot))
+            // If user didn’t type http:// or https://, prepend https://
+            if (!url.StartsWith("http://", StringComparison.OrdinalIgnoreCase) &&
+                !url.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
             {
-                _logger.LogError("Failed to capture screenshot for URL: {Url}", url);
-                return null;
+                url = "https://" + url;
             }
 
-            return screenshot;
+            // Remove trailing slash
+            url = url.TrimEnd('/');
+        try
+        {
+            // Check if the URL is reachable
+            using (var httpClient = new HttpClient())
+            {
+                var request = new HttpRequestMessage(HttpMethod.Get, url);
+                // Sending a HEAD request to the URL to check if it is reachable
+
+                _logger.LogInformation("Request Headers: {Headers}", request.Headers);
+
+                HttpResponseMessage response;
+                try
+                {
+                    response = await httpClient.SendAsync(request);
+                }
+                catch (HttpRequestException ex)
+                {
+                    _logger.LogError(ex, "The URL is unreachable: {Url}", url);
+                    TempData["UrlUnreachable"] = "The URL you entered seems incorrect or no longer exists. Please try again.";
+                    return RedirectToAction("Index");
+                }
+                if (!response.IsSuccessStatusCode)
+                {
+                    _logger.LogError("The URL is unreachable: {Url}", url);
+                    TempData["UrlUnreachable"] = "The URL you entered seems incorrect or no longer exists. Please try again.";
+                    return RedirectToAction("Index");
+                }
+                _logger.LogInformation("Response Headers: {Headers}", response.Headers);
+            }
+
+            // **First Screenshot Request: Capture Screenshot **
+            var screenshotOptions = new PageScreenshotOptions { FullPage = true };
+            var firstScreenshot  = await _screenshotService.CaptureScreenshot(screenshotOptions, url);
+            if (string.IsNullOrEmpty(firstScreenshot ))
+            {
+                _logger.LogError("Failed to capture screenshot for URL: {Url}", url);
+                ModelState.AddModelError("", "An error occurred while capturing the screenshot.");
+                return View("Index");
+            }
+
+            TempData["FirstScreenshot"] = firstScreenshot;
+
+            // Check if the user is authenticated and get the user ID
+            string? userId = null;
+            bool isAdmin = false;
+            if (User.Identity.IsAuthenticated)
+            {
+                userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                    var roleClaims = User.FindAll(ClaimTypes.Role);
+                    isAdmin = roleClaims.Any(c => c.Value == "Admin");
+
+            }
+
+            // Create and save the report record.
+            var report = new Report
+            {
+                Url = url,
+                Date = DateOnly.FromDateTime(DateTime.UtcNow),
+                UserID = userId,
+                AccessibilityIssues = new List<AccessibilityIssue>(),
+                DesignIssues = new List<DesignIssue>()
+            };
+            if (!string.IsNullOrEmpty(userId)){
+                // Seeing if user already has a report under the url
+                var existingReport = await _context.Reports.Include(r => r.AccessibilityIssues).Include(r => r.DesignIssues).FirstOrDefaultAsync(r => r.Url == url && r.UserID == userId);
+                if (existingReport != null){
+                    // Deleting old report information [May decide to archive in later sprint]
+                    _context.AccessibilityIssues.RemoveRange(existingReport.AccessibilityIssues);
+                    _context.DesignIssues.RemoveRange(existingReport.DesignIssues);
+                    _context.Reports.Remove(existingReport);
+                    await _context.SaveChangesAsync();
+
+                    _context.Entry(existingReport).State = EntityState.Detached;
+                    _logger.LogInformation("Old report for user {UserId} and URL {Url} removed.", userId, url);
+                }
+                _context.Reports.Add(report);
+                await _context.SaveChangesAsync();
+                _logger.LogInformation("New report saved to DB with ID: {ReportId}", report.Id);
+            }else{
+                _logger.LogInformation("User not authenticated. Generating a report without saving to DB.");
+            }
+            // Run accessibility and design analysis
+            var accessibilityIssues = await _axeCoreService.AnalyzeAndSaveAccessibilityReport(report);
+            var designIssues = await _reportService.GenerateReportAsync(report);
+            if (string.IsNullOrEmpty(userId)){
+                report.AccessibilityIssues = accessibilityIssues.ToList();
+                report.DesignIssues = designIssues.ToList();
+                foreach (var issue in report.AccessibilityIssues){
+                    issue.Category = await _context.AccessibilityCategories.FindAsync(issue.CategoryId);
+                }
+                foreach (var issue in report.DesignIssues){
+                    issue.Category = await _context.DesignCategories.FindAsync(issue.CategoryId);
+                }
+            }
+            Report fullReport;
+            if (!string.IsNullOrEmpty(userId)){
+            // Fetch the full report including related issues and categories
+            fullReport = await _context.Reports
+                .Include(r => r.AccessibilityIssues).ThenInclude(a => a.Category)
+                .Include(r => r.DesignIssues).ThenInclude(d => d.Category)
+                .FirstOrDefaultAsync(r => r.Id == report.Id);
+            }else{
+                fullReport = report;
+            }
+
+            // Handle the case where the report could not be fetched
+            if (fullReport == null)
+            {
+                _logger.LogError("Failed to fetch report with ID: {ReportId}", report.Id);
+                ModelState.AddModelError("", "An error occurred while fetching the report.");
+                return View("Index");
+            }
+
+            // Apply sorting based on the provided sort order
+            ViewBag.CurrentSort = sortOrder;
+
+            // Sort design issues
+            fullReport.DesignIssues = sortOrder switch
+            {
+                "severity-high-low" => fullReport.DesignIssues.OrderByDescending(i => i.Severity).ThenBy(i => i.Category.Name).ToList(),
+                "severity-low-high" => fullReport.DesignIssues.OrderBy(i => i.Severity).ThenBy(i => i.Category.Name).ToList(),
+                _ => fullReport.DesignIssues.OrderBy(i => i.Category.Name).ThenByDescending(i => i.Severity).ToList()
+            };
+
+            // Sort accessibility issues
+            fullReport.AccessibilityIssues = sortOrder switch
+            {
+                "severity-high-low" => fullReport.AccessibilityIssues.OrderByDescending(i => i.Severity).ThenBy(i => i.Category.Name).ToList(),
+                "severity-low-high" => fullReport.AccessibilityIssues.OrderBy(i => i.Severity).ThenBy(i => i.Category.Name).ToList(),
+                _ => fullReport.AccessibilityIssues.OrderBy(i => i.Category.Name).ThenByDescending(i => i.Severity).ToList()
+            };
+
+            // Add to TempData for PDF Printing when not logged in
+            if (string.IsNullOrEmpty(userId)){
+                var tempReport = new
+                {
+                    Url = report.Url,
+                    Date = report.Date,
+                    DesignIssues = report.DesignIssues.Select(d => new {
+                        d.Message,
+                        d.Severity,
+                        Category = d.Category?.Name
+                    }),
+                    AccessibilityIssues = report.AccessibilityIssues.Select(a => new {
+                        a.Message,
+                        a.Severity,
+                        a.WCAG,
+                        Category = a.Category?.Name
+                    })
+                };
+                TempData["Report"] = JsonSerializer.Serialize(tempReport);
+            }
+
+            // If the request is an AJAX call, return the partial view
+            if (isAjax)
+            {
+                return PartialView("_ReportSections", fullReport);
+            }
+
+            // Return the full results view
+            return View("Results", fullReport);
+
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "An error occurred while capturing the screenshot for URL: {Url}", url);
-            return null;
+            _logger.LogError(ex, "Error generating report for URL: {Url}", url);
+            ModelState.AddModelError("", $"An error occurred: {ex.Message}");
+            return View("Index");
         }
-    }
-    private async Task<Report> CreateAndSaveReport(string url)
-    {
-        string? userId = User.Identity.IsAuthenticated ? User.FindFirstValue(ClaimTypes.NameIdentifier) : null;
-
-        var report = new Report
-        {
-            Url = url,
-            Date = DateOnly.FromDateTime(DateTime.UtcNow),
-            UserID = userId,
-            AccessibilityIssues = new List<AccessibilityIssue>(),
-            DesignIssues = new List<DesignIssue>()
-        };
-        _context.Reports.Add(report);
-        await _context.SaveChangesAsync();
-        _logger.LogInformation("Report record created with ID: {ReportId}", report.Id);
-
-        return report;
-    }
-
-    private async Task RunAnalysis(Report report)
-    {
-        await _axeCoreService.AnalyzeAndSaveAccessibilityReport(report);
-        await _reportService.GenerateReportAsync(report);
-    }
-
-    private async Task<Report?> FetchFullReport(int reportId)
-    {
-        return await _context.Reports
-            .Include(r => r.AccessibilityIssues).ThenInclude(a => a.Category)
-            .Include(r => r.DesignIssues).ThenInclude(d => d.Category)
-            .FirstOrDefaultAsync(r => r.Id == reportId);
-    }
-
-    private void SortReportIssues(Report report, string sortOrder)
-    {
-        report.DesignIssues = sortOrder switch
-        {
-            "severity-high-low" => report.DesignIssues.OrderByDescending(i => i.Severity).ThenBy(i => i.Category.Name).ToList(),
-            "severity-low-high" => report.DesignIssues.OrderBy(i => i.Severity).ThenBy(i => i.Category.Name).ToList(),
-            _ => report.DesignIssues.OrderBy(i => i.Category.Name).ThenByDescending(i => i.Severity).ToList()
-        };
-
-        report.AccessibilityIssues = sortOrder switch
-        {
-            "severity-high-low" => report.AccessibilityIssues.OrderByDescending(i => i.Severity).ThenBy(i => i.Category.Name).ToList(),
-            "severity-low-high" => report.AccessibilityIssues.OrderBy(i => i.Severity).ThenBy(i => i.Category.Name).ToList(),
-            _ => report.AccessibilityIssues.OrderBy(i => i.Category.Name).ThenByDescending(i => i.Severity).ToList()
-        };
     }
 
     public IActionResult Privacy()
@@ -216,9 +257,36 @@ public class HomeController : Controller
         return View("ErrorPage");
     }
     [Authorize] // Have to be logged in/Authorized to access
-    public IActionResult UserDash()
+    public async Task<IActionResult> UserDash()
     {
-        return View();
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var reports = await _context.Reports
+            .Where(r => r.UserID == userId)
+            .Include(r => r.DesignIssues).ThenInclude(d => d.Category)
+            .Include(r => r.AccessibilityIssues).ThenInclude(a => a.Category)
+            .OrderByDescending(r => r.Date)
+            .ThenByDescending(r => r.Id)
+            .ToListAsync();
+        var reportDTOs = reports.Select(r => new ReportDTO
+        {
+            Id = r.Id,
+            Url = r.Url,
+            Date = r.Date,
+            DesignIssues = r.DesignIssues.Select(d => new DesignIssueDTO
+            {
+                Message = d.Message,
+                Severity = d.Severity,
+                Category = d.Category?.Name
+            }).ToList(),
+            AccessibilityIssues = r.AccessibilityIssues.Select(a => new AccessibilityIssueDTO
+            {
+                Message = a.Message,
+                Severity = a.Severity,
+                WCAG = a.WCAG,
+                Category = a.Category?.Name
+            }).ToList()
+        }).ToList();
+        return View(reportDTOs);
     }
 
 
@@ -229,18 +297,57 @@ public class HomeController : Controller
     }
 
     [HttpGet]
-    public async Task<IActionResult> DownloadReport(int id)
+    public async Task<IActionResult> DownloadReport(int id = 0)
     {
-        var report = await _context.Reports
-            .Include(r => r.AccessibilityIssues)
-            .Include(r => r.DesignIssues)
-            .FirstOrDefaultAsync(r => r.Id == id);
+        Report report;
 
-        if (report == null)
-        {
-            return NotFound("Report not found.");
+        if (id > 0){
+            report = await _context.Reports
+                .Include(r => r.AccessibilityIssues)
+                .Include(r => r.DesignIssues)
+                .FirstOrDefaultAsync(r => r.Id == id);
+
+            if (report == null)
+            {
+                return NotFound("Report not found.");
+            }
+        }else{
+            // Check TempData
+            if (!TempData.TryGetValue("Report", out var serializedReportObj) || serializedReportObj is not string serializedReport){
+                return NotFound("Report Data Missing");
+            }
+            try{
+                var reportDTO = JsonSerializer.Deserialize<ReportDTO>(serializedReport, new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
+                });
+                if (reportDTO == null){
+                    return BadRequest("Failed to parse unsaved report.");
+                }
+                // Map reportDTO to Report
+                report = new Report
+                {
+                    Url = reportDTO.Url,
+                    Date = reportDTO.Date,
+                    AccessibilityIssues = reportDTO.AccessibilityIssues.Select(a => new AccessibilityIssue
+                    {
+                        Message = a.Message,
+                        Severity = a.Severity,
+                        WCAG = a.WCAG,
+                        Category = new AccessibilityCategory { Name = a.Category }
+                    }).ToList(),
+                    DesignIssues = reportDTO.DesignIssues.Select(d => new DesignIssue
+                    {
+                        Message = d.Message,
+                        Severity = d.Severity,
+                        Category = new DesignCategory { Name = d.Category }
+                    }).ToList()
+                };
+            }catch (Exception ex){
+                _logger.LogError(ex, "Error deserializing report from TempData.");
+                return BadRequest("Unable to process the report.");
+            }
         }
-
         var pdfBytes = _pdfExportService.GenerateReportPdf(report);
         return File(pdfBytes, "application/pdf", $"UXCheckmate_Report_{report.Id}.pdf");
     }

@@ -39,6 +39,7 @@ public class Program
                 ));
         builder.Services.AddDefaultIdentity<IdentityUser>(options => 
                 options.SignIn.RequireConfirmedAccount = false)
+                .AddRoles<IdentityRole>()
                 .AddEntityFrameworkStores<AuthDbContext>();
 
 
@@ -56,18 +57,6 @@ public class Program
                     services.GetRequiredService<ILogger<OpenAiService>>()
                 );
             });
-
-            // Enable session in Program.cs
-            builder.Services.AddSession(options =>
-            {
-                options.IdleTimeout = TimeSpan.FromMinutes(30); // Set session timeout
-                options.Cookie.HttpOnly = true;
-                options.Cookie.IsEssential = true;
-            });
-
-            // var app = builder.Build();
-            // app.UseSession(); // Add this before app.UseEndpoints()
-
 
         // Add services to the container.
         builder.Services.AddControllersWithViews();
@@ -97,9 +86,14 @@ public class Program
         builder.Services.AddScoped<IBrokenLinksService, BrokenLinksService>();
         builder.Services.AddScoped<IHeadingHierarchyService, HeadingHierarchyService>();
         builder.Services.AddScoped<IColorSchemeService, ColorSchemeService>();
-        builder.Services.AddScoped<IDynamicSizingService, DynamicSizingService>();
+        builder.Services.AddScoped<IMobileResponsivenessService, MobileResponsivenessService>();
         builder.Services.AddScoped<IViewRenderService, ViewRenderService>();
         builder.Services.AddHttpClient<IFaviconDetectionService, FaviconDetectionService>();
+        builder.Services.AddScoped<IPlaywrightScraperService, PlaywrightScraperService>();
+        builder.Services.AddScoped<IPopUpsService, PopUpsService>();
+        builder.Services.AddScoped<IAnimationService, AnimationService>();
+        builder.Services.AddScoped<IAudioService, AudioService>();
+        builder.Services.AddScoped<IScrollService, ScrollService>();
 
 
         var app = builder.Build();
@@ -118,7 +112,6 @@ public class Program
         app.UseStaticFiles();  // Ensure static files (CSS, JS, images) are served
 
         app.UseRouting();
-        app.UseSession(); // Enable session middleware
         app.UseAuthentication();
         app.UseAuthorization();
         // Map default route

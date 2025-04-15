@@ -12,12 +12,18 @@ namespace Uxcheckmate_Main.Services
     {
         private readonly HttpClient _httpClient;
         private readonly ILogger<WebScraperService> _logger;
+       /* private ILogger<ColorSchemeService> logger;*/
 
         public WebScraperService(HttpClient httpClient, ILogger<WebScraperService> logger)
         {
             _httpClient = httpClient;
             _logger = logger;
         }
+
+       /* public WebScraperService(ILogger<ColorSchemeService> logger)
+        {
+            this.logger = logger;
+        }*/
 
         public async Task<string> FetchHtmlAsync(string url)
         {
