@@ -161,7 +161,7 @@ namespace Service_Tests
         {
             // Arrange
             // Another fake report to scan "https://example.com".
-            var fakeReport = new Report { Id = 3, Url = "https://example.com" };
+            var fakeReport = new Report { Id = 3, Url = "https://example.com", UserID = "test-user" };
 
             // Prepare some categories to use in the mock DB context
             var categories = new List<AccessibilityCategory>
