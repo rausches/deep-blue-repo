@@ -161,7 +161,7 @@ namespace Service_Tests
         {
             // Arrange
             // Another fake report to scan "https://example.com".
-            var fakeReport = new Report { Id = 3, Url = "https://example.com" };
+            var fakeReport = new Report { Id = 3, Url = "https://example.com", UserID = "test-user" };
 
             // Prepare some categories to use in the mock DB context
             var categories = new List<AccessibilityCategory>
@@ -176,8 +176,17 @@ namespace Service_Tests
 
             // Also create and set up an empty list for AccessibilityIssues
             var mockIssuesDbSet = SetupMockDbSet(new List<AccessibilityIssue>());
-            _mockDbContext.Setup(db => db.AccessibilityIssues).Returns(mockIssuesDbSet.Object);
 
+            mockIssuesDbSet
+                .Setup(m => m.AddRange(It.IsAny<IEnumerable<AccessibilityIssue>>()))
+                .Verifiable();
+
+            _mockDbContext
+                .Setup(db => db.SaveChangesAsync(It.IsAny<CancellationToken>()))
+                .ReturnsAsync(1)
+                .Verifiable();
+
+            _mockDbContext.Setup(db => db.AccessibilityIssues).Returns(mockIssuesDbSet.Object);
             // Mock IBrowserContext + IPage,
             var mockContext = new Mock<IBrowserContext>();
             var mockPage = new Mock<IPage>();

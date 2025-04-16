@@ -1,4 +1,6 @@
+using System.Collections.Concurrent;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Net;
 using System.Text;
 using System.Text.Json;
@@ -19,12 +21,14 @@ namespace Uxcheckmate_Main.Services
         {
             _httpClient = httpClient;
             _logger = logger;
-        }
 
+            // Set a short timeout to prevent hanging
+            _httpClient.Timeout = TimeSpan.FromSeconds(5);
+        }
         public async Task<string> BrokenLinkAnalysis(string url, Dictionary<string, object> scrapedData)
         {
             _logger.LogInformation("Starting broken link analysis for URL: {Url}", url);
-
+            
             // Retrieve the "links" from the scraped data; if not available, use an empty list.
             List<string> links = scrapedData.ContainsKey("links") && scrapedData["links"] != null 
                                     ? scrapedData["links"] as List<string> 
@@ -33,15 +37,16 @@ namespace Uxcheckmate_Main.Services
             _logger.LogDebug("Found {LinkCount} links in scraped data.", links.Count);
 
             // Convert relative URLs to absolute URLs based on the provided base URL.
-            links = links.Select(link =>
-            {
-                var absoluteUrl = MakeAbsoluteUrl(url, link);
-                _logger.LogDebug("Converted link '{Link}' to absolute URL '{AbsoluteUrl}'", link, absoluteUrl);
-                return absoluteUrl;
-            }).ToList();
+            links = links
+                .Select(link => MakeAbsoluteUrl(url, link))
+                .Distinct()
+                .ToList();
 
             // Check for broken links.
+            //var sw = Stopwatch.StartNew();
             var brokenLinks = await CheckBrokenLinksAsync(links);
+            //sw.Stop();
+            //_logger.LogInformation("Broken link analysis took {Time}ms", sw.ElapsedMilliseconds);
 
             if (brokenLinks.Any())
             {
@@ -63,55 +68,63 @@ namespace Uxcheckmate_Main.Services
             {
                 return absoluteUri.ToString();
             }
-            // Log a warning if conversion fails.
+            // Log a warning if conversion fails
             _logger.LogWarning("Failed to convert relative URL '{RelativeUrl}' using base URL '{BaseUrl}'", relativeUrl, baseUrl);
             return relativeUrl; // Return as is if conversion fails.
         }
 
         public async Task<List<string>> CheckBrokenLinksAsync(List<string> links)
         {
-            var brokenLinks = new List<string>();
-
-            foreach (var link in links)
+            var brokenLinks = new ConcurrentBag<string>();
+            
+            // Process links concurrently with a limit of 20 parallel tasks
+            await Parallel.ForEachAsync(links, new ParallelOptions { MaxDegreeOfParallelism = 20 }, async (link, ct) =>
             {
-                // Skip URLs with unsupported schemes ("mailto").
+                // Skip links that are not valid HTTP/HTTPS URLs
                 if (!Uri.TryCreate(link, UriKind.Absolute, out Uri uriResult) ||
                     (uriResult.Scheme != Uri.UriSchemeHttp && uriResult.Scheme != Uri.UriSchemeHttps))
                 {
                     _logger.LogDebug("Skipping unsupported URL: {Link}", link);
-                    continue;
+                    return;
                 }
 
                 try
                 {
-                    _logger.LogDebug("Checking URL: {Link}", link);
-                    var response = await _httpClient.GetAsync(link);
+                    HttpResponseMessage response;
 
-                    // If the response is not successful, record the broken link.
-                    if (response.StatusCode == HttpStatusCode.OK)
+                    // Attempt a HEAD request first 
+                    var headRequest = new HttpRequestMessage(HttpMethod.Head, link);
+                    response = await _httpClient.SendAsync(headRequest, HttpCompletionOption.ResponseHeadersRead, ct);
+
+                    // Fallback
+                    if (response.StatusCode == HttpStatusCode.MethodNotAllowed)
                     {
-                        // Good link, do nothing
+                        _logger.LogDebug("HEAD not allowed for {Link}, falling back to GET", link);
+
+                        // Send a GET request to the link, using the cancellation token for safety
+                        response = await _httpClient.GetAsync(link, ct);
                     }
-                    else
+
+                    // If the status code is not 200 OK, consider it broken and record it
+                    if (response.StatusCode != HttpStatusCode.OK)
                     {
-                        // Just treat it as broken, log @ info-level message
                         _logger.LogInformation(
                             "Link {Link} returned status {StatusCode}. Marking as broken.",
                             link, response.StatusCode
                         );
                         brokenLinks.Add($"{link} (Status: {response.StatusCode})");
                     }
-
                 }
                 catch (Exception ex)
                 {
-                    // Log the exception and mark the link as broken.
+                    // Catch network or timeout exceptions and mark the link as broken
                     _logger.LogInformation(ex, "Exception occurred while checking link: {Link}", link);
                     brokenLinks.Add($"{link} (Exception: {ex.Message})");
                 }
-            }
-
-            return brokenLinks;
+            });
+            
+            // Convert the thread-safe ConcurrentBag to a List and return it
+            return brokenLinks.ToList();
         }
     }
 }

@@ -28,8 +28,8 @@ public class Program
 
         builder.Services.AddDbContext<UxCheckmateDbContext>(options =>
                 options.UseLazyLoadingProxies()
-                    .UseSqlServer(builder.Configuration.GetConnectionString("DBConnection")));
-
+                    .UseSqlServer(builder.Configuration.GetConnectionString("DBConnection"),
+                    sqlOptions => sqlOptions.EnableRetryOnFailure()));
 
         // Auth DB
         builder.Services.AddDbContext<AuthDbContext>(options =>
@@ -39,6 +39,7 @@ public class Program
                 ));
         builder.Services.AddDefaultIdentity<IdentityUser>(options => 
                 options.SignIn.RequireConfirmedAccount = false)
+                .AddRoles<IdentityRole>()
                 .AddEntityFrameworkStores<AuthDbContext>();
 
 
@@ -77,17 +78,22 @@ public class Program
 
         // Register ScreenshotService
         builder.Services.AddScoped<IScreenshotService, ScreenshotService>();
-
         builder.Services.AddScoped<PdfExportService>();
 
         // Register Report Services
         builder.Services.AddScoped<IReportService, ReportService>();
+        builder.Services.AddScoped<IWebScraperService, WebScraperService>();
         builder.Services.AddScoped<IBrokenLinksService, BrokenLinksService>();
         builder.Services.AddScoped<IHeadingHierarchyService, HeadingHierarchyService>();
         builder.Services.AddScoped<IColorSchemeService, ColorSchemeService>();
-        builder.Services.AddScoped<IDynamicSizingService, DynamicSizingService>();
+        builder.Services.AddScoped<IMobileResponsivenessService, MobileResponsivenessService>();
         builder.Services.AddScoped<IViewRenderService, ViewRenderService>();
         builder.Services.AddHttpClient<IFaviconDetectionService, FaviconDetectionService>();
+        builder.Services.AddScoped<IPlaywrightScraperService, PlaywrightScraperService>();
+        builder.Services.AddScoped<IPopUpsService, PopUpsService>();
+        builder.Services.AddScoped<IAnimationService, AnimationService>();
+        builder.Services.AddScoped<IAudioService, AudioService>();
+        builder.Services.AddScoped<IScrollService, ScrollService>();
 
 
         var app = builder.Build();

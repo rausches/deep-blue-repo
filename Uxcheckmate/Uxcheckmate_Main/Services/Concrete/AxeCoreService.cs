@@ -80,7 +80,7 @@ namespace Uxcheckmate_Main.Services
                 ");
 
                 string jsonString = axeResultsJson.ToString();
-                _logger.LogDebug("Raw axe-core JSON output: {JsonString}", jsonString);
+               // _logger.LogDebug("Raw axe-core JSON output: {JsonString}", jsonString);
 
                 // Deserialize the JSON result into an AxeCoreResults object
                 var axeResults = JsonSerializer.Deserialize<AxeCoreResults>(jsonString, new JsonSerializerOptions
@@ -134,12 +134,14 @@ namespace Uxcheckmate_Main.Services
                         issues.Add(issue);
                     }
                 }
-
-                _logger.LogInformation("Saving {Count} accessibility issues to the database.", issues.Count);
-                _dbContext.AccessibilityIssues.AddRange(issues);
-                await _dbContext.SaveChangesAsync();
-                _logger.LogInformation("All issues saved successfully!");
-
+                if (!string.IsNullOrEmpty(report.UserID)){
+                    _logger.LogInformation("Saving {Count} accessibility issues to the database.", issues.Count);
+                    _dbContext.AccessibilityIssues.AddRange(issues);
+                    await _dbContext.SaveChangesAsync();
+                    _logger.LogInformation("All issues saved successfully!");
+                }else{
+                    _logger.LogInformation("User not logged in, issues generated but not saved to DB.");
+                }
             }
             catch (Exception ex)
             {

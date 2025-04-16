@@ -98,7 +98,6 @@ namespace Service_Tests
             Assert.That(result, Does.Contain("https://thereisnowaythissiteexistsdfdsjfad.com"), "Broken link should be detected.");
         }
 
-
         // Tests that when no links are found on the page, the service returns null or an empty string.
         [Test]
         public async Task NoLinks_ReturnsNull()

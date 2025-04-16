@@ -131,6 +131,10 @@ Theme Switcher
   --accordian-item-text: #ffffff;
 }
 
+.dark-theme .text-muted {
+  color: #bbbbbb !important;
+}
+
 /* 
 ==================================================
 Mobile Menu
@@ -682,3 +686,92 @@ Report Page Styling
   color: var(--accordian-text) !important;
 }
 
+
+
+/*
+==================================================
+User Dashboard Styling
+==================================================
+*/
+
+
+
+.glass-card {
+  background: rgba(255, 255, 255, 0.256); 
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 16px;
+  backdrop-filter: blur(16px); 
+  -webkit-backdrop-filter: blur(10px);
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1); 
+  transition: transform 0.2s ease;
+}
+.glass-card:hover {
+  transform: translateY(-2px);
+}
+.text-subtle {
+  color: rgba(0, 0, 0, 0.884); 
+}
+.dark-theme .text-subtle {
+  color: rgba(255, 255, 255, 0.847);
+}
+.userdash-wrapper h2 {
+  font-size: 1.4rem;
+  font-weight: 600;
+}
+.userdash-wrapper h3 {
+  font-size: 1.1rem;
+  font-weight: 500;
+}
+.url-highlight {
+  font-weight: 600;
+  color: var(--text-color);
+  font-family: "Lexend", sans-serif;
+}
+
+
+
+
+/*
+==================================================
+PDF Download & Logout Buttons
+==================================================
+*/
+
+
+:root {
+  --btn-pdf-bg: #0B2C48;
+  --btn-pdf-text: #ffffff;
+  --btn-pdf-hover-bg: #153551;
+}
+.dark-theme {
+  --btn-pdf-bg: #ffffff;
+  --btn-pdf-text: #0B2C48;
+  --btn-pdf-hover-bg: #d1d1d1;
+}
+.btn-download-pdf {
+  background-color: var(--btn-pdf-bg);
+  color: var(--btn-pdf-text);
+  font-weight: 500;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 8px;
+  transition: 0.3s ease;
+  text-decoration: none;
+}
+.btn-download-pdf:hover {
+  background-color: var(--btn-pdf-hover-bg);
+  color: var(--btn-pdf-text);
+}
+.logout-btn {
+  background-color: var(--btn-pdf-bg);
+  color: var(--btn-pdf-text);
+  font-weight: 500;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 10px;
+  transition: 0.3s ease;
+}
+.logout-btn:hover {
+  background-color: var(--btn-pdf-hover-bg);
+  color: var(--btn-pdf-text);
+}

@@ -1,67 +1,103 @@
-using System.Net;
-using FluentAssertions;
-using Microsoft.Extensions.Logging;
+using NUnit.Framework;
+using OpenQA.Selenium;
+using OpenQA.Selenium.Support.UI;
+using System;
+using System.Collections.Generic;
+using System.Net.Http;
+using System.Threading.Tasks;
 using Reqnroll;
+using Microsoft.Extensions.Logging;
 using Uxcheckmate_Main.Services;
 
-[Binding]
-public class BrokenLinksSteps
+namespace BDD_Tests.StepDefinitions
 {
-    private readonly IBrokenLinksService _brokenLinksService;
-    private string _siteUrl;
-    private List<string> _reportResults;
-
-    public BrokenLinksSteps()
+    [Binding]
+    public class BrokenLinksSteps
     {
-        // Create the HttpClient instance
-        var httpClient = new HttpClient();
+        private readonly IWebDriver _driver;
+        private readonly ScenarioContext _scenarioContext;
+        private readonly string _url = "https://momkage-lexy.github.io/";
+        private readonly WebScraperService _scraperService;
+        private readonly string _html;
 
-        // Create a logger using LoggerFactory
-        var loggerFactory = LoggerFactory.Create(builder => 
+        public BrokenLinksSteps(IWebDriver driver, ScenarioContext scenarioContext)
         {
-            builder.AddConsole(); 
-        });
-        var logger = loggerFactory.CreateLogger<BrokenLinksService>();
+            _driver = driver;
+            _scenarioContext = scenarioContext;
 
-        // Instantiate the service with the required parameters
-        _brokenLinksService = new BrokenLinksService(httpClient, logger);
-        _reportResults = new List<string>();
-    }
+            var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
 
-    [Given(@"(.*) has a site with a broken link")]
-    public void GivenUserHasASiteWithABrokenLink(string user)
-    {
-        _siteUrl = user == "David" ? "https://wou.edu/feet" : string.Empty;
-    }
+            // Web Scraper Instance
+            var logger = loggerFactory.CreateLogger<WebScraperService>();
+            _scraperService = new WebScraperService(new HttpClient(), logger);
+        }
 
-    [Given(@"(.*) has a site with no broken links")]
-    public void GivenUserHasASiteWithNoBrokenLinks(string user)
-    {
-        _siteUrl = user == "Sarah" ? "https://wou.edu/marcom" : string.Empty;
-    }
+        [When("the user clicks the broken links section")]
+        public void ThenHeClicksTheBrokenLinksSection()
+        {
+            var wait = new WebDriverWait(_driver, TimeSpan.FromSeconds(10));
 
-    [Given(@"he enters his site url into the url submission box")]
-    [Given(@"she enters her site url into the url submission box")]
-    public async Task GivenUserEntersSiteUrlIntoTheUrlSubmissionBox()
-    {
-        _reportResults = await _brokenLinksService.CheckBrokenLinksAsync(new List<string> { _siteUrl });
-    }
+            // Find and click the accordion button that opens the Broken Links section
+            var button = wait.Until(driver => driver.FindElement(By.XPath("//button[contains(., 'Broken Links')]")));
+            button.Click();
+        }
 
-    [Given(@"the report loads")]
-    public void GivenTheReportLoads()
-    {
-        _reportResults.Should().NotBeNull();
-    }
+        [Then("the broken links section should be visible")]
+        public void ThenTheBrokenLinksSectionShouldBeVisible()
+        {
+            var section = _driver.FindElement(By.XPath("//button[contains(., 'Broken Links')]"));
+            Assert.That(section.Displayed, Is.True);
+        }
 
-    [Then(@"he should see the URL listed and be told the status code error")]
-    public void ThenUserShouldSeeUrlListedWithStatusCodeError()
-    {
-        _reportResults.Should().Contain(x => x.Contains(_siteUrl) || x.Contains("No such host is known"));
-    }
+        [Then("the broken links row reports missing or invalid links")]
+        public async Task ThenTheBrokenLinksRowReportsMissingOrInvalidLinks()
+        {
+            /*==============================================================================
+                                        Backend to UI Testing
 
-    [Then(@"she should not see anything regarding broken links in the report")]
-    public void ThenUserShouldNotSeeAnythingRegardingBrokenLinks()
-    {
-        _reportResults.Should().BeEmpty();
+            Check: What is expected based on service calls is what is displayed on the UI
+            ==============================================================================*/
+            var wait = new WebDriverWait(_driver, TimeSpan.FromSeconds(15));
+            
+            // Call web scraper to organize html elements
+            var scrapedData = await _scraperService.ScrapeAsync(_url);
+
+            // Create Broken Links Service Instance
+            var logger = LoggerFactory.Create(builder => builder.AddConsole()).CreateLogger<BrokenLinksService>();
+            var service = new BrokenLinksService(new HttpClient(), logger);
+
+            // Call service method to check for broken links
+            string expectedReport = await service.BrokenLinkAnalysis(_url, scrapedData);
+
+            // Wait until the element with ID "broken-links" is both visible and has non-empty text
+            var content = wait.Until(driver =>
+            {
+                // Attempt to find the element in the DOM
+                var el = driver.FindElement(By.Id("broken-links"));
+
+                // Only return the element if it is displayed AND contains some text
+                return el.Displayed && !string.IsNullOrWhiteSpace(el.Text) ? el : null;
+            });
+
+            string actualReport = content.Text;
+            Console.WriteLine(actualReport);
+
+            // Assert that both reports match
+            if (scrapedData.TryGetValue("links", out var linkObj) && linkObj is List<string> links)
+            {
+                foreach (var link in links)
+                {
+                    if (expectedReport.Contains(link))
+                    {
+                        Assert.That(actualReport, Does.Contain(link), $"Expected UI to contain broken link: {link}");
+                    }
+                }
+            }
+            else
+            {
+                Assert.Fail("No links found in scraped data to validate.");
+            }
+        }
     }
 }
+
