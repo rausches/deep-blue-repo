@@ -23,7 +23,7 @@ namespace Service_Tests
         private Mock<IPlaywrightScraperService> _playwrightScraperServiceMock;
         private Mock<IBrokenLinksService> _brokenLinksServiceMock;
         private Mock<IHeadingHierarchyService> _headingHierarchyServiceMock;
-        private Mock<IDynamicSizingService> _dynamicSizingServiceMock;
+        private Mock<IMobileResponsivenessService> _mobileResponsivenessServiceMock;
         private Mock<IPopUpsService> _popUpsServiceMock;
         private Mock<IAnimationService> _animationServiceMock;
         private Mock<IAudioService> _audioServiceMock;
@@ -57,7 +57,7 @@ namespace Service_Tests
             _playwrightScraperServiceMock = new Mock<IPlaywrightScraperService>();
             _brokenLinksServiceMock = new Mock<IBrokenLinksService>();
             _headingHierarchyServiceMock = new Mock<IHeadingHierarchyService>();
-            _dynamicSizingServiceMock = new Mock<IDynamicSizingService>();
+            _mobileResponsivenessServiceMock = new Mock<IMobileResponsivenessService>();
             _popUpsServiceMock = new Mock<IPopUpsService>();
             _animationServiceMock = new Mock<IAnimationService>();
             _audioServiceMock = new Mock<IAudioService>();
@@ -76,10 +76,12 @@ namespace Service_Tests
                 .Setup(s => s.ScrapeAsync(It.IsAny<string>()))
                 .ReturnsAsync(new ScrapedContent
                 {
+                    Url = "https://example.com",
+                    Html = "<body><h1>Test</h1></body>",
                     ExternalCssContents = new List<string>(),
-                    InlineCss = new List<string>(),
+                    InlineCss = "",
                     ExternalJsContents = new List<string>(),
-                    InlineJs = new List<string>(),
+                    InlineJs = "",
                     ScrollHeight = 3000,
                     ViewportHeight = 1000
                 });
@@ -93,7 +95,7 @@ namespace Service_Tests
                 _brokenLinksServiceMock.Object,
                 _headingHierarchyServiceMock.Object,
                 _colorSchemeServiceMock.Object,
-                _dynamicSizingServiceMock.Object,
+                _mobileResponsivenessServiceMock.Object,
                 _screenshotServiceMock.Object,
                 _webScraperServiceMock.Object,
                 _playwrightScraperServiceMock.Object,
