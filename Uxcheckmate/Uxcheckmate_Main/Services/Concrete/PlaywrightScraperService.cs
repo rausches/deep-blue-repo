@@ -23,6 +23,117 @@ namespace Uxcheckmate_Main.Services
             _logger = logger;
         }
 
+        public async Task<ScrapedContent> ScrapeEverythingAsync(string url)
+        {
+            // Get a browser instance from the Playwright service (already launched)
+            var browser = await _playwrightService.GetBrowserAsync();
+
+            // Create a new isolated browser context (clears cookies, sessions)
+            var context = await browser.NewContextAsync();
+
+            // Open a new page (tab) within the browser context
+            var page = await context.NewPageAsync();
+
+            try
+            {
+                // Navigate to the target URL and wait until all network requests are finished
+                await page.GotoAsync(url, new PageGotoOptions { WaitUntil = WaitUntilState.NetworkIdle });
+
+                // Inject custom helper script for scraping external CSS and JS
+                await page.AddScriptTagAsync(new PageAddScriptTagOptions
+                {
+                    Path = "wwwroot/js/playwrightScraperHelper.js"
+                });
+
+                // Run a client-side Script in the page context to extract all DOM-based metadata
+                // Return it as a plain JS object and deserialize as a JsonElement for parsing
+                var rawData = await page.EvaluateAsync<JsonElement>("() => window.scrapeDomData()");
+
+                // Ensure the returned data is a valid object
+                if (rawData.ValueKind != JsonValueKind.Object)
+                {
+                    _logger.LogError("Playwright scraping script returned invalid data.");
+                    throw new Exception("Scraping script failed or returned null.");
+                }
+
+                // Safe helper: extract a list from rawData or return an empty list
+                List<string> SafeList(string name) =>
+                    rawData.TryGetProperty(name, out var prop) && prop.ValueKind == JsonValueKind.Array
+                        ? prop.EnumerateArray().Select(x => x.GetString() ?? "").ToList()
+                        : new List<string>();
+
+                // Safe helper: extract string from rawData or return empty
+                string SafeString(string name) =>
+                    rawData.TryGetProperty(name, out var prop) && prop.ValueKind == JsonValueKind.String
+                        ? prop.GetString() ?? ""
+                        : "";
+
+                // Safe helper: extract int from rawData or return 0
+                int SafeInt(string name) =>
+                    rawData.TryGetProperty(name, out var prop) && prop.ValueKind == JsonValueKind.Number
+                        ? prop.GetInt32()
+                        : 0;
+
+                // Safe helper: extract double from rawData or return 0
+                double SafeDouble(string name) =>
+                    rawData.TryGetProperty(name, out var prop) && prop.ValueKind == JsonValueKind.Number
+                        ? prop.GetDouble()
+                        : 0;
+
+                // Safe helper: extract boolean from rawData or return false
+                bool SafeBool(string name) =>
+                    rawData.TryGetProperty(name, out var prop) && prop.ValueKind == JsonValueKind.True
+                        ? true
+                        : false;
+
+                // Use injected helper script to download the actual content of all external stylesheets
+                var externalCssContents = await page.EvaluateAsync<string[]>("() => window.scrapeExternalCss()");
+
+                // Use injected helper script to download the actual content of all external JS files
+                var externalJsContents = await page.EvaluateAsync<string[]>("() => window.scrapeExternalJs()");
+
+                // Close the page and browser context
+                await page.CloseAsync();
+                await context.CloseAsync();
+
+                // Return structured scraping result as model
+                return new ScrapedContent
+                {
+                    Url = url,
+                    HtmlContent = SafeString("htmlContent"),
+                    Headings = SafeInt("headings"),
+                    Paragraphs = SafeInt("paragraphs"),
+                    Images = SafeInt("images"),
+                    Links = SafeList("links"),
+                    TextContent = SafeString("text_content"),
+                    Fonts = SafeList("fonts"),
+                    HasFavicon = SafeBool("hasFavicon"),
+                    FaviconUrl = SafeString("faviconUrl"),
+                    ScrollHeight = SafeDouble("scrollHeight"),
+                    ViewportHeight = SafeDouble("viewportHeight"),
+                    ScrollWidth = SafeDouble("scrollWidth"),
+                    ViewportWidth = SafeDouble("viewportWidth"),
+                    ViewportLabel = SafeString("viewportLabel"),
+                    InlineCssList = SafeList("inlineCssList"),
+                    InlineJsList = SafeList("inlineJsList"),
+                    ExternalCssLinks = SafeList("externalCssLinks"),
+                    ExternalJsLinks = SafeList("externalJsLinks"),
+                    ExternalCssContents = externalCssContents.ToList(),
+                    ExternalJsContents = externalJsContents.ToList(),
+                    InlineCss = string.Join("\n", SafeList("inlineCssList")),
+                    InlineJs = string.Join("\n", SafeList("inlineJsList"))
+                };
+            }
+            catch (Exception ex)
+            {
+                // Catch any Playwright exception and log it
+                _logger.LogError(ex, "Playwright scraping failed for URL: {Url}", url);
+
+                // Rethrow to let the controller or caller handle it
+                throw; 
+            }
+        }
+
         public async Task<ScrapedContent> ScrapeAsync(string url)
         {
             // Run in unique headless browser
