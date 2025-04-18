@@ -157,44 +157,35 @@ namespace Uxcheckmate_Main.Services
         public async Task<string> RunCustomAnalysisAsync(string url, string categoryName, string categoryDescription, Dictionary<string, object> scrapedData)
         {
             _logger.LogInformation("Running custom analysis for category: {CategoryName}", categoryName);
-            Task<byte[]> screenshotTask = _screenshotService?.CaptureFullPageScreenshot(url) ?? Task.FromResult(new byte[0]); // Full site screenshot for anaylsis
+            Task<byte[]> screenshotTask = _screenshotService?.CaptureFullPageScreenshot(url) ?? Task.FromResult(new byte[0]);
 
-            switch (categoryName)
+            string message = categoryName switch
             {
-                case "Broken Links":
-                    return await _brokenLinksService.BrokenLinkAnalysis(url, scrapedData);
+                "Broken Links"          => await _brokenLinksService.BrokenLinkAnalysis(url, scrapedData),
+                "Visual Hierarchy"      => await _headingHierarchyService.AnalyzeAsync(scrapedData),
+                "Color Scheme"          => await _colorSchemeService.AnalyzeWebsiteColorsAsync(scrapedData, screenshotTask),
+                "Mobile Responsiveness" => await _mobileResponsivenessService.RunMobileAnalysisAsync(url, scrapedData),
+                "Favicon"               => await AnalyzeFaviconAsync(url, scrapedData),
+                "Font Legibility"       => await AnalyzeFontLegibilityAsync(url, scrapedData),
+                "Pop Ups"               => await _popUpsService.RunPopupAnalysisAsync(url, scrapedData),
+                "Animations"            => await _animationService.RunAnimationAnalysisAsync(url, scrapedData),
+                "Audio"                 => await _audioService.RunAudioAnalysisAsync(url, scrapedData),
+                "Number of scrolls"     => await _scrollService.RunScrollAnalysisAsync(url, scrapedData),
+                _ => ""
+            };
 
-                case "Visual Hierarchy":
-                    return await _headingHierarchyService.AnalyzeAsync(scrapedData);
-
-                case "Color Scheme":
-                    return await _colorSchemeService.AnalyzeWebsiteColorsAsync(scrapedData, screenshotTask);
-
-                case "Mobile Responsiveness":
-                    return await _mobileResponsivenessService.RunMobileAnalysisAsync(url, scrapedData);
-
-                case "Favicon":
-                    return await AnalyzeFaviconAsync(url, scrapedData);
-
-                case "Font Legibility":
-                    return await AnalyzeFontLegibilityAsync(url, scrapedData);
-               
-                case "Pop Ups":
-                    return await _popUpsService.RunPopupAnalysisAsync(url, scrapedData);
-
-                case "Animations":
-                    return await _animationService.RunAnimationAnalysisAsync(url, scrapedData);
-
-                case "Audio":
-                    return await _audioService.RunAudioAnalysisAsync(url, scrapedData);
-
-                case "Number of scrolls":
-                    return await _scrollService.RunScrollAnalysisAsync(url, scrapedData);
-
-                default:
-                    _logger.LogDebug("No custom analysis implemented for category: {CategoryName}", categoryName);
-                    return string.Empty;
+            // Send to OpenAI to enhance message
+            if (!string.IsNullOrEmpty(message))
+            {
+                _logger.LogInformation("Improving message with OpenAI for category: {CategoryName}", categoryName);
+                message = await _openAiService.ImproveMessageAsync(message, categoryName);
             }
+            else
+            {
+                _logger.LogInformation("No message to improve for category: {CategoryName}", categoryName);
+            }
+
+            return message;
         }
 
      /*   private async Task<string> AnalyzeDynamicSizingAsync(string url, Dictionary<string, object> scrapedData)
