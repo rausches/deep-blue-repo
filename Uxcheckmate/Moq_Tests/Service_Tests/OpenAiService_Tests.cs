@@ -161,6 +161,66 @@ namespace Service_Tests
             Assert.That(result, Is.Not.Null.And.Not.Empty, "FormatScrapedData returned null or empty string.");
             Assert.That(result.Trim(), Is.EqualTo(expected.Trim()), "The formatted output does not match the expected value.");
         }
+
+     /*   [Test]
+        public void OptimizeIssueMessage_ReturnsString()
+        {
+            // Arrange 
+            var scrapedData = new Dictionary<string, object>
+            {
+                { "headings", 5 },
+                { "images", 10 },
+                { "links", 8 },
+                { "fonts", new List<string> { "Arial", "Roboto", "Verdana" } },
+                { "text_content", "This is sample text for testing purposes." }
+            };
+            var mockServiceMessage = "This example has 5 headings, 10 images 8 links, 3 fonts, and could be better";
+
+            var results = _openAiService.OptimizeIssueMessage(scrapedData, mockServiceMessage);
+
+            Assert.That(results, Is.TypeOf<string>());
+            Assert.That(results, Is.Not.EqualTo(mockServiceMessage));
+
+        }
+
+        [Test]
+        public void Summarize_ReturnsString()
+        {
+            var scrapedData = new Dictionary<string, object>
+            {
+                { "headings", 5 },
+                { "images", 10 },
+                { "links", 8 },
+                { "fonts", new List<string> { "Arial", "Roboto", "Verdana" } },
+                { "text_content", "This is sample text for testing purposes." }
+            };
+            var mockServiceMessage = "This example has 5 headings, 10 images 8 links, 3 fonts, and could be better";
+
+            var results = _openAiService.Summarize(scrapedData, mockServiceMessage);
+
+            Assert.That(results, Is.TypeOf<string>());
+            Assert.That(results, Is.Not.EqualTo(mockServiceMessage));
+        }
+
+        [Test]
+        public void MockUpImage_ReturnsImage()
+        {
+            var scrapedData = new Dictionary<string, object>
+            {
+                { "headings", 5 },
+                { "images", 10 },
+                { "links", 8 },
+                { "fonts", new List<string> { "Arial", "Roboto", "Verdana" } },
+                { "text_content", "This is sample text for testing purposes." }
+            };
+            var mockServiceMessage = "This example has 5 headings, 10 images 8 links, 3 fonts, and could be better";
+
+            var results = _openAiService.MockUpImage(scrapedData, mockServiceMessage);
+
+            Assert.That(results, Is.TypeOf<byte>());
+            Assert.That(results, Is.Not.Null);
+        }*/
+
         [TearDown]
         public void TearDown()
         {
