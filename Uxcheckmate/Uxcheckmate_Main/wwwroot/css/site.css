@@ -677,6 +677,11 @@ Report Page Styling
 ==================================================
 */
 
+/* .alert-container{
+  background-color: white;
+  ;
+} */
+
 .headerRow, .designRow, .accessiblityRow{
   background-color: var(--report-bg);
   color: var(--report-text);
