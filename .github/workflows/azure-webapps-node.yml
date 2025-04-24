@@ -6,6 +6,14 @@ on:
     branches:
     - deploy-test
 
+env:
+  AZURE_WEBAPP_NAME: UxCheckmateMain
+  AZURE_WEBAPP_PACKAGE_PATH: "./publish"
+
+permissions:
+  contents: read
+
+
 jobs:
   publish:
     runs-on: ubuntu-latest
@@ -24,5 +32,24 @@ jobs:
       - name: Build
         run: dotnet build ./Uxcheckmate/Uxcheckmate.sln --configuration Release --no-restore
         
+      # Install Playwright browsers
+      - name: Install Playwright Browsers (for .NET)
+        run: npx playwright install --with-deps
+        
+      # Clear Playwright cache if issues persist
+      - name: Clear Playwright cache
+        run: rm -rf ~/.cache/ms-playwright
+
+      - name: Test Moq Tests
+        run: dotnet test ./Uxcheckmate/Moq_Tests/Moq_Tests.csproj --configuration Release
+        
       - name: Publish
-        run: dotnet publish ./Uxcheckmate/Uxcheckmate.sln --configuration Release --no-build
+        run: dotnet publish ./Uxcheckmate/Uxcheckmate.sln --configuration Release --no-build --output '${{ env.AZURE_WEBAPP_PACKAGE_PATH }}'
+
+      - name: Deployment
+        uses: azure/webapps-deploy@v2
+        with:
+          app-name: ${{ env.AZURE_WEBAPP_NAME }}
+          publish-profile: ${{ secrets.AZURE_PUBLISH_PROFILE }}
+          package: ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}
+          
