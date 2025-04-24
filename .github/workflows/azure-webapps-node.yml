@@ -35,10 +35,6 @@ jobs:
       # Install Playwright browsers
       - name: Install Playwright Browsers (for .NET)
         run: npx playwright install --with-deps
-        
-      # Clear Playwright cache if issues persist
-      - name: Clear Playwright cache
-        run: rm -rf ~/.cache/ms-playwright
 
       - name: Test Moq Tests
         run: dotnet test ./Uxcheckmate/Moq_Tests/Moq_Tests.csproj --configuration Release
