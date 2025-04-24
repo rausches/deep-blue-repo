@@ -32,9 +32,6 @@ jobs:
       - name: Build
         run: dotnet build ./Uxcheckmate/Uxcheckmate.sln --configuration Release --no-restore
         
-      - name: Install dependencies
-        run: npm ci
-        
       # Install Playwright browsers
       - name: Install Playwright Browsers (for .NET)
         run: npx playwright install --with-deps
