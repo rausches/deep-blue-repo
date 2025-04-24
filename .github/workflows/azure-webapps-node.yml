@@ -9,6 +9,7 @@ on:
 env:
   AZURE_WEBAPP_NAME: UxCheckmateMain
   AZURE_WEBAPP_PACKAGE_PATH: "./publish"
+  DB_STRING_SECRET: ${{ secrets.DB_STRING_SECRET }}
 
 permissions:
   contents: read
@@ -34,11 +35,7 @@ jobs:
         
       # Install Playwright browsers
       - name: Install Playwright Browsers (for .NET)
-        run: npx playwright install --with-deps
-        
-      # Clear Playwright cache if issues persist
-      - name: Clear Playwright cache
-        run: rm -rf ~/.cache/ms-playwright
+        run: pwsh ./Uxcheckmate/Uxcheckmate_Main/bin/Release/net9.0/playwright.ps1 install
 
       - name: Test Moq Tests
         run: dotnet test ./Uxcheckmate/Moq_Tests/Moq_Tests.csproj --configuration Release
