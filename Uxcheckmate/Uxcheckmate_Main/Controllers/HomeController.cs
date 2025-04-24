@@ -78,7 +78,6 @@ public class HomeController : Controller
         }
 
         var websiteScreenshot = await CaptureScreenshot(url);
-
         if (string.IsNullOrEmpty(websiteScreenshot ))
         {
             _logger.LogError("Failed to capture screenshot for URL: {Url}", url);
