@@ -35,8 +35,8 @@ jobs:
       - name: Install Playwright CLI
         run: dotnet tool install --global Microsoft.Playwright.CLI
 
-      - name: Install Playwright browsers
-        run: playwright install
+      - name: Install Playwright browsers (for .NET)
+        run: dotnet exec $(which playwright) install
 
       - name: Test Moq Tests
         run: dotnet test ./Uxcheckmate/Moq_Tests/Moq_Tests.csproj --configuration Release
