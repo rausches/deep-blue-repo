@@ -28,9 +28,6 @@ jobs:
           
       - name: Restore
         run: dotnet restore ./Uxcheckmate/Uxcheckmate.sln
-
-      - name: Install Playwright Browsers
-        run: pwsh ./Uxcheckmate_Main/bin/Release/net9.0/playwright.ps1 install
         
       - name: Build
         run: dotnet build ./Uxcheckmate/Uxcheckmate.sln --configuration Release --no-restore
