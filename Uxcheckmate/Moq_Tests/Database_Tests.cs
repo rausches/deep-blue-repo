@@ -26,14 +26,18 @@ namespace Database_Tests
         [SetUp]
         public void Setup()
         {
-            var configPath = Path.Combine(TestContext.CurrentContext.WorkDirectory, "appsettings.json");
+            // var configPath = Path.Combine(TestContext.CurrentContext.WorkDirectory, "appsettings.json");
+            var dbConnectionString = Environment.GetEnvironmentVariable("DB_STRING_SECRET");
             
-            var configuration = new ConfigurationBuilder()
-                .SetBasePath(TestContext.CurrentContext.WorkDirectory)
-                .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
-                .Build();
+            if (string.IsNullOrEmpty(dbConnectionString))
+            {
+                var configuration = new ConfigurationBuilder()
+                    .SetBasePath(TestContext.CurrentContext.WorkDirectory)
+                    .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+                    .Build();
+                dbConnectionString = configuration.GetConnectionString("DBConnection");
 
-            var dbConnectionString = configuration.GetConnectionString("DBConnection");
+            }
 
             // Debugging output
             Console.WriteLine($"Retrieved Connection String: {dbConnectionString}");
