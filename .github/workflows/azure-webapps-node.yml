@@ -19,10 +19,10 @@ jobs:
           dotnet-version: '9.0.x'
           
       - name: Restore
-        run: dotnet restore ./Uxcheckmate.sln
+        run: dotnet restore ./Uxcheckmate/Uxcheckmate.sln
         
       - name: Build
-        run: dotnet build ./Uxcheckmate.sln --configuration Release --no-restore
+        run: dotnet build ./Uxcheckmate/Uxcheckmate.sln --configuration Release --no-restore
         
       - name: Publish
-        run: dotnet publish ./Uxcheckmate.sln --configuration Release --no-build
+        run: dotnet publish ./Uxcheckmate/Uxcheckmate.sln --configuration Release --no-build
