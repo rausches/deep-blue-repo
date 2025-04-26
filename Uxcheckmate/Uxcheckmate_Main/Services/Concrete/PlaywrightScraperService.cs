@@ -29,7 +29,12 @@ namespace Uxcheckmate_Main.Services
             var browser = await _playwrightService.GetBrowserAsync();
 
             // Create a new isolated browser context (clears cookies, sessions)
-            var context = await browser.NewContextAsync();
+            // var context = await browser.NewContextAsync();
+            var context = await browser.NewContextAsync(new BrowserNewContextOptions
+            {
+                BypassCSP = true, // Bypass Content Security Policy
+            });
+
 
             // Open a new page (tab) within the browser context
             var page = await context.NewPageAsync();
@@ -138,7 +143,12 @@ namespace Uxcheckmate_Main.Services
         {
             // Run in unique headless browser
             var browser = await _playwrightService.GetBrowserAsync(); 
-            var context = await browser.NewContextAsync();   
+            // var context = await browser.NewContextAsync();   
+            // Ignore the page's Content Security Policy (CSP) to allow all resources to load
+            var context = await browser.NewContextAsync(new BrowserNewContextOptions
+            {
+                BypassCSP = true, // Bypass Content Security Policy
+            });
             var page    = await context.NewPageAsync(); 
 
             // Navigate to the URL and wait until network is idle 
@@ -213,7 +223,8 @@ namespace Uxcheckmate_Main.Services
                 // Create a new isolated browser context with the current viewport size
                 var context = await browser.NewContextAsync(new BrowserNewContextOptions
                 {
-                    ViewportSize = new ViewportSize { Width = width, Height = height }
+                    ViewportSize = new ViewportSize { Width = width, Height = height },
+                    BypassCSP = true // Bypass Content Security Policy
                 });
 
                 var page = await context.NewPageAsync();
