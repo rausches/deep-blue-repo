@@ -150,6 +150,10 @@ namespace Uxcheckmate_Main.Services
             }else{
                 _logger.LogInformation("Skipping saving DesignIssues");    
             }
+            // Call OpenAI to generate summary
+            var summaryText = await _openAiService.GenerateReportSummaryAsync(scanResults.ToList(), url);
+            _logger.LogInformation("Generated summary: {Summary}", summaryText);
+            report.Summary = summaryText;
             // Return report
             return scanResults.ToList();
         }
@@ -175,7 +179,7 @@ namespace Uxcheckmate_Main.Services
             };
 
             // Send to OpenAI to enhance message
-            if (!string.IsNullOrEmpty(message))
+          /*  if (!string.IsNullOrEmpty(message))
             {
                 _logger.LogInformation("Improving message with OpenAI for category: {CategoryName}", categoryName);
                 message = await _openAiService.ImproveMessageAsync(message, categoryName);
@@ -183,7 +187,7 @@ namespace Uxcheckmate_Main.Services
             else
             {
                 _logger.LogInformation("No message to improve for category: {CategoryName}", categoryName);
-            }
+            }*/
 
             return message;
         }

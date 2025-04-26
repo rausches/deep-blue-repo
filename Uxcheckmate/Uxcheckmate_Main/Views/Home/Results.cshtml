@@ -7,6 +7,25 @@
                         HEADER (Screenshot, URL, #of issues)
 ============================================================================================
 *@
+<!-- Auto-launch Modal -->
+<div class="modal fade" id="onLoadModal" tabindex="-1" aria-labelledby="onLoadModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content shadow-lg rounded-4">
+      <div class="modal-header">
+        <h5 class="modal-title" id="onLoadModalLabel">Your AI-Generated Report Summary</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <p>We've analyzed your site and generated design suggestions and a visual mockup using AI.</p>
+        <p>@Model.Summary</p>
+        <p class="mb-0"><strong>Tip:</strong> You can click any issue to expand and learn more.</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Let’s Go</button>
+      </div>
+    </div>
+  </div>
+</div>
 
 <div class="container">
     <div class="row headerRow">
@@ -89,6 +108,12 @@
 
 </div> @* End tag for #reportContainer *@
 </div> @*End tag for .container *@
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const modal = new bootstrap.Modal(document.getElementById('onLoadModal'));
+    modal.show();
+  });
+</script>
 
 @section Scripts {
     <script src="~/js/reportResults.js"></script>
