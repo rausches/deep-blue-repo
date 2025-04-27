@@ -23,7 +23,7 @@ namespace Uxcheckmate_Main.Services
             // Create bands to check for multiple F patterns
             double fixedBandHeight = Math.Min(viewportHeight * 0.5, 800);
             double gapThreshold = 300;
-            double leftZoneThreshold = 0.25 * viewportWidth;
+            double leftZoneThreshold = 0.26 * viewportWidth;
             var sorted = elements.OrderBy(e => e.Y).ToList();
             List<List<HtmlElement>> bands = new();
             List<HtmlElement> currentBand = new() { sorted[0] };
@@ -48,9 +48,9 @@ namespace Uxcheckmate_Main.Services
             for (int i = 0; i < bands.Count; i++){
                 var band = bands[i];
                 double totalDensity = band.Sum(e => e.Density);
-                if (totalDensity < adaptiveThreshold){
-                    _logger.LogDebug($"Skipping band {i} due to low density: {totalDensity:F2} < {adaptiveThreshold:F2}");
-                    continue;
+                bool lowDensity = totalDensity < adaptiveThreshold;
+                if (lowDensity){
+                    _logger.LogDebug($"Low density band {i}: {totalDensity:F2} < {adaptiveThreshold:F2} — still evaluating but weighing less.");
                 }
                 double topBoundary = band.Min(b => b.Y) + 0.2 * fixedBandHeight;
                 double middleBoundary = band.Min(b => b.Y) + 0.4 * fixedBandHeight;
@@ -61,7 +61,7 @@ namespace Uxcheckmate_Main.Services
                 score = Math.Round(score, 2);
                 _logger.LogDebug($"Band {i} Score => Top: {topZoneDensity:F2}, Middle: {middleZoneDensity:F2}, Left: {leftZoneDensity:F2}, Total: {totalDensity:F2}, Score: {score:F2}");
                 sectionScores.Add(score);
-                double weight = Math.Max(0.3, 1.0 / (i + 1));
+                double weight = lowDensity ? 0.5 * Math.Max(0.3, 1.0 / (i + 1)) : Math.Max(0.3, 1.0 / (i + 1));
                 weights.Add(weight);
                 includedBands++;
             }
@@ -70,9 +70,9 @@ namespace Uxcheckmate_Main.Services
             }
             // Averaging the scores
             double weightedAverage = sectionScores.Zip(weights, (score, w) => score * w).Sum() / weights.Sum();
-            double generousAverage = Math.Round(Math.Min(1.0, weightedAverage + 0.10), 2); // Giving grace since not every part needs F pattern
+            double generousAverage = Math.Round(Math.Min(1.0, weightedAverage + 0.20), 2); // Giving grace since not every part needs F pattern
             string summary = $"Average F-Pattern Score: {generousAverage:P0}\n";
-            if (generousAverage >= 0.8){
+            if (generousAverage >= 0.7){
                 summary = ""; // good, no complaints
             }
             else{
@@ -86,3 +86,5 @@ namespace Uxcheckmate_Main.Services
         }
     }
 }
+
+// bool
