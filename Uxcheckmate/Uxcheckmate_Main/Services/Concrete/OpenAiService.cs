@@ -137,7 +137,7 @@ namespace Uxcheckmate_Main.Services
 
         Improve upon this message by rewriting it and explaining why the user needs to change the findings based on heuristic UX principles.
         Do this in under 400 words. Each message should be declarative and begin with 'Our analysis found '.
-        Do not include quotation marks unless necessary.";
+        Do not include quotation marks at the beginning and end of your response.";
 
             // Construct the OpenAI API request using the chat completion format
             var request = new
@@ -171,7 +171,7 @@ namespace Uxcheckmate_Main.Services
             return result?.Choices?.FirstOrDefault()?.Message?.Content ?? rawMessage;
         }
 
-        public async Task<string> GenerateReportSummaryAsync(List<DesignIssue> issues, string url)
+        public async Task<string> GenerateReportSummaryAsync(List<DesignIssue> issues, string html, string url)
         {
             if (issues == null || !issues.Any())
             {
@@ -187,11 +187,12 @@ namespace Uxcheckmate_Main.Services
             string prompt = $@"
                 You are a senior UX expert and web designer summarizing a design audit.
                 The audit was run on: {url}
+                Here is the site content: {html}
 
-                Here are the issues:
+                Here are the issues that were found through analysis:
                 {sb}
 
-                Write a summary of the issues found as well as additional advice and/or recommendations not listed in the issues. Do this in under 200 words.";
+                Write a summary of the issues found as well as additional advice and/or recommendations that might have been missed in the analysis. Do this in under 200 words.";
 
             var request = new
             {
@@ -201,7 +202,7 @@ namespace Uxcheckmate_Main.Services
                     new { role = "system", content = "You are a UX analyst and web designer who writes professional design summaries." },
                     new { role = "user", content = prompt }
                 },
-                max_tokens = 300
+                max_tokens = 800
             };
 
             var json = JsonSerializer.Serialize(request);

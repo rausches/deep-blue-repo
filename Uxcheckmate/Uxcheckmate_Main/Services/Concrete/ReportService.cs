@@ -151,7 +151,7 @@ namespace Uxcheckmate_Main.Services
                 _logger.LogInformation("Skipping saving DesignIssues");    
             }
             // Call OpenAI to generate summary
-            var summaryText = await _openAiService.GenerateReportSummaryAsync(scanResults.ToList(), url);
+            var summaryText = await _openAiService.GenerateReportSummaryAsync(scanResults.ToList(), fullScraped.HtmlContent, url);
             _logger.LogInformation("Generated summary: {Summary}", summaryText);
             report.Summary = summaryText;
             // Return report
