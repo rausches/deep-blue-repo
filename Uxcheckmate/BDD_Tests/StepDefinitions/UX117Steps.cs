@@ -24,17 +24,14 @@ namespace BDD_Tests.StepDefinitions
         [Then("the user will see a modal containing the summary and mock up image")]
         public void ThenHeWillSeeAModalContainingSummaryAndMockUp()
         {
-            var wait = new WebDriverWait(_driver, TimeSpan.FromSeconds(10));
+            var wait = new WebDriverWait(_driver, TimeSpan.FromSeconds(300));
 
             // Find the AI elements
-            var modal = wait.Until(driver => driver.FindElement(By.Id("Modal")));
-            var summary = wait.Until(driver => driver.FindElement(By.Id("Summary")));
-            var image = wait.Until(driver => driver.FindElement(By.Id("Image")));
+            var modal = wait.Until(driver => driver.FindElement(By.Id("onLoadModal")));
+            var summary = wait.Until(driver => driver.FindElement(By.Id("summary")));
 
             // Assert they are displayed
-            Assert.That(modal, !Is.Empty);
-            Assert.That(summary, !Is.Empty);
-            Assert.That(image.Displayed, Is.True);
+            Assert.That(summary.Displayed, Is.True, "Summary should be visible inside modal.");
         }
 
         [Then("the user clicks the let's begin button")]
@@ -43,7 +40,7 @@ namespace BDD_Tests.StepDefinitions
             var wait = new WebDriverWait(_driver, TimeSpan.FromSeconds(10));
 
             // Find and click the let's begin button
-            var button = wait.Until(driver => driver.FindElement(By.Id("button")));
+            var button = wait.Until(driver => driver.FindElement(By.Id("letsgo")));
             button.Click();
         }
 

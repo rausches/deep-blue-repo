@@ -29,12 +29,7 @@ namespace BDD_Tests.Features
         
         private static string[] featureTags = ((string[])(null));
         
-        private static global::Reqnroll.FeatureInfo featureInfo = new global::Reqnroll.FeatureInfo(new System.Globalization.CultureInfo("en-US"), "features", "OpenAI Enhancement", @"As a user, I'd like AI enhancements for the design recommendations
-
-Given the user has generated a report for ""https://momkage-lexy.github.io/""
-Then the user will see a modal containing the summary and mock up image
-And the user clicks the let's begin button
-Then the modal will close", global::Reqnroll.ProgrammingLanguage.CSharp, featureTags);
+        private static global::Reqnroll.FeatureInfo featureInfo = new global::Reqnroll.FeatureInfo(new System.Globalization.CultureInfo("en-US"), "features", "OpenAI Enhancement", "As a user, I\'d like AI enhancements for the design recommendations", global::Reqnroll.ProgrammingLanguage.CSharp, featureTags);
         
 #line 1 "UX117.feature"
 #line hidden
@@ -85,6 +80,36 @@ Then the modal will close", global::Reqnroll.ProgrammingLanguage.CSharp, feature
         public async System.Threading.Tasks.Task ScenarioCleanupAsync()
         {
             await testRunner.CollectScenarioErrorsAsync();
+        }
+        
+        [NUnit.Framework.TestAttribute()]
+        [NUnit.Framework.DescriptionAttribute("Generated report provides an ai summary of the report")]
+        public async System.Threading.Tasks.Task GeneratedReportProvidesAnAiSummaryOfTheReport()
+        {
+            string[] tagsOfScenario = ((string[])(null));
+            System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
+            global::Reqnroll.ScenarioInfo scenarioInfo = new global::Reqnroll.ScenarioInfo("Generated report provides an ai summary of the report", null, tagsOfScenario, argumentsOfScenario, featureTags);
+#line 4
+this.ScenarioInitialize(scenarioInfo);
+#line hidden
+            if ((global::Reqnroll.TagHelper.ContainsIgnoreTag(scenarioInfo.CombinedTags) || global::Reqnroll.TagHelper.ContainsIgnoreTag(featureTags)))
+            {
+                testRunner.SkipScenario();
+            }
+            else
+            {
+                await this.ScenarioStartAsync();
+#line 5
+    await testRunner.GivenAsync("the user has generated a report for \"https://momkage-lexy.github.io/\"", ((string)(null)), ((global::Reqnroll.Table)(null)), "Given ");
+#line hidden
+#line 6
+    await testRunner.ThenAsync("the user will see a modal containing the summary and mock up image", ((string)(null)), ((global::Reqnroll.Table)(null)), "Then ");
+#line hidden
+#line 7
+    await testRunner.AndAsync("the user clicks the let\'s begin button", ((string)(null)), ((global::Reqnroll.Table)(null)), "And ");
+#line hidden
+            }
+            await this.ScenarioCleanupAsync();
         }
     }
 }

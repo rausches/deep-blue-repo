@@ -227,6 +227,7 @@ namespace Service_Tests
             // Prepare an empty list of design issues to simulate an edge case
             var mockIssues = new List<DesignIssue>();
             var mockUrl = "https://example.com";
+            var mockHtml = "<html><body><h1>test</h1><p>this is a test</p><button>hi</button></body></html>";
 
             // Setup a fake OpenAI API response for the report summary
             var fakeApiResponse = new OpenAiResponse
@@ -260,7 +261,7 @@ namespace Service_Tests
 
             // Act
             // Call the service method under test
-            var result = await _openAiService.GenerateReportSummaryAsync(mockIssues, mockUrl);
+            var result = await _openAiService.GenerateReportSummaryAsync(mockIssues, mockHtml, mockUrl);
 
             // Assert
             // The result should be a non-null, non-empty string
