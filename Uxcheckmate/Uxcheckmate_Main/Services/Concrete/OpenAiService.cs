@@ -148,7 +148,7 @@ namespace Uxcheckmate_Main.Services
                     new { role = "system", content = "You are a UX expert and writer." },
                     new { role = "user", content = prompt }
                 },
-                max_tokens = 200 // Limit the response to roughly a paragraph (around 150–200 words)
+                max_tokens = 800 // Limit the response to roughly a paragraph (around 400 words)
             };
 
             // Serialize the request object into JSON for the HTTP request body
@@ -185,13 +185,13 @@ namespace Uxcheckmate_Main.Services
             }
 
             string prompt = $@"
-        You are a senior UX expert and web designer summarizing a design audit.
-        The audit was run on: {url}
+                You are a senior UX expert and web designer summarizing a design audit.
+                The audit was run on: {url}
 
-        Here are the issues:
-        {sb}
+                Here are the issues:
+                {sb}
 
-        Write a summary of the issues found as well as additional advice and/or recommendations not listed in the issues. Do this in under 200 words.";
+                Write a summary of the issues found as well as additional advice and/or recommendations not listed in the issues. Do this in under 200 words.";
 
             var request = new
             {
@@ -215,6 +215,5 @@ namespace Uxcheckmate_Main.Services
 
             return result?.Choices?.FirstOrDefault()?.Message?.Content ?? "Unable to generate summary.";
         }
-
     }
 }
