@@ -28,7 +28,9 @@ namespace Service_Tests
         private Mock<IAnimationService> _animationServiceMock;
         private Mock<IAudioService> _audioServiceMock;
         private Mock<IScrollService> _scrollServiceMock;
-
+        private Mock<IFPatternService> _fPatternServiceMock;
+        private ScrapedContent _mockScrapedContent;
+ // await _reportService.RunCustomAnalysisAsync("url", "Color Scheme", "description", new Dictionary<string, object>());
         [SetUp]
         public void Setup()
         {
@@ -46,6 +48,14 @@ namespace Service_Tests
             );
             _context.SaveChanges();
 
+            _mockScrapedContent = new ScrapedContent
+            {
+                Url = "https://example.com",
+                HtmlContent = "<html></html>",
+                ViewportHeight = 1000,
+                ViewportWidth = 1200,
+            };
+
             // Mock loggers
             var logger = Mock.Of<ILogger<ReportService>>();
 
@@ -61,6 +71,8 @@ namespace Service_Tests
             _animationServiceMock = new Mock<IAnimationService>();
             _audioServiceMock = new Mock<IAudioService>();
             _scrollServiceMock = new Mock<IScrollService>();
+            _fPatternServiceMock = new Mock<IFPatternService>();
+
 
 
             // Setup default playwright scraper response
@@ -108,7 +120,8 @@ namespace Service_Tests
                 _popUpsServiceMock.Object,
                 _animationServiceMock.Object,
                 _audioServiceMock.Object,
-                _scrollServiceMock.Object
+                _scrollServiceMock.Object,
+                _fPatternServiceMock.Object
             );
         }
 
@@ -209,7 +222,7 @@ namespace Service_Tests
                 It.IsAny<Task<byte[]>>()))
                 .ReturnsAsync("Issue found");
 
-            var result = await _reportService.RunCustomAnalysisAsync("url", "Color Scheme", "description", new Dictionary<string, object>()); // Run custom analysis
+            var result = await _reportService.RunCustomAnalysisAsync("url", "Color Scheme", "description", new Dictionary<string, object>(), _mockScrapedContent); // Run custom analysis
 
             Assert.That(result,Is.Not.Null); // Assert that the result is not null
             Assert.That(result, Is.Not.Empty); // Assert that the result is not empty
@@ -227,7 +240,7 @@ namespace Service_Tests
                 It.IsAny<Task<byte[]>>()))
                 .ReturnsAsync(""); // Mock the color analysis to return no issues
 
-            var result = await _reportService.RunCustomAnalysisAsync("url", "Color Scheme", "description", new Dictionary<string, object>()); // Run custom analysis
+            var result = await _reportService.RunCustomAnalysisAsync("url", "Color Scheme", "description", new Dictionary<string, object>(), _mockScrapedContent); // Run custom analysis
 
             Assert.That(string.IsNullOrEmpty(result), Is.True); // Assert that the result is null or empty
         }
@@ -237,7 +250,7 @@ namespace Service_Tests
         {
             _screenshotServiceMock.Setup(s => s.CaptureFullPageScreenshot(It.IsAny<string>()))
                 .ReturnsAsync(Array.Empty<byte>());
-            await _reportService.RunCustomAnalysisAsync("url", "Color Scheme", "desc", new Dictionary<string, object>()); // Run custom analysis
+            await _reportService.RunCustomAnalysisAsync("url", "Color Scheme", "description", new Dictionary<string, object>(), _mockScrapedContent); // Run custom analysis
 
             // Verify that the color scheme service was called once
             _colorSchemeServiceMock.Verify(service => service.AnalyzeWebsiteColorsAsync(

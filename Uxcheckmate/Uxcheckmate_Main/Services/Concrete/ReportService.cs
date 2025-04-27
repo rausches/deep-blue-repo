@@ -29,9 +29,10 @@ namespace Uxcheckmate_Main.Services
         private readonly IAnimationService _animationService;
         private readonly IAudioService _audioService;
         private readonly IScrollService _scrollService;
+        private readonly IFPatternService _fPatternService;
 
 
-        public ReportService(HttpClient httpClient, ILogger<ReportService> logger, UxCheckmateDbContext context, IOpenAiService openAiService, IBrokenLinksService brokenLinksService, IHeadingHierarchyService headingHierarchyService, IColorSchemeService colorSchemeService, IMobileResponsivenessService mobileResponsivenessService, IScreenshotService screenshotService, IPlaywrightScraperService playwrightScraperService, IPopUpsService popUpsService, IAnimationService animationService, IAudioService audioService, IScrollService scrollService)
+        public ReportService(HttpClient httpClient, ILogger<ReportService> logger, UxCheckmateDbContext context, IOpenAiService openAiService, IBrokenLinksService brokenLinksService, IHeadingHierarchyService headingHierarchyService, IColorSchemeService colorSchemeService, IMobileResponsivenessService mobileResponsivenessService, IScreenshotService screenshotService, IPlaywrightScraperService playwrightScraperService, IPopUpsService popUpsService, IAnimationService animationService, IAudioService audioService, IScrollService scrollService, IFPatternService fPatternService)
         {
             _httpClient = httpClient;
             _dbContext = context;
@@ -48,6 +49,7 @@ namespace Uxcheckmate_Main.Services
             _animationService = animationService;
             _audioService = audioService;
             _scrollService = scrollService;
+            _fPatternService = fPatternService;
         }
 
 
@@ -112,7 +114,7 @@ namespace Uxcheckmate_Main.Services
                         message = category.ScanMethod switch
                         {
                             "OpenAI" => await _openAiService.AnalyzeWithOpenAI(url, category.Name, category.Description, scrapedData),
-                            "Custom" => await RunCustomAnalysisAsync(url, category.Name, category.Description, scrapedData),
+                            "Custom" => await RunCustomAnalysisAsync(url, category.Name, category.Description, scrapedData, fullScraped),
                             _ => ""
                         };
                     }
@@ -154,10 +156,11 @@ namespace Uxcheckmate_Main.Services
             return scanResults.ToList();
         }
 
-        public async Task<string> RunCustomAnalysisAsync(string url, string categoryName, string categoryDescription, Dictionary<string, object> scrapedData)
+        public async Task<string> RunCustomAnalysisAsync(string url, string categoryName, string categoryDescription, Dictionary<string, object> scrapedData, ScrapedContent fullScraped)
         {
             _logger.LogInformation("Running custom analysis for category: {CategoryName}", categoryName);
             Task<byte[]> screenshotTask = _screenshotService?.CaptureFullPageScreenshot(url) ?? Task.FromResult(new byte[0]); // Full site screenshot for anaylsis
+
 
             switch (categoryName)
             {
@@ -190,6 +193,9 @@ namespace Uxcheckmate_Main.Services
 
                 case "Number of scrolls":
                     return await _scrollService.RunScrollAnalysisAsync(url, scrapedData);
+
+                case "F Pattern":
+                    return await _fPatternService.AnalyzeFPatternAsync(fullScraped.ViewportWidth, fullScraped.ViewportHeight, fullScraped.LayoutElements);
 
                 default:
                     _logger.LogDebug("No custom analysis implemented for category: {CategoryName}", categoryName);

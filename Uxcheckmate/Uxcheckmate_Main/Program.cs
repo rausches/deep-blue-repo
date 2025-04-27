@@ -94,6 +94,8 @@ public class Program
         builder.Services.AddScoped<IAnimationService, AnimationService>();
         builder.Services.AddScoped<IAudioService, AudioService>();
         builder.Services.AddScoped<IScrollService, ScrollService>();
+        builder.Services.AddScoped<ILayoutParsingService, LayoutParsingService>();
+        builder.Services.AddScoped<IFPatternService, FPatternService>();
 
 
         var app = builder.Build();

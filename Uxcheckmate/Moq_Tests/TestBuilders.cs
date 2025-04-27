@@ -33,7 +33,8 @@ public static class TestBuilder
                 new Mock<IPopUpsService>().Object,
                 new Mock<IAnimationService>().Object,
                 new Mock<IAudioService>().Object,
-                new Mock<IScrollService>().Object
+                new Mock<IScrollService>().Object,
+                new Mock<IFPatternService>().Object
             ),
             new Mock<PdfExportService>().Object,
             new Mock<IScreenshotService>().Object,
