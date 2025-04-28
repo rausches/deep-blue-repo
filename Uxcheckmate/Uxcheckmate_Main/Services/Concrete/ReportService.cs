@@ -29,9 +29,13 @@ namespace Uxcheckmate_Main.Services
         private readonly IAnimationService _animationService;
         private readonly IAudioService _audioService;
         private readonly IScrollService _scrollService;
+        private readonly IFPatternService _fPatternService;
+        private readonly IZPatternService _zPatternService;
+        private readonly ISymmetryService _symmetryService;
 
 
-        public ReportService(HttpClient httpClient, ILogger<ReportService> logger, UxCheckmateDbContext context, IOpenAiService openAiService, IBrokenLinksService brokenLinksService, IHeadingHierarchyService headingHierarchyService, IColorSchemeService colorSchemeService, IMobileResponsivenessService mobileResponsivenessService, IScreenshotService screenshotService, IPlaywrightScraperService playwrightScraperService, IPopUpsService popUpsService, IAnimationService animationService, IAudioService audioService, IScrollService scrollService)
+
+        public ReportService(HttpClient httpClient, ILogger<ReportService> logger, UxCheckmateDbContext context, IOpenAiService openAiService, IBrokenLinksService brokenLinksService, IHeadingHierarchyService headingHierarchyService, IColorSchemeService colorSchemeService, IMobileResponsivenessService mobileResponsivenessService, IScreenshotService screenshotService, IPlaywrightScraperService playwrightScraperService, IPopUpsService popUpsService, IAnimationService animationService, IAudioService audioService, IScrollService scrollService, IFPatternService fPatternService, IZPatternService zPatternService, ISymmetryService symmetryService)
         {
             _httpClient = httpClient;
             _dbContext = context;
@@ -48,6 +52,9 @@ namespace Uxcheckmate_Main.Services
             _animationService = animationService;
             _audioService = audioService;
             _scrollService = scrollService;
+            _fPatternService = fPatternService;
+            _zPatternService = zPatternService;
+            _symmetryService = symmetryService;
         }
 
 
@@ -112,7 +119,7 @@ namespace Uxcheckmate_Main.Services
                         message = category.ScanMethod switch
                         {
                             "OpenAI" => await _openAiService.AnalyzeWithOpenAI(url, category.Name, category.Description, scrapedData),
-                            "Custom" => await RunCustomAnalysisAsync(url, category.Name, category.Description, scrapedData),
+                            "Custom" => await RunCustomAnalysisAsync(url, category.Name, category.Description, scrapedData, fullScraped),
                             _ => ""
                         };
                     }
@@ -158,7 +165,7 @@ namespace Uxcheckmate_Main.Services
             return scanResults.ToList();
         }
 
-        public async Task<string> RunCustomAnalysisAsync(string url, string categoryName, string categoryDescription, Dictionary<string, object> scrapedData)
+        public async Task<string> RunCustomAnalysisAsync(string url, string categoryName, string categoryDescription, Dictionary<string, object> scrapedData, ScrapedContent fullScraped)
         {
             _logger.LogInformation("Running custom analysis for category: {CategoryName}", categoryName);
             Task<byte[]> screenshotTask = _screenshotService?.CaptureFullPageScreenshot(url) ?? Task.FromResult(new byte[0]);
@@ -175,6 +182,9 @@ namespace Uxcheckmate_Main.Services
                 "Animations"            => await _animationService.RunAnimationAnalysisAsync(url, scrapedData),
                 "Audio"                 => await _audioService.RunAudioAnalysisAsync(url, scrapedData),
                 "Number of scrolls"     => await _scrollService.RunScrollAnalysisAsync(url, scrapedData),
+                "F Pattern"             => await _fPatternService.AnalyzeFPatternAsync(fullScraped.ViewportWidth, fullScraped.ViewportHeight, fullScraped.LayoutElements),
+                "Z Pattern"             => await _zPatternService.AnalyzeZPatternAsync(fullScraped.ViewportWidth, fullScraped.ViewportHeight, fullScraped.LayoutElements),
+                "Symmetry"              => await _symmetryService.AnalyzeSymmetryAsync(fullScraped.ViewportWidth, fullScraped.ViewportHeight, fullScraped.LayoutElements),
                 _ => ""
             };
 
