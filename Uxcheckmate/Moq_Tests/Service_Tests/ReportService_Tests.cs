@@ -30,6 +30,7 @@ namespace Service_Tests
         private Mock<IScrollService> _scrollServiceMock;
         private Mock<IFPatternService> _fPatternServiceMock;
         private Mock<IZPatternService> _zPatternServiceMock;
+        private Mock<ISymmetryService> _symmetryServiceMock;
         private ScrapedContent _mockScrapedContent;
  // await _reportService.RunCustomAnalysisAsync("url", "Color Scheme", "description", new Dictionary<string, object>());
         [SetUp]
@@ -74,6 +75,7 @@ namespace Service_Tests
             _scrollServiceMock = new Mock<IScrollService>();
             _fPatternServiceMock = new Mock<IFPatternService>();
             _zPatternServiceMock = new Mock<IZPatternService>();
+            _symmetryServiceMock = new Mock<ISymmetryService>();
 
 
 
@@ -124,7 +126,8 @@ namespace Service_Tests
                 _audioServiceMock.Object,
                 _scrollServiceMock.Object,
                 _fPatternServiceMock.Object,
-                _zPatternServiceMock.Object
+                _zPatternServiceMock.Object,
+                _symmetryServiceMock.Object
             );
         }
 

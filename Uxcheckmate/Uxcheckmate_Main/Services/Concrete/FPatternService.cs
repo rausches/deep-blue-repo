@@ -73,7 +73,7 @@ namespace Uxcheckmate_Main.Services
             double generousAverage = Math.Round(Math.Min(1.0, weightedAverage + 0.20), 2); // Giving grace since not every part needs F pattern
             string summary = $"Average F-Pattern Score: {generousAverage:P0}\n";
             if (generousAverage >= 0.7){
-                summary = ""; // good, no complaints
+                summary = ""; // Making blank
             }
             else{
                 summary += "This layout does not follow the F-pattern well.";

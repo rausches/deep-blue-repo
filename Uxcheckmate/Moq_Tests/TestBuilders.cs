@@ -35,7 +35,8 @@ public static class TestBuilder
                 new Mock<IAudioService>().Object,
                 new Mock<IScrollService>().Object,
                 new Mock<IFPatternService>().Object,
-                new Mock<IZPatternService>().Object
+                new Mock<IZPatternService>().Object,
+                new Mock<ISymmetryService>().Object
             ),
             new Mock<PdfExportService>().Object,
             new Mock<IScreenshotService>().Object,

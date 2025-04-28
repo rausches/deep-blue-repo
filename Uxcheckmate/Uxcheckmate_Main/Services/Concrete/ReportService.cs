@@ -31,9 +31,11 @@ namespace Uxcheckmate_Main.Services
         private readonly IScrollService _scrollService;
         private readonly IFPatternService _fPatternService;
         private readonly IZPatternService _zPatternService;
+        private readonly ISymmetryService _symmetryService;
 
 
-        public ReportService(HttpClient httpClient, ILogger<ReportService> logger, UxCheckmateDbContext context, IOpenAiService openAiService, IBrokenLinksService brokenLinksService, IHeadingHierarchyService headingHierarchyService, IColorSchemeService colorSchemeService, IMobileResponsivenessService mobileResponsivenessService, IScreenshotService screenshotService, IPlaywrightScraperService playwrightScraperService, IPopUpsService popUpsService, IAnimationService animationService, IAudioService audioService, IScrollService scrollService, IFPatternService fPatternService, IZPatternService zPatternService)
+
+        public ReportService(HttpClient httpClient, ILogger<ReportService> logger, UxCheckmateDbContext context, IOpenAiService openAiService, IBrokenLinksService brokenLinksService, IHeadingHierarchyService headingHierarchyService, IColorSchemeService colorSchemeService, IMobileResponsivenessService mobileResponsivenessService, IScreenshotService screenshotService, IPlaywrightScraperService playwrightScraperService, IPopUpsService popUpsService, IAnimationService animationService, IAudioService audioService, IScrollService scrollService, IFPatternService fPatternService, IZPatternService zPatternService, ISymmetryService symmetryService)
         {
             _httpClient = httpClient;
             _dbContext = context;
@@ -52,6 +54,7 @@ namespace Uxcheckmate_Main.Services
             _scrollService = scrollService;
             _fPatternService = fPatternService;
             _zPatternService = zPatternService;
+            _symmetryService = symmetryService;
         }
 
 
@@ -200,7 +203,10 @@ namespace Uxcheckmate_Main.Services
                     return await _fPatternService.AnalyzeFPatternAsync(fullScraped.ViewportWidth, fullScraped.ViewportHeight, fullScraped.LayoutElements);
 
                 case "Z Pattern":
-                    return await _zPatternService.AnalyzeZPatternAsync(fullScraped.ViewportWidth, fullScraped.ViewportHeight, fullScraped.LayoutElements);    
+                    return await _zPatternService.AnalyzeZPatternAsync(fullScraped.ViewportWidth, fullScraped.ViewportHeight, fullScraped.LayoutElements);   
+
+                case "Symmetry":
+                    return await _symmetryService.AnalyzeSymmetryAsync(fullScraped.ViewportWidth, fullScraped.ViewportHeight, fullScraped.LayoutElements);
 
                 default:
                     _logger.LogDebug("No custom analysis implemented for category: {CategoryName}", categoryName);

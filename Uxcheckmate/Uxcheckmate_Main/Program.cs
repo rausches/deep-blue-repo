@@ -97,6 +97,7 @@ public class Program
         builder.Services.AddScoped<ILayoutParsingService, LayoutParsingService>();
         builder.Services.AddScoped<IFPatternService, FPatternService>();
         builder.Services.AddScoped<IZPatternService, ZPatternService>();
+        builder.Services.AddScoped<ISymmetryService, SymmetryService>();
 
 
         var app = builder.Build();
