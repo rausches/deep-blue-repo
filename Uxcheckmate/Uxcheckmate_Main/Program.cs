@@ -96,6 +96,7 @@ public class Program
         builder.Services.AddScoped<IScrollService, ScrollService>();
         builder.Services.AddScoped<ILayoutParsingService, LayoutParsingService>();
         builder.Services.AddScoped<IFPatternService, FPatternService>();
+        builder.Services.AddScoped<IZPatternService, ZPatternService>();
 
 
         var app = builder.Build();

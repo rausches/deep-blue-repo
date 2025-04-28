@@ -30,9 +30,10 @@ namespace Uxcheckmate_Main.Services
         private readonly IAudioService _audioService;
         private readonly IScrollService _scrollService;
         private readonly IFPatternService _fPatternService;
+        private readonly IZPatternService _zPatternService;
 
 
-        public ReportService(HttpClient httpClient, ILogger<ReportService> logger, UxCheckmateDbContext context, IOpenAiService openAiService, IBrokenLinksService brokenLinksService, IHeadingHierarchyService headingHierarchyService, IColorSchemeService colorSchemeService, IMobileResponsivenessService mobileResponsivenessService, IScreenshotService screenshotService, IPlaywrightScraperService playwrightScraperService, IPopUpsService popUpsService, IAnimationService animationService, IAudioService audioService, IScrollService scrollService, IFPatternService fPatternService)
+        public ReportService(HttpClient httpClient, ILogger<ReportService> logger, UxCheckmateDbContext context, IOpenAiService openAiService, IBrokenLinksService brokenLinksService, IHeadingHierarchyService headingHierarchyService, IColorSchemeService colorSchemeService, IMobileResponsivenessService mobileResponsivenessService, IScreenshotService screenshotService, IPlaywrightScraperService playwrightScraperService, IPopUpsService popUpsService, IAnimationService animationService, IAudioService audioService, IScrollService scrollService, IFPatternService fPatternService, IZPatternService zPatternService)
         {
             _httpClient = httpClient;
             _dbContext = context;
@@ -50,6 +51,7 @@ namespace Uxcheckmate_Main.Services
             _audioService = audioService;
             _scrollService = scrollService;
             _fPatternService = fPatternService;
+            _zPatternService = zPatternService;
         }
 
 
@@ -196,6 +198,9 @@ namespace Uxcheckmate_Main.Services
 
                 case "F Pattern":
                     return await _fPatternService.AnalyzeFPatternAsync(fullScraped.ViewportWidth, fullScraped.ViewportHeight, fullScraped.LayoutElements);
+
+                case "Z Pattern":
+                    return await _zPatternService.AnalyzeZPatternAsync(fullScraped.ViewportWidth, fullScraped.ViewportHeight, fullScraped.LayoutElements);    
 
                 default:
                     _logger.LogDebug("No custom analysis implemented for category: {CategoryName}", categoryName);

@@ -22,3 +22,5 @@ Scenario: F Pattern issue does not exist
     When the report view has loaded
     Then the user should not see the F Pattern issue
 
+# Extra Pass https://en.wikipedia.org/wiki/Screen_reading
+# Extra Fail https://example.com/
