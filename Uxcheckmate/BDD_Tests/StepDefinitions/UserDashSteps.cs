@@ -101,6 +101,17 @@ namespace BDD_Tests.StepDefinitions
         {
             Assert.That(driver.PageSource.Contains("Report ID"), Is.True, "Report ID was not found on the dashboard page.");
         }
-        
-     }
+
+        // Grouped reports
+        [Then("the user should see grouped reports by domain")]
+        public void ThenUserSeesGroupedReportsByDomain()
+        {
+            var groupedReports = driver.FindElements(By.ClassName("grouped-report"));
+            Assert.That(groupedReports.Count, Is.GreaterThan(0), "No grouped reports found on the dashboard.");
+            foreach (var report in groupedReports)
+            {
+                Assert.That(report.Text, Does.Contain("https://example.com"), "Expected domain not found in grouped reports.");
+            }
+        }
+    }
  }
