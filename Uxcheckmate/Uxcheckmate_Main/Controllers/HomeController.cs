@@ -72,8 +72,9 @@ public class HomeController : Controller
             ModelState.AddModelError("url", "URL cannot be empty.");
             return View("Index");
         }
-            // Normalize the URL *before* checking if it's reachable
-            url = NormalizeUrl(url);
+
+        // Normalize the URL *before* checking if it's reachable
+        url = NormalizeUrl(url);
 
         if (!await IsUrlReachable(url))
         {
@@ -82,12 +83,14 @@ public class HomeController : Controller
         }
 
         var websiteScreenshot = await CaptureScreenshot(url);
+
         if (string.IsNullOrEmpty(websiteScreenshot ))
         {
             _logger.LogError("Failed to capture screenshot for URL: {Url}", url);
             ModelState.AddModelError("", "An error occurred while capturing the screenshot.");
             return View("Index");
         }
+        
         TempData["WebsiteScreenshot"] = websiteScreenshot;
 
         // Check if the user is authenticated and get the user ID
@@ -103,12 +106,45 @@ public class HomeController : Controller
         // Create and save the report record.
         var report = await CreateOrUpdateReport(url);
 
+        // Save the report immediately to get a valid ID
+        _context.Reports.Add(report);
+        await _context.SaveChangesAsync();
+
         // Run accessibility and design analysis
         var accessibilityIssues = await _axeCoreService.AnalyzeAndSaveAccessibilityReport(report);
-        var designIssues = await _reportService.GenerateReportAsync(report);
+       // var designIssues = await _reportService.GenerateReportAsync(report);
+
+       report.AccessibilityIssues = accessibilityIssues.ToList();
+        report.Status = "Processing"; // Status: processing (accessibility done, design in progress)
+        await _context.SaveChangesAsync();
+
+        // Queue background design analysis work
+        await _backgroundTaskQueue.QueueBackgroundWorkItemAsync(async token =>
+        {
+            using var scope = _scopeFactory.CreateScope();
+            var scopedDbContext = scope.ServiceProvider.GetRequiredService<UxCheckmateDbContext>();
+            var scopedReportService = scope.ServiceProvider.GetRequiredService<IReportService>();
+
+            var designIssues = await scopedReportService.GenerateReportAsync(report);
+
+            report.AccessibilityIssues = accessibilityIssues.ToList();
+            report.DesignIssues = designIssues.ToList();
+
+            foreach (var issue in report.AccessibilityIssues)
+            {
+                issue.Category = await scopedDbContext.AccessibilityCategories.FindAsync(issue.CategoryId, token);
+            }
+
+            foreach (var issue in report.DesignIssues)
+            {
+                issue.Category = await scopedDbContext.DesignCategories.FindAsync(issue.CategoryId, token);
+            }
+
+            await scopedDbContext.SaveChangesAsync(token);
+        });
 
         // Fetch the full report inclunding related issues and categories
-        if (string.IsNullOrEmpty(userId)){
+       /* if (string.IsNullOrEmpty(userId)){
             report.AccessibilityIssues = accessibilityIssues.ToList();
             report.DesignIssues = designIssues.ToList();
             foreach (var issue in report.AccessibilityIssues){
@@ -117,9 +153,9 @@ public class HomeController : Controller
             foreach (var issue in report.DesignIssues){
                 issue.Category = await _context.DesignCategories.FindAsync(issue.CategoryId);
             }
-        }
+        }*/
         // Fetch the report from the database to include related issues and categories
-        Report fullReport;
+      /*  Report fullReport;
         if (!string.IsNullOrEmpty(userId)){
         // Fetch the full report including related issues and categories
         fullReport = await _context.Reports
@@ -128,7 +164,13 @@ public class HomeController : Controller
             .FirstOrDefaultAsync(r => r.Id == report.Id);
         }else{
             fullReport = report;
-        }
+        }*/
+
+        // Load fresh report for view
+        var fullReport = await _context.Reports
+            .Include(r => r.AccessibilityIssues).ThenInclude(a => a.Category)
+            .Include(r => r.DesignIssues).ThenInclude(d => d.Category)
+            .FirstOrDefaultAsync(r => r.Id == report.Id);
 
         // Handle the case where the report could not be fetched
         if (fullReport == null)
@@ -261,7 +303,11 @@ public class HomeController : Controller
             .FirstOrDefaultAsync(r => r.Id == id);
 
         // If the report is not found, return a 404 Not Found response
-        if (report == null) return NotFound();
+        if (report == null)
+        {
+            _logger.LogWarning("Polling requested but report ID {Id} was not found.", id);
+            return Json(new { designHtml = "", accessibilityHtml = "" });
+        }
 
         // Store the current sort order in ViewBag to be used by partial views for rendering sorted data
         ViewBag.CurrentSort = sortOrder;
