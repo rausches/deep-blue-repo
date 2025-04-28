@@ -113,5 +113,10 @@ public partial class UxCheckmateDbContext : DbContext
         OnModelCreatingPartial(modelBuilder);
     }
 
+    internal async Task SaveChangesAsync(object cancellationToken)
+    {
+        throw new NotImplementedException();
+    }
+
     partial void OnModelCreatingPartial(ModelBuilder modelBuilder);
 }

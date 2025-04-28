@@ -24,6 +24,8 @@ public partial class Report
     [Column("UserID")]
     public string? UserID { get; set; }
 
+    public string Status { get; set; } = "Pending";
+
     [InverseProperty("Report")]
     public virtual ICollection<AccessibilityIssue> AccessibilityIssues { get; set; } = new List<AccessibilityIssue>();
 

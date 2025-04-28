@@ -22,7 +22,7 @@ namespace Uxcheckmate_Main.Services
         private readonly IHeadingHierarchyService _headingHierarchyService;
         private readonly IColorSchemeService _colorSchemeService;
         private readonly IMobileResponsivenessService _mobileResponsivenessService;
-      //  private readonly IWebScraperService _scraperService;
+
         private readonly IScreenshotService _screenshotService;
         private readonly IPlaywrightScraperService _playwrightScraperService;
         private readonly IPopUpsService _popUpsService;
@@ -32,10 +32,11 @@ namespace Uxcheckmate_Main.Services
         private readonly IFPatternService _fPatternService;
         private readonly IZPatternService _zPatternService;
         private readonly ISymmetryService _symmetryService;
+        private readonly IServiceScopeFactory _scopeFactory;
 
 
 
-        public ReportService(HttpClient httpClient, ILogger<ReportService> logger, UxCheckmateDbContext context, IOpenAiService openAiService, IBrokenLinksService brokenLinksService, IHeadingHierarchyService headingHierarchyService, IColorSchemeService colorSchemeService, IMobileResponsivenessService mobileResponsivenessService, IScreenshotService screenshotService, IPlaywrightScraperService playwrightScraperService, IPopUpsService popUpsService, IAnimationService animationService, IAudioService audioService, IScrollService scrollService, IFPatternService fPatternService, IZPatternService zPatternService, ISymmetryService symmetryService)
+        public ReportService(HttpClient httpClient, ILogger<ReportService> logger, UxCheckmateDbContext context, IOpenAiService openAiService, IBrokenLinksService brokenLinksService, IHeadingHierarchyService headingHierarchyService, IColorSchemeService colorSchemeService, IMobileResponsivenessService mobileResponsivenessService, IScreenshotService screenshotService, IPlaywrightScraperService playwrightScraperService, IPopUpsService popUpsService, IAnimationService animationService, IAudioService audioService, IScrollService scrollService, IFPatternService fPatternService, IZPatternService zPatternService, ISymmetryService symmetryService, IServiceScopeFactory scopeFactory)
         {
             _httpClient = httpClient;
             _dbContext = context;
@@ -55,6 +56,7 @@ namespace Uxcheckmate_Main.Services
             _fPatternService = fPatternService;
             _zPatternService = zPatternService;
             _symmetryService = symmetryService;
+            _scopeFactory = scopeFactory;
         }
 
 
@@ -76,28 +78,6 @@ namespace Uxcheckmate_Main.Services
             var fullScraped = await _playwrightScraperService.ScrapeEverythingAsync(url);
             var scrapedData = fullScraped.ToDictionary();
 
-            // Call the scrapers in parallel
-          //  var staticScrapeTask = _scraperService.ScrapeAsync(url);
-           // var dynamicScrapeTask = _playwrightScraperService.ScrapeAsync(url);
-
-           // await Task.WhenAll(staticScrapeTask, dynamicScrapeTask);
-
-           // var scrapedData = staticScrapeTask.Result;
-           // var assets = dynamicScrapeTask.Result;
-
-            // Merge Static and Dynamic content into one dictionary
-           // scrapedData = MergeScrapedData(scrapedData, assets);
-
-           /* foreach (var css in assets.ExternalCssContents)
-            {
-                _logger.LogInformation("External CSS Content Preview:\n{Css}", css.Substring(0, Math.Min(200, css.Length)));
-            }
-
-            foreach (var js in assets.ExternalJsContents)
-            {
-                _logger.LogInformation("External JS Content Preview:\n{Js}", js.Substring(0, Math.Min(200, js.Length)));
-            }*/
-
             // Get list of design categories
             var designCategories = await _dbContext.DesignCategories.ToListAsync();
             _logger.LogInformation("Found {Count} design categories.", designCategories.Count);
@@ -111,6 +91,9 @@ namespace Uxcheckmate_Main.Services
                 new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount * 2 },
                 async (category, cancellationToken) =>
                 {
+                    using var scope = _scopeFactory.CreateScope();
+                    var scopedDbContext = scope.ServiceProvider.GetRequiredService<UxCheckmateDbContext>();
+
                     _logger.LogInformation("Analyzing category: {CategoryName} using scan method: {ScanMethod}", category.Name, category.ScanMethod);
 
                     string message;
@@ -140,6 +123,10 @@ namespace Uxcheckmate_Main.Services
                             Severity = DetermineSeverity(message)
                         };
 
+                        // Save immediately using scoped context
+                        scopedDbContext.DesignIssues.Add(designIssue);
+                        await scopedDbContext.SaveChangesAsync(cancellationToken);
+
                         // Add to results collection
                         scanResults.Add(designIssue);
                         _logger.LogInformation("Design issue added for category {CategoryName} with severity {Severity}.", category.Name, designIssue.Severity);
@@ -149,18 +136,37 @@ namespace Uxcheckmate_Main.Services
                         _logger.LogInformation("No issues found for category: {CategoryName}", category.Name);
                     }
                 });
-            if (report.Id > 0){
+
+                // Once ananlysis is complete update report status
+                using (var finalScope = _scopeFactory.CreateScope())
+                    {
+                        var finalDbContext = finalScope.ServiceProvider.GetRequiredService<UxCheckmateDbContext>();
+                        var finalReport = await finalDbContext.Reports.FirstOrDefaultAsync(r => r.Id == report.Id);
+                        if (finalReport != null)
+                        {
+                            finalReport.Status = "Completed";
+                            await finalDbContext.SaveChangesAsync();
+                        }
+                    }
+
+            /* Commented out so that report instance will persist to view SEE QUEUE SERVICE FOR DELETION METHOD */
+
+            /* if (report.Id > 0){
                 // Add all design issues to the context
                 _dbContext.DesignIssues.AddRange(scanResults);
                 // Save to database
-                await _dbContext.SaveChangesAsync();
+                await _dbContext.SaveChangesAsync(cancellationToken);
             }else{
                 _logger.LogInformation("Skipping saving DesignIssues");    
-            }
+            }*/
+
+            /* SAVE TOKENS COMMENT OUT OPEN AI  */
+
             // Call OpenAI to generate summary
             var summaryText = await _openAiService.GenerateReportSummaryAsync(scanResults.ToList(), fullScraped.HtmlContent, url);
             _logger.LogInformation("Generated summary: {Summary}", summaryText);
             report.Summary = summaryText;
+
             // Return report
             return scanResults.ToList();
         }
@@ -187,6 +193,8 @@ namespace Uxcheckmate_Main.Services
                 "Symmetry"              => await _symmetryService.AnalyzeSymmetryAsync(fullScraped.ViewportWidth, fullScraped.ViewportHeight, fullScraped.LayoutElements),
                 _ => ""
             };
+
+            /* SAVE TOKENS COMMENT OUT OPEN AI */
 
             // Send to OpenAI to enhance message
             if (!string.IsNullOrEmpty(message))
@@ -286,33 +294,5 @@ namespace Uxcheckmate_Main.Services
             return aiText.Contains("critical", StringComparison.OrdinalIgnoreCase) ? 3 :
                    aiText.Contains("should", StringComparison.OrdinalIgnoreCase) ? 2 : 1;
         }
-    /*    private Dictionary<string, object> MergeScrapedData(Dictionary<string, object> baseData, ScrapedContent assets)
-        {
-            baseData["url"] = assets.Url;
-            baseData["html"] = assets.Html;
-
-            baseData["inlineCss"] = assets.InlineCss;
-            baseData["inlineJs"] = assets.InlineJs;
-
-            baseData["inlineCssList"] = assets.InlineCssList;
-            baseData["inlineJsList"] = assets.InlineJsList;
-
-            baseData["externalCssLinks"] = assets.ExternalCssLinks;
-            baseData["externalJsLinks"] = assets.ExternalJsLinks;
-
-            baseData["externalCssContents"] = assets.ExternalCssContents;
-            baseData["externalJsContents"] = assets.ExternalJsContents;
-
-            baseData["scrollHeight"] = assets.ScrollHeight;
-            baseData["viewportHeight"] = assets.ViewportHeight;
-
-            baseData["scrollWidth"] = assets.ScrollWidth;
-            baseData["viewportWidth"] = assets.ViewportWidth;
-            baseData["viewportLabel"] = assets.ViewportLabel;
-
-            return baseData;
-        }*/
-
-
     }
 }
