@@ -26,10 +26,12 @@ public class HomeController : Controller
     private readonly PdfExportService _pdfExportService;
     private readonly IScreenshotService _screenshotService;
     private readonly IViewRenderService _viewRenderService;
+    private readonly IBackgroundTaskQueue _backgroundTaskQueue;
+    private readonly IServiceScopeFactory _scopeFactory;
 
     public HomeController(ILogger<HomeController> logger, HttpClient httpClient, UxCheckmateDbContext dbContext, 
         IOpenAiService openAiService, IAxeCoreService axeCoreService, IReportService reportService, 
-        PdfExportService pdfExportService, IScreenshotService screenshotService, IViewRenderService viewRenderService)
+        PdfExportService pdfExportService, IScreenshotService screenshotService, IViewRenderService viewRenderService,IBackgroundTaskQueue backgroundTaskQueue, IServiceScopeFactory scopeFactory)
         
     {
         _logger = logger;
@@ -40,6 +42,8 @@ public class HomeController : Controller
         _pdfExportService = pdfExportService;
         _screenshotService = screenshotService;
         _viewRenderService = viewRenderService;
+        _backgroundTaskQueue = backgroundTaskQueue;
+        _scopeFactory = scopeFactory;
     }
 
 
@@ -291,7 +295,8 @@ public class HomeController : Controller
         var accessibilityHtml = await _viewRenderService.RenderViewToStringAsync(this, "_AccessibilityIssuesPartial", report.AccessibilityIssues);
 
         // Return the rendered partial views as a JSON object
-        return Json(new { designHtml, accessibilityHtml });
+        return Json(new { designHtml, accessibilityHtml,
+                status = report.Status });
     }
 
     // ============================================================================================================
