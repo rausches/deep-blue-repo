@@ -1,6 +1,7 @@
 @model Uxcheckmate_Main.Models.Report
 @{
     var websiteScreenshot  = TempData["WebsiteScreenshot"] as string;
+    var userIsAuthenticated = User.Identity.IsAuthenticated;
 }
 @*
 ============================================================================================
@@ -39,6 +40,25 @@
             <p id="totalIssues">Total Issues Found: @(@Model.DesignIssues.Count() + @Model.AccessibilityIssues.Count()) </p>
         </div> 
     </div>
+@if (!userIsAuthenticated)
+{
+    <div class="alert alert-warning mt-4">
+        <strong>Want to save your report?</strong> 
+        <p>Create an account or log in below. Your report will be saved to your dashboard!</p>
+        <a class="btn btn-primary me-2" 
+           asp-area="Identity" 
+           asp-page="/Account/Login" 
+           asp-route-reportId="@Model.Id">
+           Log In
+        </a>
+        <a class="btn btn-success" 
+           asp-area="Identity" 
+           asp-page="/Account/Register" 
+           asp-route-reportId="@Model.Id">
+           Register
+        </a>
+    </div>
+}
 
 <br>
 

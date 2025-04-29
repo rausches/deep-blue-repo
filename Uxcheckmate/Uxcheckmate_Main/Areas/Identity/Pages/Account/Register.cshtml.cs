@@ -18,6 +18,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Logging;
+using Uxcheckmate_Main.Models;
 
 namespace TempIdentityProject.Areas.Identity.Pages.Account
 {
@@ -29,13 +30,15 @@ namespace TempIdentityProject.Areas.Identity.Pages.Account
         private readonly IUserEmailStore<IdentityUser> _emailStore;
         private readonly ILogger<RegisterModel> _logger;
         private readonly IEmailSender _emailSender;
+        private readonly UxCheckmateDbContext _context;
 
         public RegisterModel(
             UserManager<IdentityUser> userManager,
             IUserStore<IdentityUser> userStore,
             SignInManager<IdentityUser> signInManager,
             ILogger<RegisterModel> logger,
-            IEmailSender emailSender)
+            IEmailSender emailSender,
+            UxCheckmateDbContext _context)
         {
             _userManager = userManager;
             _userStore = userStore;
@@ -43,6 +46,7 @@ namespace TempIdentityProject.Areas.Identity.Pages.Account
             _signInManager = signInManager;
             _logger = logger;
             _emailSender = emailSender;
+            _context = _context;
         }
 
         /// <summary>
@@ -106,7 +110,7 @@ namespace TempIdentityProject.Areas.Identity.Pages.Account
             ExternalLogins = (await _signInManager.GetExternalAuthenticationSchemesAsync()).ToList();
         }
 
-        public async Task<IActionResult> OnPostAsync(string returnUrl = null)
+        public async Task<IActionResult> OnPostAsync(string returnUrl = null, int? reportId = null)
         {
             returnUrl ??= Url.Content("~/");
             ExternalLogins = (await _signInManager.GetExternalAuthenticationSchemesAsync()).ToList();
@@ -141,6 +145,17 @@ namespace TempIdentityProject.Areas.Identity.Pages.Account
                     else
                     {
                         await _signInManager.SignInAsync(user, isPersistent: false);
+                            // Save the report to the user if reportId was passed
+                            if (reportId.HasValue)
+                            {
+                                var report = await _context.Reports.FindAsync(reportId.Value);
+                                if (report != null && report.UserID == null)
+                                {
+                                    report.UserID = user.Id;
+                                    _context.Reports.Update(report);
+                                    await _context.SaveChangesAsync();
+                                }
+                            }
                         return LocalRedirect(returnUrl);
                     }
                 }
