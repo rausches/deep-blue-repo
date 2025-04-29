@@ -201,7 +201,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                         <button class="btn btn-secondary btn-sm" onclick="viewReportDetails(${r.id})">View Report</button>
                                     </div>
                                     <div class="col-sm">
-                                        <button class="btn btn-danger btn-sm" onclick="deleteReport(${r.id})">Delete</button>
+                                        <button class="btn btn-danger btn-sm deleteReportbtn" onclick="deleteReport(${r.id})">Delete</button>
                                     </div>
                                 </div>
                             `).join('')}
@@ -220,4 +220,10 @@ document.addEventListener('DOMContentLoaded', () => {
 function toggleReports(domain) {
     const list = document.getElementById(`reports-${domain}`);
     list.style.display = (list.style.display === 'none') ? 'block' : 'none';
+}
+
+// Export the functions for testing purposes
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = { deleteReport, formattedDate, downloadReport, viewReportDetails, findReportById };
+    module.exports.groupedReports = groupedReports; // Export the groupedReports object for testing
 }
