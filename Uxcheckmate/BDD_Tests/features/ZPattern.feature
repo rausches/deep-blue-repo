@@ -9,6 +9,7 @@ Scenario: Z Pattern issue exists
     When the user enters "http://localhost:5002/badFPattern.html" to analyze
     When the user starts the analysis
     When the report view has loaded
+    Then the user clicks the let's begin button
     Then the user should see the Z Pattern issue
 
 
@@ -19,6 +20,7 @@ Scenario: Z Pattern issue does not exist
     When the user enters "http://localhost:5002/goodZPattern.html" to analyze
     When the user starts the analysis
     When the report view has loaded
+    Then the user clicks the let's begin button
     Then the user should not see the Z Pattern issue
 
 
