@@ -65,7 +65,7 @@ public class HomeController : Controller
     // Report Logic
     // ============================================================================================================
     [HttpPost]
-    public async Task<IActionResult> Report(string url, string sortOrder = "category", bool isAjax = false)
+    public async Task<IActionResult> Report(string url, string sortOrder = "category", bool isAjax = false, CancellationToken cancellationToken )
     {
         if (string.IsNullOrEmpty(url))
         {
@@ -131,7 +131,7 @@ public class HomeController : Controller
             var scopedReportService = scope.ServiceProvider.GetRequiredService<IReportService>();
 
             // Generate the design issues by analyzing the report
-            var designIssues = await scopedReportService.GenerateReportAsync(report);
+            var designIssues = await scopedReportService.GenerateReportAsync(report, cancellationToken);
 
             // Retrieve the most up-to-date version of the report from the database,
             var freshReport = await scopedDbContext.Reports

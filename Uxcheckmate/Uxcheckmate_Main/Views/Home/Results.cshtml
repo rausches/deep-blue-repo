@@ -161,47 +161,50 @@ async function fetchUpdatedIssues() {
         if (response.ok) {
             const data = await response.json();
 
-
             if (data.designHtml || data.accessibilityHtml) {
                 document.getElementById('designIssuesContainer').innerHTML = data.designHtml;
                 document.getElementById('accessibilityIssuesContainer').innerHTML = data.accessibilityHtml;
 
-
                 const totalIssues = document.querySelectorAll('.issue-card').length;
                 document.getElementById('totalIssues').innerHTML = `Total Issues Found: ${totalIssues}`;
             }
-if (data.status === "Completed") {
-    // ✅ Hide the overlay
-    const overlay = document.getElementById('designIssuesOverlay');
-    if (overlay) {
-        overlay.classList.add('hidden');
-    }
+
+            if (data.status === "Completed") {
+                // ✅ Update the Summary text dynamically
+                
+                    const summaryElement = document.getElementById('summary');
+                    if (summaryElement) {
+                        summaryElement.innerText = data.summary || "No summary available.";
+                        summaryElement.classList.add('visible');
+                    }
 
 
-    // ✅ Check if no design issues
-    const designIssuesCount = document.querySelectorAll('#designIssuesContainer .issue-card').length;
-    if (designIssuesCount === 0) {
-        document.getElementById('designIssuesContainer').innerHTML = `
-            <div class="alert alert-success">
-                <strong>No UX issues found! Your site looks great.</strong>
-            </div>
-        `;
-    }
+                // ✅ Hide the overlay
+                const overlay = document.getElementById('designIssuesOverlay');
+                if (overlay) {
+                    overlay.classList.add('hidden');
+                }
 
+                // ✅ Check if no design issues
+                const designIssuesCount = document.querySelectorAll('#designIssuesContainer .issue-card').length;
+                if (designIssuesCount === 0) {
+                    document.getElementById('designIssuesContainer').innerHTML = `
+                        <div class="alert alert-success">
+                            <strong>No UX issues found! Your site looks great.</strong>
+                        </div>
+                    `;
+                }
 
-    // ✅ Show the Report Summary Modal after loading complete
-    const modalElement = document.getElementById('onLoadModal');
-    if (modalElement) {
-        const modal = new bootstrap.Modal(modalElement);
-        modal.show();
-    }
+                // ✅ Show the Report Summary Modal after loading complete
+                const modalElement = document.getElementById('onLoadModal');
+                if (modalElement) {
+                    const modal = new bootstrap.Modal(modalElement);
+                    modal.show();
+                }
 
-
-    clearInterval(pollingIntervalId);
-    console.log("Polling stopped — report analysis completed!");
-}
-
-
+                clearInterval(pollingIntervalId);
+                console.log("Polling stopped — report analysis completed!");
+            }
         }
     } catch (error) {
         console.error("Failed to fetch updated issues:", error);
@@ -213,7 +216,7 @@ if (data.status === "Completed") {
 
 
 
-            pollingIntervalId = setInterval(fetchUpdatedIssues, 5000);
+            pollingIntervalId = setInterval(fetchUpdatedIssues, 1000);
             fetchUpdatedIssues();
 
 
