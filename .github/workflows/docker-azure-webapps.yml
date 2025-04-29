@@ -2,7 +2,7 @@ name: Publish 🚀
 
 on:
   push:
-    branches: [main]
+    branches: [dev]
   workflow_dispatch:
 
 env:
