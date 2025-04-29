@@ -9,7 +9,6 @@ using System.Collections.Concurrent;
 using System.Threading.Tasks;
 using System.Diagnostics;
 
-
 namespace Uxcheckmate_Main.Services
 {
     public class ReportService : IReportService
@@ -22,7 +21,6 @@ namespace Uxcheckmate_Main.Services
         private readonly IHeadingHierarchyService _headingHierarchyService;
         private readonly IColorSchemeService _colorSchemeService;
         private readonly IMobileResponsivenessService _mobileResponsivenessService;
-
         private readonly IScreenshotService _screenshotService;
         private readonly IPlaywrightScraperService _playwrightScraperService;
         private readonly IPopUpsService _popUpsService;
@@ -33,9 +31,6 @@ namespace Uxcheckmate_Main.Services
         private readonly IZPatternService _zPatternService;
         private readonly ISymmetryService _symmetryService;
         private readonly IServiceScopeFactory _scopeFactory;
-
-
-
         public ReportService(HttpClient httpClient, ILogger<ReportService> logger, UxCheckmateDbContext context, IOpenAiService openAiService, IBrokenLinksService brokenLinksService, IHeadingHierarchyService headingHierarchyService, IColorSchemeService colorSchemeService, IMobileResponsivenessService mobileResponsivenessService, IScreenshotService screenshotService, IPlaywrightScraperService playwrightScraperService, IPopUpsService popUpsService, IAnimationService animationService, IAudioService audioService, IScrollService scrollService, IFPatternService fPatternService, IZPatternService zPatternService, ISymmetryService symmetryService, IServiceScopeFactory scopeFactory)
         {
             _httpClient = httpClient;
@@ -47,7 +42,6 @@ namespace Uxcheckmate_Main.Services
             _colorSchemeService = colorSchemeService;
             _mobileResponsivenessService = mobileResponsivenessService;
             _screenshotService = screenshotService;
-          //  _scraperService = scraperService;
             _playwrightScraperService = playwrightScraperService;
             _popUpsService = popUpsService;
             _animationService = animationService;
@@ -58,8 +52,6 @@ namespace Uxcheckmate_Main.Services
             _symmetryService = symmetryService;
             _scopeFactory = scopeFactory;
         }
-
-
         public async Task<ICollection<DesignIssue>> GenerateReportAsync(Report report)
         {
             // Initialize url to report attribute
@@ -136,6 +128,13 @@ namespace Uxcheckmate_Main.Services
                         _logger.LogInformation("No issues found for category: {CategoryName}", category.Name);
                     }
                 });
+                
+                /* SAVE TOKENS COMMENT OUT OPEN AI  */
+
+                // Call OpenAI to generate summary
+                var summaryText = await _openAiService.GenerateReportSummaryAsync(scanResults.ToList(), fullScraped.HtmlContent, url);
+                _logger.LogInformation("Generated summary: {Summary}", summaryText);
+                report.Summary = summaryText;
 
                 // Once ananlysis is complete update report status
                 using (var finalScope = _scopeFactory.CreateScope())
@@ -160,17 +159,10 @@ namespace Uxcheckmate_Main.Services
                 _logger.LogInformation("Skipping saving DesignIssues");    
             }*/
 
-            /* SAVE TOKENS COMMENT OUT OPEN AI  */
-
-            // Call OpenAI to generate summary
-            var summaryText = await _openAiService.GenerateReportSummaryAsync(scanResults.ToList(), fullScraped.HtmlContent, url);
-            _logger.LogInformation("Generated summary: {Summary}", summaryText);
-            report.Summary = summaryText;
 
             // Return report
             return scanResults.ToList();
         }
-
         public async Task<string> RunCustomAnalysisAsync(string url, string categoryName, string categoryDescription, Dictionary<string, object> scrapedData, ScrapedContent fullScraped)
         {
             _logger.LogInformation("Running custom analysis for category: {CategoryName}", categoryName);
@@ -197,7 +189,7 @@ namespace Uxcheckmate_Main.Services
             /* SAVE TOKENS COMMENT OUT OPEN AI */
 
             // Send to OpenAI to enhance message
-            if (!string.IsNullOrEmpty(message))
+         /*   if (!string.IsNullOrEmpty(message))
             {
                 _logger.LogInformation("Improving message with OpenAI for category: {CategoryName}", categoryName);
                 message = await _openAiService.ImproveMessageAsync(message, categoryName);
@@ -205,7 +197,7 @@ namespace Uxcheckmate_Main.Services
             else
             {
                 _logger.LogInformation("No message to improve for category: {CategoryName}", categoryName);
-            }
+            }*/
 
             return message;
         }
@@ -223,7 +215,6 @@ namespace Uxcheckmate_Main.Services
             _logger.LogDebug("Dynamic sizing elements are present. No recommendations needed.");
             return string.Empty;
         }*/
-
         private async Task<string> AnalyzeFaviconAsync(string url, Dictionary<string, object> scrapedData)
         {
             bool hasFavicon = scrapedData.TryGetValue("hasFavicon", out var hasFaviconObj) && hasFaviconObj is bool value && value;
@@ -237,7 +228,6 @@ namespace Uxcheckmate_Main.Services
             _logger.LogInformation("✅ Favicon detected for URL: {Url}", url);
             return string.Empty;
         }
-
         private async Task<string> AnalyzeFontLegibilityAsync(string url, Dictionary<string, object> scrapedData)
         {
             if (scrapedData.TryGetValue("fonts", out var fontsObj) && fontsObj is List<string> fontsUsed)
@@ -287,7 +277,6 @@ namespace Uxcheckmate_Main.Services
                 return "No fonts were detected on this website. Ensure that text elements specify a font-family.";
             }
         }
-
         private int DetermineSeverity(string aiText)
         {
             _logger.LogDebug("Determining severity for analysis text.");
