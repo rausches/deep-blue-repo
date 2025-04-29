@@ -52,159 +52,174 @@ namespace Uxcheckmate_Main.Services
             _symmetryService = symmetryService;
             _scopeFactory = scopeFactory;
         }
-public async Task<ICollection<DesignIssue>> GenerateReportAsync(Report report, CancellationToken cancellationToken)
-{
-    var url = report.Url;
-    _logger.LogInformation("Starting report generation for URL: {Url}", url);
 
-    var scanResults = new ConcurrentBag<DesignIssue>();
-
-    if (string.IsNullOrEmpty(url))
-    {
-        _logger.LogError("URL is null or empty.");
-        throw new ArgumentException("URL cannot be empty.", nameof(url));
-    }
-
-    ScrapedContent fullScraped;
-    Dictionary<string, object> scrapedData;
-
-    try
-    {
-        fullScraped = await _playwrightScraperService.ScrapeEverythingAsync(url, cancellationToken);
-        scrapedData = fullScraped.ToDictionary();
-    }
-    catch (OperationCanceledException)
-    {
-        _logger.LogWarning("Scraping cancelled.");
-        return scanResults.ToList();
-    }
-    catch (Exception ex)
-    {
-        _logger.LogError(ex, "Scraping failed.");
-        return scanResults.ToList(); // Return what we have, even if empty
-    }
-
-    List<DesignCategory> designCategories;
-
-    try
-    {
-        designCategories = await _dbContext.DesignCategories.ToListAsync(cancellationToken);
-        _logger.LogInformation("Found {Count} design categories.", designCategories.Count);
-    }
-    catch (Exception ex)
-    {
-        _logger.LogError(ex, "Failed to retrieve design categories.");
-        return scanResults.ToList();
-    }
-
-    await Parallel.ForEachAsync(
-        designCategories,
-        new ParallelOptions
+        public async Task<ICollection<DesignIssue>> GenerateReportAsync(Report report, CancellationToken cancellationToken)
         {
-            MaxDegreeOfParallelism = Environment.ProcessorCount * 2,
-            CancellationToken = cancellationToken
-        },
-        async (category, ct) =>
-        {
+            var url = report.Url;
+            _logger.LogInformation("Starting report generation for URL: {Url}", url);
+
+            var scanResults = new ConcurrentBag<DesignIssue>();
+
+            if (string.IsNullOrEmpty(url))
+            {
+                _logger.LogError("URL is null or empty.");
+                throw new ArgumentException("URL cannot be empty.", nameof(url));
+            }
+
+            ScrapedContent fullScraped;
+            Dictionary<string, object> scrapedData;
+
             try
             {
-                using var scope = _scopeFactory.CreateScope();
-                var scopedDbContext = scope.ServiceProvider.GetRequiredService<UxCheckmateDbContext>();
+                fullScraped = await _playwrightScraperService.ScrapeEverythingAsync(url, cancellationToken);
+                scrapedData = fullScraped.ToDictionary();
+            }
+            catch (OperationCanceledException)
+            {
+                _logger.LogWarning("Scraping cancelled.");
+                return scanResults.ToList();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Scraping failed.");
+                return scanResults.ToList(); // Return what we have, even if empty
+            }
 
-                _logger.LogInformation("Analyzing category: {CategoryName} using scan method: {ScanMethod}", category.Name, category.ScanMethod);
+            List<DesignCategory> designCategories;
 
-                string message = category.ScanMethod switch
+            try
+            {
+                designCategories = await _dbContext.DesignCategories.ToListAsync(cancellationToken);
+                _logger.LogInformation("Found {Count} design categories.", designCategories.Count);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to retrieve design categories.");
+                return scanResults.ToList();
+            }
+
+            await Parallel.ForEachAsync(
+                designCategories,
+                new ParallelOptions
                 {
-                    "OpenAI" => await _openAiService.AnalyzeWithOpenAI(url, category.Name, category.Description, scrapedData),
-                    "Custom" => await RunCustomAnalysisAsync(url, category.Name, category.Description, scrapedData, fullScraped),
-                    _ => ""
-                };
-
-                if (!string.IsNullOrEmpty(message))
+                    MaxDegreeOfParallelism = Environment.ProcessorCount * 2,
+                    CancellationToken = cancellationToken
+                },
+                async (category, ct) =>
                 {
-                    var designIssue = new DesignIssue
+                    try
                     {
-                        CategoryId = category.Id,
-                        ReportId = report.Id,
-                        Message = message,
-                        Severity = DetermineSeverity(message)
-                    };
+                        using var scope = _scopeFactory.CreateScope();
+                        var scopedDbContext = scope.ServiceProvider.GetRequiredService<UxCheckmateDbContext>();
 
-                    scopedDbContext.DesignIssues.Add(designIssue);
-                    await scopedDbContext.SaveChangesAsync(ct);
-                    scanResults.Add(designIssue);
+                        _logger.LogInformation("Analyzing category: {CategoryName} using scan method: {ScanMethod}", category.Name, category.ScanMethod);
+
+                        string message = category.ScanMethod switch
+                        {
+                            "OpenAI" => await _openAiService.AnalyzeWithOpenAI(url, category.Name, category.Description, scrapedData),
+                            "Custom" => await RunCustomAnalysisAsync(url, category.Name, category.Description, scrapedData, fullScraped),
+                            _ => ""
+                        };
+
+                        if (!string.IsNullOrEmpty(message))
+                        {
+                            var designIssue = new DesignIssue
+                            {
+                                CategoryId = category.Id,
+                                ReportId = report.Id,
+                                Message = message,
+                                Severity = DetermineSeverity(message)
+                            };
+
+                            scopedDbContext.DesignIssues.Add(designIssue);
+                            await scopedDbContext.SaveChangesAsync(ct);
+                            scanResults.Add(designIssue);
+                        }
+                    }
+                    catch (OperationCanceledException)
+                    {
+                        _logger.LogWarning("Analysis cancelled for category {CategoryName}", category.Name);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Error analyzing category {CategoryName}", category.Name);
+                    }
+                });
+
+        /*  try
+            {
+                var summaryText = await _openAiService.GenerateReportSummaryAsync(scanResults.ToList(), fullScraped.HtmlContent, url, cancellationToken);
+                report.Summary = summaryText;
+                _logger.LogInformation("Generated summary for report.");
+            }
+            catch (OperationCanceledException)
+            {
+                _logger.LogWarning("Summary generation cancelled.");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to generate summary.");
+            }*/
+
+            try
+            {
+                using var finalScope = _scopeFactory.CreateScope();
+                var finalDbContext = finalScope.ServiceProvider.GetRequiredService<UxCheckmateDbContext>();
+                var finalReport = await finalDbContext.Reports.FirstOrDefaultAsync(r => r.Id == report.Id, cancellationToken);
+                if (finalReport != null)
+                {
+                    finalReport.Status = "Completed";
+                    await finalDbContext.SaveChangesAsync(cancellationToken);
                 }
             }
             catch (OperationCanceledException)
             {
-                _logger.LogWarning("Analysis cancelled for category {CategoryName}", category.Name);
+                _logger.LogWarning("Final save operation cancelled.");
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error analyzing category {CategoryName}", category.Name);
+                _logger.LogError(ex, "Error saving final report status.");
             }
-        });
 
-  /*  try
-    {
-        var summaryText = await _openAiService.GenerateReportSummaryAsync(scanResults.ToList(), fullScraped.HtmlContent, url, cancellationToken);
-        report.Summary = summaryText;
-        _logger.LogInformation("Generated summary for report.");
-    }
-    catch (OperationCanceledException)
-    {
-        _logger.LogWarning("Summary generation cancelled.");
-    }
-    catch (Exception ex)
-    {
-        _logger.LogError(ex, "Failed to generate summary.");
-    }*/
-
-    try
-    {
-        using var finalScope = _scopeFactory.CreateScope();
-        var finalDbContext = finalScope.ServiceProvider.GetRequiredService<UxCheckmateDbContext>();
-        var finalReport = await finalDbContext.Reports.FirstOrDefaultAsync(r => r.Id == report.Id, cancellationToken);
-        if (finalReport != null)
-        {
-            finalReport.Status = "Completed";
-            await finalDbContext.SaveChangesAsync(cancellationToken);
+            return scanResults.ToList();
         }
-    }
-    catch (OperationCanceledException)
-    {
-        _logger.LogWarning("Final save operation cancelled.");
-    }
-    catch (Exception ex)
-    {
-        _logger.LogError(ex, "Error saving final report status.");
-    }
-
-    return scanResults.ToList();
-}
 
         public async Task<string> RunCustomAnalysisAsync(string url, string categoryName, string categoryDescription, Dictionary<string, object> scrapedData, ScrapedContent fullScraped)
         {
             _logger.LogInformation("Running custom analysis for category: {CategoryName}", categoryName);
             Task<byte[]> screenshotTask = _screenshotService?.CaptureFullPageScreenshot(url) ?? Task.FromResult(new byte[0]);
 
-            string message = categoryName switch
+        string message = "";
+
+        try
+        {
+            message = categoryName switch
             {
-                "Broken Links"          => await _brokenLinksService.BrokenLinkAnalysis(url, scrapedData),
-                "Visual Hierarchy"      => await _headingHierarchyService.AnalyzeAsync(scrapedData),
-                "Color Scheme"          => await _colorSchemeService.AnalyzeWebsiteColorsAsync(scrapedData, screenshotTask),
+                "Broken Links" => await _brokenLinksService.BrokenLinkAnalysis(url, scrapedData),
+                "Visual Hierarchy" => await _headingHierarchyService.AnalyzeAsync(scrapedData),
+                "Color Scheme" => await _colorSchemeService.AnalyzeWebsiteColorsAsync(scrapedData, screenshotTask),
                 "Mobile Responsiveness" => await _mobileResponsivenessService.RunMobileAnalysisAsync(url, scrapedData),
-                "Favicon"               => await AnalyzeFaviconAsync(url, scrapedData),
-                "Font Legibility"       => await AnalyzeFontLegibilityAsync(url, scrapedData),
-                "Pop Ups"               => await _popUpsService.RunPopupAnalysisAsync(url, scrapedData),
-                "Animations"            => await _animationService.RunAnimationAnalysisAsync(url, scrapedData),
-                "Audio"                 => await _audioService.RunAudioAnalysisAsync(url, scrapedData),
-                "Number of scrolls"     => await _scrollService.RunScrollAnalysisAsync(url, scrapedData),
-                "F Pattern"             => await _fPatternService.AnalyzeFPatternAsync(fullScraped.ViewportWidth, fullScraped.ViewportHeight, fullScraped.LayoutElements),
-                "Z Pattern"             => await _zPatternService.AnalyzeZPatternAsync(fullScraped.ViewportWidth, fullScraped.ViewportHeight, fullScraped.LayoutElements),
-                "Symmetry"              => await _symmetryService.AnalyzeSymmetryAsync(fullScraped.ViewportWidth, fullScraped.ViewportHeight, fullScraped.LayoutElements),
+                "Favicon" => await AnalyzeFaviconAsync(url, scrapedData),
+                "Font Legibility" => await AnalyzeFontLegibilityAsync(url, scrapedData),
+                "Pop Ups" => await _popUpsService.RunPopupAnalysisAsync(url, scrapedData),
+                "Animations" => await _animationService.RunAnimationAnalysisAsync(url, scrapedData),
+                "Audio" => await _audioService.RunAudioAnalysisAsync(url, scrapedData),
+                "Number of scrolls" => await _scrollService.RunScrollAnalysisAsync(url, scrapedData),
+                "F Pattern" => await _fPatternService.AnalyzeFPatternAsync(fullScraped.ViewportWidth, fullScraped.ViewportHeight, fullScraped.LayoutElements),
+                "Z Pattern" => await _zPatternService.AnalyzeZPatternAsync(fullScraped.ViewportWidth, fullScraped.ViewportHeight, fullScraped.LayoutElements),
+                "Symmetry" => await _symmetryService.AnalyzeSymmetryAsync(fullScraped.ViewportWidth, fullScraped.ViewportHeight, fullScraped.LayoutElements),
                 _ => ""
             };
+        }
+        catch (OperationCanceledException)
+        {
+            _logger.LogWarning("Custom analysis for category {CategoryName} was cancelled.", categoryName);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error during custom analysis for category {CategoryName}.", categoryName);
+            message = "An error occurred during analysis, please try again"; // Important! Return empty so it doesn't try to save a broken issue
+        }
 
             /* SAVE TOKENS COMMENT OUT OPEN AI */
 
