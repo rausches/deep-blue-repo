@@ -102,6 +102,8 @@ public class Program
         builder.Services.AddScoped<IFPatternService, FPatternService>();
         builder.Services.AddScoped<IZPatternService, ZPatternService>();
         builder.Services.AddScoped<ISymmetryService, SymmetryService>();
+        builder.Services.AddSingleton<IBackgroundTaskQueue, BackgroundTaskQueue>();
+        builder.Services.AddHostedService<QueueService>();
 
 
         var app = builder.Build();

@@ -1,226 +1,396 @@
-﻿@model Uxcheckmate_Main.Models.Report
+﻿@model Uxcheckmate_Main.Models.ReportUrl
+
 @{
-    var websiteScreenshot  = TempData["WebsiteScreenshot"] as string;
+    ViewData["Title"] = "Home Page";
 }
-@*
-============================================================================================
-                        HEADER (Screenshot, URL, #of issues)
-============================================================================================
-*@
-<!-- Auto-launch Modal -->
-<div class="modal fade" id="onLoadModal" tabindex="-1" aria-labelledby="onLoadModalLabel" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content shadow-lg rounded-4">
-      <div class="modal-header">
-        <h5 class="modal-title" id="onLoadModalLabel">Your AI-Generated Report Summary</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-      <div class="modal-body">
-        <p>We've analyzed your site and generated design suggestions.</p>
-        <p id="summary">@Model.Summary</p>
-        <p class="mb-0"><strong>Tip:</strong> You can click any issue to expand and learn more.</p>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-primary" data-bs-dismiss="modal" id="letsgo">Let’s Go</button>
-      </div>
-    </div>
-  </div>
-</div>
-
-
-<div class="container">
-    <div class="row headerRow">
-        <div class="col-md-6">
-            <img id="screenshotImage" src="@websiteScreenshot " alt="Website Screenshot" class="img-fluid" />
-        </div>
-        <div class="col-md-6">
-            @* Display the URL associated with the report *@
-            <h1 id="reportHeader">@Model.Url</h1>
-            @* Display the total number of issues found *@
-            <p id="totalIssues">Total Issues Found: @(@Model.DesignIssues.Count() + @Model.AccessibilityIssues.Count()) </p>
-        </div>
-    </div>
-
-
-<br>
-
-
-<div id="reportContainer">
-    <div class="row sortSelectRow">
-        <div class="col-md-8"></div>
-        <div class="col-md-4 sortSelectCol">
-            @* Dropdown for selecting sort order of the issues *@
-            <select id="sortSelect" class="form-select mb-4" data-report-id="@Model.Id">
-                <option value="category" selected="@(ViewBag.CurrentSort == "category")">Category</option>
-                <option value="severity-high-low" selected="@(ViewBag.CurrentSort == "severity-high-low")">Severity (High to Low)</option>
-                <option value="severity-low-high" selected="@(ViewBag.CurrentSort == "severity-low-high")">Severity (Low to High)</option>
-            </select>
-        </div>
-    </div>
-
+<section class="main full-screen">
+    <div class="container scanContainer">
+        <div class="row" id="landingRowOne">
+            <div class="col-md-6">
+                <h1 id="landingHeader">Your Design Companion</h1>
+                <h2 id="landingSubheader">AI-Powered Insights for a Better, More Accessible Web.</h2>
+                <br><br>
+                <h3 id="landingCallToAction">Try it now!</h3>
+                <form method="post" asp-action="Report" id="urlForm" onsubmit="return handleUserUrl(event);">
+                    <div class="form-group">
+                        <div class="input-container">
+                            <input type="text" id="urlInput" name="Url" asp-for="Url" placeholder="https://uxcheckmate.com">
+                            <button type="submit" id="analyzeBtn">GET AUDIT →</button>
+                        </div>
+                        <span asp-validation-for="Url" class="text-danger"></span>
+                    </div>
+                </form>
+                <div id="responseMessage" class="mt-3"></div>
+            </div>   
+            <div class="col-md-6 placeholderImageCol">
+                @* Image attribution: https://www.freepik.com/free-vector/low-code-development-concept-illustration_18407473.htm#fromView=search&page=3&position=2&uuid=d0353fd1-626a-4c61-a331-8e262317b95c&query=website+design+illustration *@
+                <img src="~/images/placeholder.png" alt="Illustration of people designing a website on a lifesize computer" id="placeholderImage">
+            </div>
 
 @*
-============================================================================================
-                                    Design Issues
-============================================================================================
+=======================================================================
+                         Skeleton Loader Section
+=======================================================================
 *@
-    <div class="row designRow">
-        <div class="report-section mb-5">
-            <h3 class="section-header mb-4">Design Issues</h3>
 
+                @* Logo Loader *@
+                <div id="loaderWrapper" style="display: none;">
+                    @* Don't delete this yet. Need to clean this up *@
+                    @* <div id="logoContainer">
+                        <img src="~/images/uxCheckmateLogo.png" alt="Loading" id="logo-img"/>
+                        <div id="logoText">Analyzing...</div> *@
+                </div>
 
-<div class="position-relative" id="designIssuesWrapper">
-    <div id="designIssuesOverlay" class="overlay">
-        <div class="spinner-border text-light" role="status"></div>
-        <p class="text-light mt-3">Analyzing Design Issues...</p>
-    </div>
+               @* Scanning website Loader *@
+                <div id="scanningWrapper" style="display: none;">
+                    <div id="scanningContainer">
 
+                    <div id="skeletonLoader" class="container">    
+                        <div class="container">
+                            <div class="row headerRow mb-5">
+                                <div class="col-md-6">
+                                    <!-- Skeleton for Screenshot -->
+                                    <div class="placeholder-glow">
+                                        <img class="placeholder w-100" id="screenshotPreview" src="~/images/animation-loading-scan.svg" alt="Placeholder for website screenshot" style="height: 300px; border-radius: 8px;">
+                                    </div>
+                                </div>
 
-    <div id="designIssuesContainer">
+                                <div class="col-md-6">
+                                    <div class="placeholder-glow">
+                                        <h2><div class="scan-status"></div> </h2>
+                                        <span class="placeholder col-8"></span>
+                                    </div>
+                                    <div class="placeholder-glow">
+                                        <span class="placeholder col-6"></span>
+                                    </div>
+                                </div>
+                            </div>
 
+                            <div id="reportContainer">
+                                <div class="row sortSelectRow mb-5">
+                                    <div class="col-md-8"></div>
+                                    <div class="col-md-4 sortSelectCol">
+                                        <!-- Skeleton for Sort Dropdown -->
+                                        <div class="placeholder-glow">
+                                            <span class="placeholder col-12" style="height: 38px; border-radius: 5px; display: flex; align-items: center; justify-content: center;">
+                                                <p id="skeleton-text">Categories...</p>
+                                            </span>                                        
+                                        </div>
+                                    </div>
+                                </div>
 
-            @await Html.PartialAsync("_DesignIssuesPartial", Model.DesignIssues)
+                                <!-- Skeleton for Design Issues Section -->
+                                <div class="row designRow mb-5">
+                                    <div class="report-section">
+                                        <div class="placeholder-glow mb-4">
+                                            <span class="placeholder col-4" style="height: 38px; border-radius: 5px; display: flex; align-items: center; justify-content: left;">
+                                                <h2 id="skeleton-text">Design Issues...</h2>
+                                            </span> <!-- Skeleton for 'Design Issues' header -->
+                                        </div>
+                                        <div class="placeholder-glow">
+                                            <span class="placeholder col-12 mb-2" style="height: 50px;"></span>
+                                            <span class="placeholder col-12 mb-2" style="height: 50px;"></span>
+                                            <span class="placeholder col-12 mb-2" style="height: 50px;"></span>
+                                        </div>
+                                    </div>
+                                </div>
 
-
-    </div>
-</div>
-
-
-        </div>
-    </div>
-
-
-<br>
-
+                                <!-- Skeleton for Accessibility Issues Section -->
+                                <div class="row accessiblityRow mb-5">
+                                    <div class="report-section">
+                                        <div class="placeholder-glow mb-4">
+                                            <span class="placeholder col-5" style="height: 38px; border-radius: 5px; display: flex; align-items: center; justify-content: left;">
+                                                <h2 id="skeleton-text">Accessibility Issues...</h2>
+                                            </span> <!-- Skeleton for 'Accessibility Issues' header -->
+                                        </div>
+                                        <div class="placeholder-glow">
+                                            <span class="placeholder col-12 mb-2" style="height: 50px;"></span>
+                                            <span class="placeholder col-12 mb-2" style="height: 50px;"></span>
+                                            <span class="placeholder col-12 mb-2" style="height: 50px;"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
 
 @*
-============================================================================================
-                                Accessibility Issues
-============================================================================================
+=======================================================================
+                         URL Unreachable Section
+=======================================================================
 *@
-    <div class="row accessiblityRow">
-        <div class="report-section mb-5">
-            <h3 class="section-header mb-4">Accessibility Issues</h3>
-            <div id="accessibilityIssuesContainer">
-                @* Partial view rendering accessibility issues *@
-<div id="accessibilityIssuesContainer">
-    @if (Model.AccessibilityIssues == null || !Model.AccessibilityIssues.Any())
-    {
-        <div class="alert alert-primary" role="alert">
-            <strong>Way to go! Your site is WCAG-approved and accessible to all.</strong>
-        </div>
-    }
-    else
-    {
-        @await Html.PartialAsync("_AccessibilityIssuesPartial", Model.AccessibilityIssues)
-    }
-</div>
-
-
-
-
+                @* Adding a pop up box message if the url is not reachable *@
+                <div id="customPopupMessage" class="customPopupBox" style="display: none;">
+                    <div class="popupContent">
+                        <div class="popupText">
+                            <h1>Oops! URL Unreachable</h1>
+                            <p>The URL you entered seems incorrect or no longer exists. Please check and try again.</p>
+                        </div>
+                        <button class="btn btn-primary closePopupBtn" onclick="closePopup()">Close</button>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
-
+</section>
 
 @*
-============================================================================================
-                                Print PDF
-============================================================================================
+=======================================================================
+                         Disclosure Section
+=======================================================================
 *@
 
+<section class="disclosure" id="disclosure">
+    <div class="container" id="disclosureContainer">
+        <div class="row g-3" id="disclosureRowOne">
+            <h3 id="disclosureHeader">What going on back there?</h3>
+            <!-- Left Column -->
+            <div class="col-md-4 d-flex flex-column">
+                <div class="disclosureBoxes flex-grow-1">
+                    <img src="~/images/Scrapers.png" alt="Playwright and htmlAgility logos" id="logoImg">
+                    <p>UxCheckmate uses HtmlAgilityPack and Playwright to scrape static and dynamic content from a website. Playwright also assists in capturing a screenshot of the webpage.</p>
+                </div>
+            </div>
+            
+            <!-- Middle Column -->
+            <div class="col-md-4 d-flex flex-column">
+                <div class="disclosureBoxes flex-grow-1">
+                    <img src="~/images/AxeCore_Logo.png" alt="Axe Core Logo" id="axelogoImg">
+                    <p>UxCheckmate uses the AxeCore JS library to reference accessibility guidelines per the WCAG.</p>
+                </div>
+            </div>
 
-    <a asp-action="DownloadReport" asp-route-id="@Model.Id" class="btn btn-primary">
-        Download PDF Report
-    </a>
+            <!-- Right Column -->
+            <div class="col-md-4 d-flex flex-column">
+                <div class="disclosureBoxes flex-grow-1">
+                    <img src="~/images/OpenAI_Logo.png" alt="Open AI Logo" id="ailogoImg">
+                    <p>UxCheckmate uses OpenAI to improve analysis responses and DALL·E to provide a mockup of the suggested changes.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+@*
+=======================================================================
+                            FAQ Section
+=======================================================================
+*@
+
+<section class="faq" id="faq">
+    <div class="container faqContainer">
+        <div class="row faqRow gx-2">
+            <div class="col-md-12">
+                <h3 id="faqHeader">FAQ</h3>
+                <div class="faqContent faqBigBox">
+                    <h4 class="faqSubheader">What does UxCheckmate Check?</h4><br>
+                    <p>The Uxcheckmate Website Scanner checks for webpage accessibility and UX/UI improvements.</p>
+                </div>
+                <br>
+
+                <div class="faqContent faqBigBox">
+                    <h4 class="faqSubheader">What is Web Site Accessibility?</h4><br>
+                    <p>Accessibility in web design is the commitment to creating digital experiences that are inclusive and functional for all users, including those with disabilities. It involves designing websites that are easy to perceive, navigate, and interact with, ensuring that everyone, regardless of their abilities or assistive technologies, can access and engage with online content effectively.</p>
+                </div>
+                <br>
+
+                <div class="faqContent faqBigBox">
+                    <h4 class="faqSubheader">What is UX/UI Design?</h4><br>
+                    <p>User Experience/User Interface, UX/UI, design focuses on crafting digital experiences that are both visually engaging and functionally intuitive. UX (User Experience) design emphasizes usability, accessibility, and user satisfaction by optimizing interactions and navigation. UI (User Interface) design ensures an aesthetically cohesive and responsive interface that enhances usability. Together, they create seamless, user-friendly digital products that meet both user needs and business objectives.</p>
+                </div>
+                <br>
+
+                <div class="faqContent">
+                    <h4 class="faqSubheader">What specific UX/UI elements are checked?</h4><br>
+                    <div class="row cardsRow g-3">
+                        
+                        <!-- 1 -->
+                        <div class="col-md-3 d-flex flex-column">
+                            <div class="cards">
+                                <div class="flip-inner">
+                                    <div class="flip-front"><h5><strong>Visual Hierarchy</strong></h5></div>
+                                    <div class="flip-back"><p>The arrangement of UI elements in a way that guides users’ attention based on importance. Key Factors: Size, color, contrast, spacing, and placement. Example: A bold, large headline at the top, followed by supporting text in smaller font.</p></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 2 -->
+                        <div class="col-md-3 d-flex flex-column">
+                            <div class="cards">
+                                <div class="flip-inner">
+                                    <div class="flip-front"><h5><strong>Broken Links</strong></h5></div>
+                                    <div class="flip-back"><p>Links that no longer work, leading to 404 errors or dead pages. Impact: Frustrates users and harms SEO rankings.</p></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 3 -->
+                        <div class="col-md-3 d-flex flex-column">
+                            <div class="cards">
+                                <div class="flip-inner">
+                                    <div class="flip-front"><h5><strong>Mobile Responsiveness</strong></h5></div>
+                                    <div class="flip-back"><p>The ability of a website to adapt to different screen sizes (phones, tablets, desktops). Impact: Essential for usability and search ranking (Google prioritizes mobile-friendly sites).</p></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 4 -->
+                        <div class="col-md-3 d-flex flex-column">
+                            <div class="cards">
+                                <div class="flip-inner">
+                                    <div class="flip-front"><h5><strong>Favicon</strong></h5></div>
+                                    <div class="flip-back"><p>A small icon representing a website, displayed in browser tabs and bookmarks. Impact: Enhances branding, credibility, and user recognition. Solution: Use a 16x16 or 32x32px favicon and add <link rel="icon" href="favicon.ico"> to your HTML.</p></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 5 -->
+                        <div class="col-md-3 d-flex flex-column">
+                            <div class="cards">
+                                <div class="flip-inner">
+                                    <div class="flip-front"><h5><strong>Font Legibility</strong></h5></div>
+                                    <div class="flip-back"><p>How easy it is to read text on a screen, based on font, font size, weight, spacing, and contrast. Impact: Poor readability leads to user frustration and increased bounce rates Solution: Use clear sans-serif fonts like Roboto or Open Sans and maintain good contrast.</p></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 6 -->
+                        <div class="col-md-3 d-flex flex-column">
+                            <div class="cards">
+                                <div class="flip-inner">
+                                    <div class="flip-front"><h5><strong>Color Scheme</strong></h5></div>
+                                    <div class="flip-back"><p>The combination of colors used across a website for branding and readability. Impact: Affects emotions, usability, and aesthetics. Solution: Use a primary, secondary, and accent color, ensuring accessibility with sufficient contrast.</p></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 7 -->
+                        <div class="col-md-3 d-flex flex-column">
+                            <div class="cards">
+                                <div class="flip-inner">
+                                    <div class="flip-front"><h5><strong>Text Structure</strong></h5></div>
+                                    <div class="flip-back"><p>How text is formatted, including headings, paragraphs, and bullet points. Impact: Improves readability, scanability, and SEO. Solution: Use short paragraphs, clear headings (H1-H3), and ample spacing.</p></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 8 -->
+                        <div class="col-md-3 d-flex flex-column">
+                            <div class="cards">
+                                <div class="flip-inner">
+                                    <div class="flip-front"><h5><strong>Number of Fonts</strong></h5></div>
+                                    <div class="flip-back"><p>The total fonts used in a web design. Too many fonts create inconsistency and clutter. Impact: Affects brand consistency and readability. Solution: Stick to 2-3 fonts max—one for headings, one for body text, and an optional accent font.</p></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 9 -->
+                        <div class="col-md-3 d-flex flex-column">
+                            <div class="cards">
+                                <div class="flip-inner">
+                                    <div class="flip-front"><h5><strong>Symmetry</strong></h5></div>
+                                    <div class="flip-back"><p>The balance of elements in a design, either symmetrical (mirrored) or asymmetrical (intentionally off-balance). Impact: Creates harmony and structure, making layouts feel polished. Solution: Use grid-based layouts to maintain alignment.</p></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 10 -->
+                        <div class="col-md-3 d-flex flex-column">
+                            <div class="cards">
+                                <div class="flip-inner">
+                                    <div class="flip-front"><h5><strong>Animations</strong></h5></div>
+                                    <div class="flip-back"><p>Motion effects like fade-ins, scroll effects, hover interactions, or page transitions. Impact: Can enhance engagement but should not slow performance. Solution: Use subtle, purposeful animations, avoiding excessive motion that distracts.</p></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 11 -->
+                        <div class="col-md-3 d-flex flex-column">
+                            <div class="cards">
+                                <div class="flip-inner">
+                                    <div class="flip-front"><h5><strong>Pop Ups</strong></h5></div>
+                                    <div class="flip-back"><p>Windows or overlays that appear dynamically on a webpage, often for promotions or alerts. Impact: Can boost conversions but annoy users if too aggressive. Solution: Make pop-ups easy to dismiss and use them sparingly.</p></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 12 -->
+                        <div class="col-md-3 d-flex flex-column">
+                            <div class="cards">
+                                <div class="flip-inner">
+                                    <div class="flip-front"><h5><strong>Audio</strong></h5></div>
+                                    <div class="flip-back"><p>Sounds played on a website, including background music, alerts, or voice instructions. Impact: Can enhance user experience but should never play automatically without control. Solution: Allow users to mute, pause, or adjust volume.</p></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 13 -->
+                        <div class="col-md-3 d-flex flex-column">
+                            <div class="cards">
+                                <div class="flip-inner">
+                                    <div class="flip-front"><h5><strong>User Feedback</strong></h5></div>
+                                    <div class="flip-back"><p>Visual or interactive responses to user actions, like hover effects, loading indicators, or confirmation messages. Impact: Helps users understand system status and feel in control. Solution: Implement toast notifications, progress bars, and real-time validation.</p></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 14 -->
+                        <div class="col-md-3 d-flex flex-column">
+                            <div class="cards">
+                                <div class="flip-inner">
+                                    <div class="flip-front"><h5><strong>Number of Scrolls</strong></h5></div>
+                                    <div class="flip-back"><p>The total scrolling required to view content. Long pages should be easy to navigate. Impact: Too much scrolling can reduce engagement if key info is buried. Solution: Use sticky navigation, back-to-top buttons, and collapsible sections.</p></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 15 -->
+                        <div class="col-md-3 d-flex flex-column">
+                            <div class="cards">
+                                <div class="flip-inner">
+                                    <div class="flip-front"><h5><strong>Performance</strong></h5></div>
+                                    <div class="flip-back"><p>The speed and responsiveness of a website, including load times and smooth interactions. Impact: Affects SEO, user retention, and conversion rates. Solution: Optimize images, reduce HTTP requests, use caching, and leverage CDNs.</p></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 16 -->
+                        <div class="col-md-3 d-flex flex-column">
+                            <div class="cards">
+                                <div class="flip-inner">
+                                    <div class="flip-front"><h5><strong>F Pattern</strong></h5></div>
+                                    <div class="flip-back"><p>A common eye-tracking pattern where users scan horizontally first, then vertically. Impact: The top-left area of a page gets the most attention. Solution: Place key content (headlines, CTAs) in the top-left area.</p></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 17 -->
+                        <div class="col-md-3 d-flex flex-column">
+                            <div class="cards">
+                                <div class="flip-inner">
+                                    <div class="flip-front"><h5><strong>Z Pattern</strong></h5></div>
+                                    <div class="flip-back"><p>A common eye-tracking pattern where users scan in a “Z” shape (left to right, then diagonally down). Impact: Ideal for landing pages and visual storytelling. Solution: Arrange CTA buttons and key information along the “Z” path</p></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div> <!-- End Row -->
+                </div> <!-- End FAQ Content -->
+            </div>
+        </div>
+    </div>
+</section>
 
 
-</div> @* End tag for #reportContainer *@
-</div> @*End tag for .container *@
+<script>
+    var urlUnreachableMessage = '@TempData["UrlUnreachable"]';
+    
+    if (urlUnreachableMessage && urlUnreachableMessage.length > 0) {
+        var customPopup = document.getElementById('customPopupMessage');
+        customPopup.style.display = 'block';
+    }
+</script>
+
 @section Scripts {
-    <script src="~/js/reportResults.js"></script>
-
-
-    <script>
-        document.addEventListener("DOMContentLoaded", function () {
-
-
-            // ✅ Define reportId from Razor
-            const reportId = @Model.Id;
-            const sortSelect = document.getElementById('sortSelect');
-            let currentSortOrder = sortSelect.value;
-
-
-            let pollingIntervalId;
-
-
-async function fetchUpdatedIssues() {
-    try {
-        const response = await fetch(`${window.location.origin}/Home/GetSortedIssues?id=${reportId}&sortOrder=${currentSortOrder}`);
-        if (response.ok) {
-            const data = await response.json();
-
-
-            if (data.designHtml || data.accessibilityHtml) {
-                document.getElementById('designIssuesContainer').innerHTML = data.designHtml;
-                document.getElementById('accessibilityIssuesContainer').innerHTML = data.accessibilityHtml;
-
-
-                const totalIssues = document.querySelectorAll('.issue-card').length;
-                document.getElementById('totalIssues').innerHTML = `Total Issues Found: ${totalIssues}`;
-            }
-if (data.status === "Completed") {
-    // ✅ Hide the overlay
-    const overlay = document.getElementById('designIssuesOverlay');
-    if (overlay) {
-        overlay.classList.add('hidden');
-    }
-
-
-    // ✅ Check if no design issues
-    const designIssuesCount = document.querySelectorAll('#designIssuesContainer .issue-card').length;
-    if (designIssuesCount === 0) {
-        document.getElementById('designIssuesContainer').innerHTML = `
-            <div class="alert alert-success">
-                <strong>No UX issues found! Your site looks great.</strong>
-            </div>
-        `;
-    }
-
-
-    // ✅ Show the Report Summary Modal after loading complete
-    const modalElement = document.getElementById('onLoadModal');
-    if (modalElement) {
-        const modal = new bootstrap.Modal(modalElement);
-        modal.show();
-    }
-
-
-    clearInterval(pollingIntervalId);
-    console.log("Polling stopped — report analysis completed!");
-}
-
-
-        }
-    } catch (error) {
-        console.error("Failed to fetch updated issues:", error);
-    }
-}
-
-
-
-
-
-
-            pollingIntervalId = setInterval(fetchUpdatedIssues, 5000);
-            fetchUpdatedIssues();
-
-
-            sortSelect.addEventListener('change', () => {
-                currentSortOrder = sortSelect.value;
-                fetchUpdatedIssues();
-            });
-        });
-    </script>
+    <script src="~/js/loader.js"></script>
+    <script src="~/js/handleUserUrl.js"></script>
 }
