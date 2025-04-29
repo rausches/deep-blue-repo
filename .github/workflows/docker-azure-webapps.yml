@@ -25,7 +25,7 @@ jobs:
 
     - name: Publish the .NET application
       run: |
-        dotnet publish -c Release -o ./publish
+        dotnet publish Uxcheckmate/Uxcheckmate_Main/Uxcheckmate_Main.csproj -c Release -o ./publish
 
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v3
