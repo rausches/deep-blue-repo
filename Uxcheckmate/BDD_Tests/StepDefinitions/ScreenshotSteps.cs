@@ -24,7 +24,7 @@ namespace BDD_Tests.StepDefinitions
         public void ThenTheSystemDisplaysLoadingOverlayWithScreenshot()
         {
             WebDriverWait wait = new WebDriverWait(driver, TimeSpan.FromSeconds(30));
-            wait.Until(driver => driver.FindElement(By.Id("scanningWrapper")));
+            wait.Until(SeleniumExtras.WaitHelpers.ExpectedConditions.ElementIsVisible(By.Id("scanningWrapper")));
             var screenshotElement = driver.FindElement(By.Id("screenshotPreview"));
             Assert.That(screenshotElement.Displayed, Is.True, "Screenshot element is not displayed.");
         }
