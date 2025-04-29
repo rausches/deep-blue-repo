@@ -1,26 +1,23 @@
 # Use runtime image
-FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS base
+# FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS base    # This will pull a Linux-based image
+FROM mcr.microsoft.com/dotnet/aspnet:5.0-nanoserver-2004 AS base  
+
 WORKDIR /app
 
-# Install Node.js and Playwright dependencies
-RUN apt-get update && \
-    apt-get install -y curl gnupg && \
-    curl -fsSL https://deb.nodesource.com/setup_18.x | bash - && \
-    apt-get install -y nodejs && \
-    apt-get install -y \
-    libnss3 libatk-bridge2.0-0 libx11-xcb1 libxcomposite1 \
-    libxdamage1 libxrandr2 libgbm1 libgtk-3-0 libasound2 \
-    libpangocairo-1.0-0 libatspi2.0-0 libdrm2 libxshmfence1 \
-    libxext6 libxfixes3 libpango-1.0-0 libxcb1 libglu1-mesa \
-    fonts-liberation libappindicator1 xdg-utils wget unzip && \
-    # Install Playwright and its browsers
-    npm install playwright && \
-    npx playwright install --with-deps
+# Install Node.js for Windows (using MSI)
+RUN powershell -Command \
+    Invoke-WebRequest -Uri https://nodejs.org/dist/v18.15.0/node-v18.15.0-x64.msi -OutFile nodejs.msi; \
+    Start-Process msiexec.exe -ArgumentList '/i', 'nodejs.msi', '/quiet', '/norestart' -NoNewWindow -Wait
 
-# Copy the published output from GitHub Action
+# Install Playwright and its dependencies
+RUN npm install playwright
+RUN npx playwright install
+
+# Copy the published output from the GitHub Action (ensure this is published first)
 COPY ./publish/ ./ 
 
 # Expose HTTP port
 EXPOSE 80
 
+# Set the entry point for the app
 ENTRYPOINT ["dotnet", "Uxcheckmate_Main.dll"]
