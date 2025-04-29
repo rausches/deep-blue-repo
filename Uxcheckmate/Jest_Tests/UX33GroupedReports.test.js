@@ -5,7 +5,7 @@ describe('userDashboardReports.js', () => {
     let groupedReports;
 
     beforeEach(() => {
-        // Mock groupedReports
+        // Mock groupedReportss
         groupedReports = {
             "example.com": [
                 { id: 1, url: "https://example.com", date: "2025-04-26T00:00:00Z", designIssues: [], accessibilityIssues: [] },
