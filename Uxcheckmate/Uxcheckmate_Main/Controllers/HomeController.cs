@@ -64,7 +64,7 @@ public class HomeController : Controller
     // Report Logic
     // ============================================================================================================
     [HttpPost]
-    public async Task<IActionResult> Report(string url, string sortOrder = "category", bool isAjax = false, CancellationToken cancellationToken = default )
+    public async Task<IActionResult> Report(string url, string sortOrder = "category", bool isAjax = false, CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrEmpty(url))
         {
@@ -75,13 +75,13 @@ public class HomeController : Controller
         // Normalize the URL *before* checking if it's reachable
         url = NormalizeUrl(url);
 
-        if (!await IsUrlReachable(url))
+        if (!await IsUrlReachable(url, cancellationToken))
         {
             TempData["UrlUnreachable"] = "The URL you entered seems incorrect or no longer exists. Please try again.";
             return RedirectToAction("Index");
         }
 
-        var websiteScreenshot = await CaptureScreenshot(url);
+        var websiteScreenshot = await CaptureScreenshot(url, cancellationToken);
 
         if (string.IsNullOrEmpty(websiteScreenshot ))
         {
@@ -103,19 +103,19 @@ public class HomeController : Controller
         }
 
         // Create and save the report record.
-        var report = await CreateOrUpdateReport(url);
+        var report = await CreateOrUpdateReport(url, cancellationToken);
 
         // Save the report immediately to get a valid ID
         _context.Reports.Add(report);
-        await _context.SaveChangesAsync();
+        await _context.SaveChangesAsync(cancellationToken);
 
         // Run accessibility analysis
-        var accessibilityIssues = await _axeCoreService.AnalyzeAndSaveAccessibilityReport(report);
+        var accessibilityIssues = await _axeCoreService.AnalyzeAndSaveAccessibilityReport(report, cancellationToken);
 
         // Attach results, and set Processing status
         report.AccessibilityIssues = accessibilityIssues.ToList();
         report.Status = "Processing"; 
-        await _context.SaveChangesAsync(); 
+        await _context.SaveChangesAsync(cancellationToken); 
 
         // Queue background design work
         await _backgroundTaskQueue.QueueBackgroundWorkItemAsync(async token =>
@@ -130,7 +130,7 @@ public class HomeController : Controller
             var scopedReportService = scope.ServiceProvider.GetRequiredService<IReportService>();
 
             // Generate the design issues by analyzing the report
-            var designIssues = await scopedReportService.GenerateReportAsync(report, cancellationToken);
+            var designIssues = await scopedReportService.GenerateReportAsync(report, token);
 
             // Retrieve the most up-to-date version of the report from the database,
             var freshReport = await scopedDbContext.Reports
@@ -439,7 +439,7 @@ public class HomeController : Controller
         return url.TrimEnd('/');
     }
 
-    private async Task<bool> IsUrlReachable(string url)
+    private async Task<bool> IsUrlReachable(string url, CancellationToken cancellationToken = default)
     {
         try
         {
@@ -447,7 +447,7 @@ public class HomeController : Controller
             var request = new HttpRequestMessage(HttpMethod.Get, url);
             _logger.LogInformation("Request Headers: {Headers}", request.Headers);
 
-            var response = await httpClient.SendAsync(request);
+            var response = await httpClient.SendAsync(request, cancellationToken);
             _logger.LogInformation("Response Headers: {Headers}", response.Headers);
 
             return response.IsSuccessStatusCode;
@@ -459,7 +459,7 @@ public class HomeController : Controller
         }
     }
 
-    private async Task<string?> CaptureScreenshot(string url)
+    private async Task<string?> CaptureScreenshot(string url, CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrEmpty(url))
         {
@@ -470,7 +470,7 @@ public class HomeController : Controller
         try
         {
             var screenshotOptions = new PageScreenshotOptions { FullPage = true };
-            var screenshot = await _screenshotService.CaptureScreenshot(screenshotOptions, url);
+            var screenshot = await _screenshotService.CaptureScreenshot(screenshotOptions, url, cancellationToken);
 
             if (string.IsNullOrEmpty(screenshot))
             {
@@ -486,7 +486,7 @@ public class HomeController : Controller
             return null;
         }
     }
-    private async Task<Report> CreateOrUpdateReport(string url)
+    private async Task<Report> CreateOrUpdateReport(string url, CancellationToken cancellationToken = default)
     {
         string? userId = User.Identity.IsAuthenticated ? User.FindFirstValue(ClaimTypes.NameIdentifier) : null;
 
