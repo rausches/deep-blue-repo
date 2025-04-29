@@ -18,7 +18,7 @@ RUN apt-get update && \
     npx playwright install --with-deps
 
 # Copy the published output from GitHub Action
-COPY ./publish/ ./ 
+COPY ./publish/
 
 # Expose HTTP port
 EXPOSE 80
