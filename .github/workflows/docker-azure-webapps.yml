@@ -30,16 +30,15 @@ jobs:
 
     - name: Install dependencies and run Playwright tests
       run: |
-        cd Uxcheckmate
+        cd ./Uxcheckmate/Uxcheckmate_Main
         npm install
         npx playwright install --with-deps
         # npx playwright test --reporter html
 
     - name: Build and publish the application
       run: |
-        cd Uxcheckmate
-        dotnet restore Uxcheckmate.csproj
-        dotnet publish Uxcheckmate.csproj -c Release -o ./publish
+        dotnet restore ./Uxcheckmate/Uxcheckmate.sln
+        dotnet publish ./Uxcheckmate/Uxcheckmate.sln -c Release -o ./publish
         mkdir -p ./publish/html-report
         cp -r ./html-report/* ./publish/html-report/
 
