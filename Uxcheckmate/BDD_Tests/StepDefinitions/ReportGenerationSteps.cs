@@ -17,35 +17,6 @@ namespace BDD_Tests.StepDefinitions
             _driver = driver;
         }
 
-        [Then("the system displays a loading overlay")]
-        public void ThenTheSystemDisplaysALoadingOverlay() 
-        {
-            var wait = new WebDriverWait(_driver, TimeSpan.FromSeconds(100));
-            var overlay = wait.Until(d =>
-            {
-                var el = d.FindElement(By.Id("scanningWrapper"));
-
-                return el.Displayed ? el : null;
-            });
-            Assert.That(overlay.Displayed, Is.True);
-            // Testing screenshot
-            var screenshotPreview = wait.Until(d =>
-            {
-                var elements = d.FindElements(By.Id("screenshotPreview"));
-                var el = elements.FirstOrDefault();
-                return el != null && el.Displayed ? el : null;
-            });
-            Assert.That(screenshotPreview.Displayed, Is.True, "Screenshot preview should be visible.");  
-        }
-
-        [Then("the report view is displayed")]
-        public void ThenTheReportViewIsDisplayed()
-        {
-            var wait = new WebDriverWait(_driver, TimeSpan.FromSeconds(15));
-            var container = wait.Until(d => d.FindElement(By.Id("reportContainer")));
-            Assert.That(container.Displayed, Is.True);
-        }
-
         [Then("the analyzed URL is shown on the page")]
         public void ThenTheAnalyzedUrlIsShownOnThePage()
         {
