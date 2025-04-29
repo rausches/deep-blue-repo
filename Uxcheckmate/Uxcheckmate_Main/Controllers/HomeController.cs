@@ -110,37 +110,88 @@ public class HomeController : Controller
         _context.Reports.Add(report);
         await _context.SaveChangesAsync();
 
-        // Run accessibility and design analysis
+        // Run accessibility analysis
         var accessibilityIssues = await _axeCoreService.AnalyzeAndSaveAccessibilityReport(report);
-       // var designIssues = await _reportService.GenerateReportAsync(report);
 
-       report.AccessibilityIssues = accessibilityIssues.ToList();
-        report.Status = "Processing"; // Status: processing (accessibility done, design in progress)
-        await _context.SaveChangesAsync();
+        // Attach results, and set Processing status
+        report.AccessibilityIssues = accessibilityIssues.ToList();
+        report.Status = "Processing"; 
+        await _context.SaveChangesAsync(); 
 
-        // Queue background design analysis work
+        // Queue background design work
         await _backgroundTaskQueue.QueueBackgroundWorkItemAsync(async token =>
         {
+            // Create a new scoped service provider for dependency injection
             using var scope = _scopeFactory.CreateScope();
+            
+            // Retrieve a scoped instance of the database context
             var scopedDbContext = scope.ServiceProvider.GetRequiredService<UxCheckmateDbContext>();
+            
+            // Retrieve a scoped instance of the report service
             var scopedReportService = scope.ServiceProvider.GetRequiredService<IReportService>();
 
+            // Generate the design issues by analyzing the report
             var designIssues = await scopedReportService.GenerateReportAsync(report);
 
-            report.AccessibilityIssues = accessibilityIssues.ToList();
-            report.DesignIssues = designIssues.ToList();
+            // Retrieve the most up-to-date version of the report from the database,
+            var freshReport = await scopedDbContext.Reports
+                .Include(r => r.AccessibilityIssues)
+                .Include(r => r.DesignIssues)
+                .FirstOrDefaultAsync(r => r.Id == report.Id, token);
 
-            foreach (var issue in report.AccessibilityIssues)
+            if (freshReport != null)
             {
-                issue.Category = await scopedDbContext.AccessibilityCategories.FindAsync(issue.CategoryId, token);
-            }
+                // Update the report with the new design issues
+                freshReport.DesignIssues = designIssues.ToList();
+                
+                // Set the report's status to "Completed"
+                freshReport.Status = "Completed";
+                
+                // Copy the summary from the original report 
+                freshReport.Summary = report.Summary;
 
-            foreach (var issue in report.DesignIssues)
+                // Save all changes back to the database
+                await scopedDbContext.SaveChangesAsync(token);
+            }
+        });
+
+        // Queue a background work item to delete an anonymous report after a delay
+        await _backgroundTaskQueue.QueueBackgroundWorkItemAsync(async token =>
+        {
+            // Create a new scoped service provider for database operations
+            using var scope = _scopeFactory.CreateScope();
+            var scopedDbContext = scope.ServiceProvider.GetRequiredService<UxCheckmateDbContext>();
+
+            // Fetch the report to be deleted using its ID
+            var reportToDelete = await scopedDbContext.Reports.FirstOrDefaultAsync(r => r.Id == report.Id, token);
+
+            // Proceed only if the report exists and has no associated UserID 
+            if (reportToDelete != null && string.IsNullOrEmpty(reportToDelete.UserID))
             {
-                issue.Category = await scopedDbContext.DesignCategories.FindAsync(issue.CategoryId, token);
-            }
+                _logger.LogInformation("Anonymous report ID {ReportId} scheduled for deletion after delay.", reportToDelete.Id);
+                try
+                {
+                    // Wait for 30 minutes before attempting deletion
+                    await Task.Delay(TimeSpan.FromMinutes(30), token);
 
-            await scopedDbContext.SaveChangesAsync(token);
+                    // Recheck if the report still exists and is still anonymous
+                    var stillExists = await scopedDbContext.Reports.FirstOrDefaultAsync(r => r.Id == report.Id, token);
+
+                    if (stillExists != null && string.IsNullOrEmpty(stillExists.UserID))
+                    {
+                        // Remove the anonymous report from the database
+                        scopedDbContext.Reports.Remove(stillExists);
+                        await scopedDbContext.SaveChangesAsync(token);
+
+                        _logger.LogInformation("Anonymous report ID {ReportId} deleted after delay.", reportToDelete.Id);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    // Log any exception that occurs during the deletion process
+                    _logger.LogError(ex, "Failed to delete anonymous report ID {ReportId}.", reportToDelete.Id);
+                }
+            }
         });
 
         // Fetch the full report inclunding related issues and categories
@@ -188,6 +239,7 @@ public class HomeController : Controller
 
         // Add to TempData for PDF Printing when not logged in
         StoreReportInTempData(report);
+
         // If the request is an AJAX call, return the partial view
         if (isAjax)
         {
@@ -342,7 +394,7 @@ public class HomeController : Controller
 
         // Return the rendered partial views as a JSON object
         return Json(new { designHtml, accessibilityHtml,
-                status = report.Status });
+                status = report.Status, summary = report.Summary });
     }
 
     // ============================================================================================================
