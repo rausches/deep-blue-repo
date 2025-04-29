@@ -12,7 +12,6 @@ using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.Mvc.ViewEngines;
 
-
 namespace Uxcheckmate_Main.Controllers;
 
 public class HomeController : Controller
@@ -65,7 +64,7 @@ public class HomeController : Controller
     // Report Logic
     // ============================================================================================================
     [HttpPost]
-    public async Task<IActionResult> Report(string url, string sortOrder = "category", bool isAjax = false, CancellationToken cancellationToken )
+    public async Task<IActionResult> Report(string url, string sortOrder = "category", bool isAjax = false, CancellationToken cancellationToken = default )
     {
         if (string.IsNullOrEmpty(url))
         {
@@ -521,7 +520,8 @@ public class HomeController : Controller
         return report;
     }
 
-
+    [HttpGet]
+    [ResponseCache(NoStore = true, Duration = 0, Location = ResponseCacheLocation.None)]
     private void SortReportIssues(Report report, string sortOrder)
     {
         report.DesignIssues = sortOrder switch

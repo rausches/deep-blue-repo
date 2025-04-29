@@ -145,7 +145,7 @@ public async Task<ICollection<DesignIssue>> GenerateReportAsync(Report report, C
             }
         });
 
-    try
+  /*  try
     {
         var summaryText = await _openAiService.GenerateReportSummaryAsync(scanResults.ToList(), fullScraped.HtmlContent, url, cancellationToken);
         report.Summary = summaryText;
@@ -158,7 +158,7 @@ public async Task<ICollection<DesignIssue>> GenerateReportAsync(Report report, C
     catch (Exception ex)
     {
         _logger.LogError(ex, "Failed to generate summary.");
-    }
+    }*/
 
     try
     {

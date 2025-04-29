@@ -157,7 +157,7 @@
 
 async function fetchUpdatedIssues() {
     try {
-        const response = await fetch(`${window.location.origin}/Home/GetSortedIssues?id=${reportId}&sortOrder=${currentSortOrder}`);
+        const response = await fetch(`${window.location.origin}/Home/GetSortedIssues?id=${reportId}&sortOrder=${currentSortOrder}&t=${Date.now()}`);
         if (response.ok) {
             const data = await response.json();
 
