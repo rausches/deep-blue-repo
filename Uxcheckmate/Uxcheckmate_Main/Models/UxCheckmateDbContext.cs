@@ -113,10 +113,11 @@ public partial class UxCheckmateDbContext : DbContext
         OnModelCreatingPartial(modelBuilder);
     }
 
-    internal async Task SaveChangesAsync(object cancellationToken)
+    public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
-        throw new NotImplementedException();
+        return base.SaveChangesAsync(cancellationToken);
     }
+
 
     partial void OnModelCreatingPartial(ModelBuilder modelBuilder);
 }
