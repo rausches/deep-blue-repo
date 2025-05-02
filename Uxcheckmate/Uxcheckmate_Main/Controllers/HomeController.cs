@@ -163,44 +163,6 @@ public class HomeController : Controller
                 }
             });
 
-            // Queue a background work item to delete an anonymous report after a delay
-            await _backgroundTaskQueue.QueueBackgroundWorkItemAsync(async token =>
-            {
-                try
-                {
-                    // Create a new scoped service provider for database operations
-                    using var scope = _scopeFactory.CreateScope();
-                    var scopedDbContext = scope.ServiceProvider.GetRequiredService<UxCheckmateDbContext>();
-
-                    // Fetch the report to be deleted using its ID
-                    var reportToDelete = await scopedDbContext.Reports.FirstOrDefaultAsync(r => r.Id == report.Id, token);
-
-                    // Proceed only if the report exists and has no associated UserID
-                    if (reportToDelete != null && string.IsNullOrEmpty(reportToDelete.UserID))
-                    {
-                        // Wait for 30 minutes before attempting deletion
-                        await Task.Delay(TimeSpan.FromMinutes(30), token);
-
-                        // Recheck if the report still exists and is still anonymous
-                        var stillExists = await scopedDbContext.Reports.FirstOrDefaultAsync(r => r.Id == report.Id, token);
-                        
-                        if (stillExists != null && string.IsNullOrEmpty(stillExists.UserID))
-                        {
-                            // Remove the anonymous report from the database
-                            scopedDbContext.Reports.Remove(stillExists);
-                            await scopedDbContext.SaveChangesAsync(token);
-
-                            _logger.LogInformation("Deleted anonymous report ID {ReportId}", reportToDelete.Id);
-                        }
-                    }
-                }
-                catch (Exception ex)
-                {
-                    // Log any exception that occurs during the deletion process
-                    _logger.LogError(ex, "Failed to delete anonymous report ID {ReportId}", report.Id);
-                }
-            });
-
             // Fetch the full report inclunding related issues and categories
         /* if (string.IsNullOrEmpty(userId)){
                 report.AccessibilityIssues = accessibilityIssues.ToList();

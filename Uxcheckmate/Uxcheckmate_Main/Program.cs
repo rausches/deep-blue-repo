@@ -62,6 +62,8 @@ public class Program
                 );
             });
 
+        builder.Services.AddHostedService<ReportCleanupService>();
+
         // Add services to the container.
         builder.Services.AddControllersWithViews();
         builder.Services.AddRazorPages();
