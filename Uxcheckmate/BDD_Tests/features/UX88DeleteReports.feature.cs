@@ -20,18 +20,18 @@ namespace BDD_Tests.Features
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Reqnroll", "2.0.0.0")]
     [System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     [NUnit.Framework.TestFixtureAttribute()]
-    [NUnit.Framework.DescriptionAttribute("Pop-Ups Issue Reporting")]
+    [NUnit.Framework.DescriptionAttribute("Delete report from dashboard")]
     [NUnit.Framework.FixtureLifeCycleAttribute(NUnit.Framework.LifeCycle.InstancePerTestCase)]
-    public partial class Pop_UpsIssueReportingFeature
+    public partial class DeleteReportFromDashboardFeature
     {
         
         private global::Reqnroll.ITestRunner testRunner;
         
         private static string[] featureTags = ((string[])(null));
         
-        private static global::Reqnroll.FeatureInfo featureInfo = new global::Reqnroll.FeatureInfo(new System.Globalization.CultureInfo("en-US"), "features", "Pop-Ups Issue Reporting", "As a user, I want to know if I have too many pop ups on my site.", global::Reqnroll.ProgrammingLanguage.CSharp, featureTags);
+        private static global::Reqnroll.FeatureInfo featureInfo = new global::Reqnroll.FeatureInfo(new System.Globalization.CultureInfo("en-US"), "features", "Delete report from dashboard", null, global::Reqnroll.ProgrammingLanguage.CSharp, featureTags);
         
-#line 1 "PopUps.feature"
+#line 1 "UX88DeleteReports.feature"
 #line hidden
         
         [NUnit.Framework.OneTimeSetUpAttribute()]
@@ -83,14 +83,16 @@ namespace BDD_Tests.Features
         }
         
         [NUnit.Framework.TestAttribute()]
-        [NUnit.Framework.DescriptionAttribute("User expands the Pop-Ups section and sees detected issues")]
-        public async System.Threading.Tasks.Task UserExpandsThePop_UpsSectionAndSeesDetectedIssues()
+        [NUnit.Framework.DescriptionAttribute("Deleting a report from the dashboard")]
+        [NUnit.Framework.CategoryAttribute("DeleteButtonTest")]
+        public async System.Threading.Tasks.Task DeletingAReportFromTheDashboard()
         {
-            string[] tagsOfScenario = ((string[])(null));
+            string[] tagsOfScenario = new string[] {
+                    "DeleteButtonTest"};
             System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
-            global::Reqnroll.ScenarioInfo scenarioInfo = new global::Reqnroll.ScenarioInfo("User expands the Pop-Ups section and sees detected issues", null, tagsOfScenario, argumentsOfScenario, featureTags);
+            global::Reqnroll.ScenarioInfo scenarioInfo = new global::Reqnroll.ScenarioInfo("Deleting a report from the dashboard", null, tagsOfScenario, argumentsOfScenario, featureTags);
 #line 4
-  this.ScenarioInitialize(scenarioInfo);
+this.ScenarioInitialize(scenarioInfo);
 #line hidden
             if ((global::Reqnroll.TagHelper.ContainsIgnoreTag(scenarioInfo.CombinedTags) || global::Reqnroll.TagHelper.ContainsIgnoreTag(featureTags)))
             {
@@ -100,19 +102,19 @@ namespace BDD_Tests.Features
             {
                 await this.ScenarioStartAsync();
 #line 5
-    await testRunner.GivenAsync("the user has generated a report for \"https://momkage-lexy.github.io/\"", ((string)(null)), ((global::Reqnroll.Table)(null)), "Given ");
+    await testRunner.GivenAsync("user is logged in", ((string)(null)), ((global::Reqnroll.Table)(null)), "Given ");
 #line hidden
 #line 6
-    await testRunner.ThenAsync("the user clicks the let\'s begin button", ((string)(null)), ((global::Reqnroll.Table)(null)), "Then ");
+    await testRunner.WhenAsync("they click user dash", ((string)(null)), ((global::Reqnroll.Table)(null)), "When ");
 #line hidden
 #line 7
-    await testRunner.WhenAsync("the user clicks the Pop Ups section", ((string)(null)), ((global::Reqnroll.Table)(null)), "When ");
+    await testRunner.ThenAsync("they should be in the user dash page", ((string)(null)), ((global::Reqnroll.Table)(null)), "Then ");
 #line hidden
 #line 8
-    await testRunner.ThenAsync("the Pop Ups section should be visible", ((string)(null)), ((global::Reqnroll.Table)(null)), "Then ");
+    await testRunner.WhenAsync("the user clicks on one grouped folder of one domain", ((string)(null)), ((global::Reqnroll.Table)(null)), "When ");
 #line hidden
 #line 9
-    await testRunner.AndAsync("the pop ups row reports all detected pop ups", ((string)(null)), ((global::Reqnroll.Table)(null)), "And ");
+    await testRunner.ThenAsync("they will see a delete button", ((string)(null)), ((global::Reqnroll.Table)(null)), "Then ");
 #line hidden
             }
             await this.ScenarioCleanupAsync();

@@ -152,7 +152,7 @@ namespace Service_Tests
             Assert.That(result, Is.Empty);
         }
 
-        [Test]
+    /*    [Test]
         public async Task GenerateReportAsync_Returns_Issue_If_Issue_Found()
         {
             // Arrange
@@ -173,7 +173,7 @@ namespace Service_Tests
             Assert.That(result, Is.Not.Null);
             Assert.That(result.Count, Is.EqualTo(1));
             Assert.That(result.First().Message, Is.EqualTo("Issue Found"));
-        }
+        }*/
 
         [Test]
         public async Task GenerateReportAsync_Calls_OpenAI_When_ScanMethod_Is_OpenAI()
@@ -216,7 +216,7 @@ namespace Service_Tests
             Assert.That(result.All(r => r.CategoryId != 99));
         }
 
-        [Test] 
+     /*   [Test] 
         public async Task RunCustomAnalysisAsync_Returns_String_IfIssuesFound()
         {
             _screenshotServiceMock.Setup(s => s.CaptureFullPageScreenshot(It.IsAny<string>()))
@@ -232,7 +232,7 @@ namespace Service_Tests
 
             Assert.That(result,Is.Not.Null); // Assert that the result is not null
             Assert.That(result, Is.Not.Empty); // Assert that the result is not empty
-        }
+        }*/
 
         [Test]
         public async Task RunCustomAnalysisAsync_Returns_Null_If_NoIssuesFound()

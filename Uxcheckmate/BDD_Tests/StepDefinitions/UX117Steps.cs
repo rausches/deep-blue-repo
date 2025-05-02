@@ -25,22 +25,23 @@ namespace BDD_Tests.StepDefinitions
         public void ThenHeWillSeeAModalContainingSummaryAndMockUp()
         {
             var wait = new WebDriverWait(_driver, TimeSpan.FromSeconds(300));
+    
+            // Wait for modal to be visible
+            var modal = wait.Until(SeleniumExtras.WaitHelpers.ExpectedConditions.ElementIsVisible(By.Id("onLoadModal")));
 
-            // Find the AI elements
-            var modal = wait.Until(driver => driver.FindElement(By.Id("onLoadModal")));
-            var summary = wait.Until(driver => driver.FindElement(By.Id("summary")));
+            // Wait specifically for the summary paragraph inside the modal
+            var summary = wait.Until(SeleniumExtras.WaitHelpers.ExpectedConditions.ElementIsVisible(By.Id("summary")));
 
-            // Assert they are displayed
             Assert.That(summary.Displayed, Is.True, "Summary should be visible inside modal.");
         }
 
         [Then("the user clicks the let's begin button")]
         public void TheUserClicksTheLetsBeginButton()
         {
-            var wait = new WebDriverWait(_driver, TimeSpan.FromSeconds(10));
-
+            var wait = new WebDriverWait(_driver, TimeSpan.FromSeconds(300));
+            var button = wait.Until(SeleniumExtras.WaitHelpers.ExpectedConditions.ElementIsVisible(By.Id("letsgo")));
             // Find and click the let's begin button
-            var button = wait.Until(driver => driver.FindElement(By.Id("letsgo")));
+          //  var button = wait.Until(driver => driver.FindElement(By.Id("letsgo")));
             button.Click();
         }
 

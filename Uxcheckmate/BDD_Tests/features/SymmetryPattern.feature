@@ -9,6 +9,7 @@ Scenario: Symmetry issue exists
     When the user enters "http://localhost:5002/badSymmetry.html" to analyze
     When the user starts the analysis
     When the report view has loaded
+    Then the user clicks the let's begin button
     Then the user should see the symmetry issue
 
 
@@ -19,5 +20,6 @@ Scenario: Symmetry issue does not exist
     When the user enters "http://localhost:5002/goodSymmetry.html" to analyze
     When the user starts the analysis
     When the report view has loaded
+    Then the user clicks the let's begin button
     Then the user should not see the symmetry issue
 
