@@ -11,7 +11,11 @@ namespace Uxcheckmate_Main.Services
 
         public BackgroundTaskQueue()
         {
-            _queue = Channel.CreateUnbounded<Func<CancellationToken, Task>>();
+            _queue = Channel.CreateBounded<Func<CancellationToken, Task>>(new BoundedChannelOptions(10)
+            {
+                FullMode = BoundedChannelFullMode.Wait
+            });
+
         }
 
         /// Enqueues a background work item to be processed later.

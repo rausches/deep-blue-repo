@@ -102,7 +102,7 @@ namespace Uxcheckmate_Main.Services
                 designCategories,
                 new ParallelOptions
                 {
-                    MaxDegreeOfParallelism = Environment.ProcessorCount * 2,
+                    MaxDegreeOfParallelism = Environment.ProcessorCount * 4,
                     CancellationToken = cancellationToken
                 },
                 async (category, ct) =>
@@ -187,7 +187,20 @@ namespace Uxcheckmate_Main.Services
         public async Task<string> RunCustomAnalysisAsync(string url, string categoryName, string categoryDescription, Dictionary<string, object> scrapedData, ScrapedContent fullScraped)
         {
             _logger.LogInformation("Running custom analysis for category: {CategoryName}", categoryName);
-            Task<byte[]> screenshotTask = _screenshotService?.CaptureFullPageScreenshot(url) ?? Task.FromResult(new byte[0]);
+            byte[] screenshotBytes;
+            try
+            {
+                screenshotBytes = _screenshotService != null 
+                    ? await _screenshotService.CaptureFullPageScreenshot(url)
+                    : Array.Empty<byte>();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Screenshot capture failed during custom analysis.");
+                screenshotBytes = Array.Empty<byte>();
+            }
+
+
 
         string message = "";
 
@@ -197,7 +210,7 @@ namespace Uxcheckmate_Main.Services
             {
                 "Broken Links" => await _brokenLinksService.BrokenLinkAnalysis(url, scrapedData),
                 "Visual Hierarchy" => await _headingHierarchyService.AnalyzeAsync(scrapedData),
-                "Color Scheme" => await _colorSchemeService.AnalyzeWebsiteColorsAsync(scrapedData, screenshotTask),
+                "Color Scheme" => await _colorSchemeService.AnalyzeWebsiteColorsAsync(scrapedData, Task.FromResult(screenshotBytes)),
                 "Mobile Responsiveness" => await _mobileResponsivenessService.RunMobileAnalysisAsync(url, scrapedData),
                 "Favicon" => await AnalyzeFaviconAsync(url, scrapedData),
                 "Font Legibility" => await AnalyzeFontLegibilityAsync(url, scrapedData),
