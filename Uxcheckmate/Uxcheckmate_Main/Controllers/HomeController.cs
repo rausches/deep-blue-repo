@@ -420,7 +420,10 @@ public class HomeController : Controller
     {
         try
         {
-            using var httpClient = new HttpClient();
+            using var httpClient = new HttpClient
+            {
+                Timeout = TimeSpan.FromSeconds(30)
+            };
             var request = new HttpRequestMessage(HttpMethod.Get, url);
             _logger.LogInformation("Request Headers: {Headers}", request.Headers);
 
