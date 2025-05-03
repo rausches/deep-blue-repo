@@ -435,6 +435,7 @@ public class HomeController : Controller
         catch (HttpRequestException ex)
         {
             _logger.LogError(ex, "The URL is unreachable: {Url}", url);
+            TempData["UrlUnreachable"] = "That URL is unreachable at this time. Please try again.";
             return false;
         }
     }

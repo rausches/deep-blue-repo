@@ -9,6 +9,12 @@
         @TempData["ScrapingError"]
     </div>
 }
+@if (TempData["UrlUnreachable"] != null)
+{
+    <div class="alert alert-danger">
+        @TempData["UrlUnreachable"]
+    </div>
+}
 
 <section class="main full-screen">
     <div class="container scanContainer">
