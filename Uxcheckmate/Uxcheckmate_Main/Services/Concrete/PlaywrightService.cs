@@ -32,7 +32,12 @@ namespace Uxcheckmate_Main.Services
             {
                 _browser = await _playwright.Chromium.LaunchAsync(new BrowserTypeLaunchOptions
                 {
-                    Headless = true // Launch the browser in headless mode
+                    Headless = true, // Launch the browser in headless mode
+                    Args = new[] {         
+                        "--disable-gpu",
+                        "--no-sandbox",
+                        "--disable-dev-shm-usage" 
+                        } // Additional arguments for the browser
                 });
                 _logger.LogInformation("Playwright browser instance created.");
             }
@@ -44,7 +49,12 @@ namespace Uxcheckmate_Main.Services
         public async Task<IBrowserContext> GetBrowserContextAsync()
         {
             var browser = await GetBrowserAsync(); // Get the browser instance
-            return await browser.NewContextAsync(); // Create and return a new browser context
+            // return await browser.NewContextAsync(); // Create and return a new browser context
+            return await browser.NewContextAsync(new BrowserNewContextOptions
+            {
+                // Ignore the page's Content Security Policy (CSP) to allow all resources to load
+                BypassCSP = true, // Bypass Content Security Policy
+            });
         }
 
         // Gracefully closes the browser and Playwright instance.

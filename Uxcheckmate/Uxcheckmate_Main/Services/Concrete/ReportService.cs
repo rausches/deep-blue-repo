@@ -22,16 +22,20 @@ namespace Uxcheckmate_Main.Services
         private readonly IHeadingHierarchyService _headingHierarchyService;
         private readonly IColorSchemeService _colorSchemeService;
         private readonly IMobileResponsivenessService _mobileResponsivenessService;
-        private readonly IWebScraperService _scraperService;
+      //  private readonly IWebScraperService _scraperService;
         private readonly IScreenshotService _screenshotService;
         private readonly IPlaywrightScraperService _playwrightScraperService;
         private readonly IPopUpsService _popUpsService;
         private readonly IAnimationService _animationService;
         private readonly IAudioService _audioService;
         private readonly IScrollService _scrollService;
+        private readonly IFPatternService _fPatternService;
+        private readonly IZPatternService _zPatternService;
+        private readonly ISymmetryService _symmetryService;
 
 
-        public ReportService(HttpClient httpClient, ILogger<ReportService> logger, UxCheckmateDbContext context, IOpenAiService openAiService, IBrokenLinksService brokenLinksService, IHeadingHierarchyService headingHierarchyService, IColorSchemeService colorSchemeService, IMobileResponsivenessService mobileResponsivenessService, IScreenshotService screenshotService, IWebScraperService scraperService, IPlaywrightScraperService playwrightScraperService, IPopUpsService popUpsService, IAnimationService animationService, IAudioService audioService, IScrollService scrollService)
+
+        public ReportService(HttpClient httpClient, ILogger<ReportService> logger, UxCheckmateDbContext context, IOpenAiService openAiService, IBrokenLinksService brokenLinksService, IHeadingHierarchyService headingHierarchyService, IColorSchemeService colorSchemeService, IMobileResponsivenessService mobileResponsivenessService, IScreenshotService screenshotService, IPlaywrightScraperService playwrightScraperService, IPopUpsService popUpsService, IAnimationService animationService, IAudioService audioService, IScrollService scrollService, IFPatternService fPatternService, IZPatternService zPatternService, ISymmetryService symmetryService)
         {
             _httpClient = httpClient;
             _dbContext = context;
@@ -42,12 +46,15 @@ namespace Uxcheckmate_Main.Services
             _colorSchemeService = colorSchemeService;
             _mobileResponsivenessService = mobileResponsivenessService;
             _screenshotService = screenshotService;
-            _scraperService = scraperService;
+          //  _scraperService = scraperService;
             _playwrightScraperService = playwrightScraperService;
             _popUpsService = popUpsService;
             _animationService = animationService;
             _audioService = audioService;
             _scrollService = scrollService;
+            _fPatternService = fPatternService;
+            _zPatternService = zPatternService;
+            _symmetryService = symmetryService;
         }
 
 
@@ -64,18 +71,22 @@ namespace Uxcheckmate_Main.Services
                 _logger.LogError("URL is null or empty.");
                 throw new ArgumentException("URL cannot be empty.", nameof(url));
             }
+            
+            // Scrape site
+            var fullScraped = await _playwrightScraperService.ScrapeEverythingAsync(url);
+            var scrapedData = fullScraped.ToDictionary();
 
             // Call the scrapers in parallel
-            var staticScrapeTask = _scraperService.ScrapeAsync(url);
-            var dynamicScrapeTask = _playwrightScraperService.ScrapeAsync(url);
+          //  var staticScrapeTask = _scraperService.ScrapeAsync(url);
+           // var dynamicScrapeTask = _playwrightScraperService.ScrapeAsync(url);
 
-            await Task.WhenAll(staticScrapeTask, dynamicScrapeTask);
+           // await Task.WhenAll(staticScrapeTask, dynamicScrapeTask);
 
-            var scrapedData = staticScrapeTask.Result;
-            var assets = dynamicScrapeTask.Result;
+           // var scrapedData = staticScrapeTask.Result;
+           // var assets = dynamicScrapeTask.Result;
 
             // Merge Static and Dynamic content into one dictionary
-            scrapedData = MergeScrapedData(scrapedData, assets);
+           // scrapedData = MergeScrapedData(scrapedData, assets);
 
            /* foreach (var css in assets.ExternalCssContents)
             {
@@ -97,7 +108,7 @@ namespace Uxcheckmate_Main.Services
             // Run analysis for each category in parallel
             await Parallel.ForEachAsync(
                 designCategories,
-                new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount * 10 },
+                new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount * 2 },
                 async (category, cancellationToken) =>
                 {
                     _logger.LogInformation("Analyzing category: {CategoryName} using scan method: {ScanMethod}", category.Name, category.ScanMethod);
@@ -108,7 +119,7 @@ namespace Uxcheckmate_Main.Services
                         message = category.ScanMethod switch
                         {
                             "OpenAI" => await _openAiService.AnalyzeWithOpenAI(url, category.Name, category.Description, scrapedData),
-                            "Custom" => await RunCustomAnalysisAsync(url, category.Name, category.Description, scrapedData),
+                            "Custom" => await RunCustomAnalysisAsync(url, category.Name, category.Description, scrapedData, fullScraped),
                             _ => ""
                         };
                     }
@@ -146,51 +157,49 @@ namespace Uxcheckmate_Main.Services
             }else{
                 _logger.LogInformation("Skipping saving DesignIssues");    
             }
+            // Call OpenAI to generate summary
+            var summaryText = await _openAiService.GenerateReportSummaryAsync(scanResults.ToList(), fullScraped.HtmlContent, url);
+            _logger.LogInformation("Generated summary: {Summary}", summaryText);
+            report.Summary = summaryText;
             // Return report
             return scanResults.ToList();
         }
 
-        public async Task<string> RunCustomAnalysisAsync(string url, string categoryName, string categoryDescription, Dictionary<string, object> scrapedData)
+        public async Task<string> RunCustomAnalysisAsync(string url, string categoryName, string categoryDescription, Dictionary<string, object> scrapedData, ScrapedContent fullScraped)
         {
             _logger.LogInformation("Running custom analysis for category: {CategoryName}", categoryName);
-            Task<byte[]> screenshotTask = _screenshotService?.CaptureFullPageScreenshot(url) ?? Task.FromResult(new byte[0]); // Full site screenshot for anaylsis
+            Task<byte[]> screenshotTask = _screenshotService?.CaptureFullPageScreenshot(url) ?? Task.FromResult(new byte[0]);
 
-            switch (categoryName)
+            string message = categoryName switch
             {
-                case "Broken Links":
-                    return await _brokenLinksService.BrokenLinkAnalysis(url, scrapedData);
+                "Broken Links"          => await _brokenLinksService.BrokenLinkAnalysis(url, scrapedData),
+                "Visual Hierarchy"      => await _headingHierarchyService.AnalyzeAsync(scrapedData),
+                "Color Scheme"          => await _colorSchemeService.AnalyzeWebsiteColorsAsync(scrapedData, screenshotTask),
+                "Mobile Responsiveness" => await _mobileResponsivenessService.RunMobileAnalysisAsync(url, scrapedData),
+                "Favicon"               => await AnalyzeFaviconAsync(url, scrapedData),
+                "Font Legibility"       => await AnalyzeFontLegibilityAsync(url, scrapedData),
+                "Pop Ups"               => await _popUpsService.RunPopupAnalysisAsync(url, scrapedData),
+                "Animations"            => await _animationService.RunAnimationAnalysisAsync(url, scrapedData),
+                "Audio"                 => await _audioService.RunAudioAnalysisAsync(url, scrapedData),
+                "Number of scrolls"     => await _scrollService.RunScrollAnalysisAsync(url, scrapedData),
+                "F Pattern"             => await _fPatternService.AnalyzeFPatternAsync(fullScraped.ViewportWidth, fullScraped.ViewportHeight, fullScraped.LayoutElements),
+                "Z Pattern"             => await _zPatternService.AnalyzeZPatternAsync(fullScraped.ViewportWidth, fullScraped.ViewportHeight, fullScraped.LayoutElements),
+                "Symmetry"              => await _symmetryService.AnalyzeSymmetryAsync(fullScraped.ViewportWidth, fullScraped.ViewportHeight, fullScraped.LayoutElements),
+                _ => ""
+            };
 
-                case "Visual Hierarchy":
-                    return await _headingHierarchyService.AnalyzeAsync(scrapedData);
-
-                case "Color Scheme":
-                    return await _colorSchemeService.AnalyzeWebsiteColorsAsync(scrapedData, screenshotTask);
-
-                case "Mobile Responsiveness":
-                    return await _mobileResponsivenessService.RunMobileAnalysisAsync(url, scrapedData);
-
-                case "Favicon":
-                    return await AnalyzeFaviconAsync(url, scrapedData);
-
-                case "Font Legibility":
-                    return await AnalyzeFontLegibilityAsync(url, scrapedData);
-               
-                case "Pop Ups":
-                    return await _popUpsService.RunPopupAnalysisAsync(url, scrapedData);
-
-                case "Animations":
-                    return await _animationService.RunAnimationAnalysisAsync(url, scrapedData);
-
-                case "Audio":
-                    return await _audioService.RunAudioAnalysisAsync(url, scrapedData);
-
-                case "Number of scrolls":
-                    return await _scrollService.RunScrollAnalysisAsync(url, scrapedData);
-
-                default:
-                    _logger.LogDebug("No custom analysis implemented for category: {CategoryName}", categoryName);
-                    return string.Empty;
+            // Send to OpenAI to enhance message
+            if (!string.IsNullOrEmpty(message))
+            {
+                _logger.LogInformation("Improving message with OpenAI for category: {CategoryName}", categoryName);
+                message = await _openAiService.ImproveMessageAsync(message, categoryName);
             }
+            else
+            {
+                _logger.LogInformation("No message to improve for category: {CategoryName}", categoryName);
+            }
+
+            return message;
         }
 
      /*   private async Task<string> AnalyzeDynamicSizingAsync(string url, Dictionary<string, object> scrapedData)
@@ -277,7 +286,7 @@ namespace Uxcheckmate_Main.Services
             return aiText.Contains("critical", StringComparison.OrdinalIgnoreCase) ? 3 :
                    aiText.Contains("should", StringComparison.OrdinalIgnoreCase) ? 2 : 1;
         }
-        private Dictionary<string, object> MergeScrapedData(Dictionary<string, object> baseData, ScrapedContent assets)
+    /*    private Dictionary<string, object> MergeScrapedData(Dictionary<string, object> baseData, ScrapedContent assets)
         {
             baseData["url"] = assets.Url;
             baseData["html"] = assets.Html;
@@ -302,7 +311,7 @@ namespace Uxcheckmate_Main.Services
             baseData["viewportLabel"] = assets.ViewportLabel;
 
             return baseData;
-        }
+        }*/
 
 
     }

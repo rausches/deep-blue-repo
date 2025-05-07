@@ -26,6 +26,10 @@ public class Program
         string openAiApiKey = builder.Configuration["OpenAiApiKey"];
         string openAiUrl = "https://api.openai.com/v1/chat/completions";
 
+        // Add swagger services
+        builder.Services.AddEndpointsApiExplorer();
+        builder.Services.AddSwaggerGen();
+
         builder.Services.AddDbContext<UxCheckmateDbContext>(options =>
                 options.UseLazyLoadingProxies()
                     .UseSqlServer(builder.Configuration.GetConnectionString("DBConnection"),
@@ -94,9 +98,20 @@ public class Program
         builder.Services.AddScoped<IAnimationService, AnimationService>();
         builder.Services.AddScoped<IAudioService, AudioService>();
         builder.Services.AddScoped<IScrollService, ScrollService>();
+        builder.Services.AddScoped<ILayoutParsingService, LayoutParsingService>();
+        builder.Services.AddScoped<IFPatternService, FPatternService>();
+        builder.Services.AddScoped<IZPatternService, ZPatternService>();
+        builder.Services.AddScoped<ISymmetryService, SymmetryService>();
 
 
         var app = builder.Build();
+
+        // Configure the HTTP request pipeline.
+        app.UseSwagger();
+        app.UseSwaggerUI();
+
+        app.UseAuthorization();
+        app.MapControllers();
 
         // Middleware: Custom error handling
         app.UseStatusCodePagesWithRedirects("/Home/ErrorPage");

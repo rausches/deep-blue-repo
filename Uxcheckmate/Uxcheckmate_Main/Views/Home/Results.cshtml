@@ -1,17 +1,36 @@
 @model Uxcheckmate_Main.Models.Report
 @{
-    var firstScreenshot  = TempData["FirstScreenshot"] as string;
+    var websiteScreenshot  = TempData["WebsiteScreenshot"] as string;
 }
 @*
 ============================================================================================
                         HEADER (Screenshot, URL, #of issues)
 ============================================================================================
 *@
+<!-- Auto-launch Modal -->
+<div class="modal fade" id="onLoadModal" tabindex="-1" aria-labelledby="onLoadModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content shadow-lg rounded-4">
+      <div class="modal-header">
+        <h5 class="modal-title" id="onLoadModalLabel">Your AI-Generated Report Summary</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <p>We've analyzed your site and generated design suggestions.</p>
+        <p id="summary">@Model.Summary</p>
+        <p class="mb-0"><strong>Tip:</strong> You can click any issue to expand and learn more.</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-primary" data-bs-dismiss="modal" id="letsgo">Let’s Go</button>
+      </div>
+    </div>
+  </div>
+</div>
 
 <div class="container">
     <div class="row headerRow">
         <div class="col-md-6">
-            <img id="screenshotImage" src="@firstScreenshot " alt="Screenshot of the given website" class="img-fluid" />
+            <img id="screenshotImage" src="@websiteScreenshot " alt="Website Screenshot" class="img-fluid" />
         </div>
         <div class="col-md-6">
             @* Display the URL associated with the report *@
@@ -35,7 +54,6 @@
             </select>
         </div>
     </div>
-
 
 @*
 ============================================================================================
@@ -73,7 +91,17 @@
             <h3 class="section-header mb-4">Accessibility Issues</h3>
             <div id="accessibilityIssuesContainer">
                 @* Partial view rendering accessibility issues *@
-                @await Html.PartialAsync("_AccessibilityIssuesPartial", Model.AccessibilityIssues)
+                @if (Model.AccessibilityIssues == null || !Model.AccessibilityIssues.Any())
+                {
+                    <div class="alert alert-primary" role="alert">
+                        <strong>Way to go! Your site is <span class="alert-link"><a href="https://www.w3.org/TR/WCAG21/" target="_blank" rel="noopener noreferrer" style="none">WCAG</a></span>-approved and accessible to all.</strong>
+                    </div>
+                }
+                else
+                {
+                    @await Html.PartialAsync("_AccessibilityIssuesPartial", Model.AccessibilityIssues)
+                }
+
             </div>
         </div>
     </div>
@@ -90,6 +118,12 @@
 
 </div> @* End tag for #reportContainer *@
 </div> @*End tag for .container *@
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const modal = new bootstrap.Modal(document.getElementById('onLoadModal'));
+    modal.show();
+  });
+</script>
 
 @section Scripts {
     <script src="~/js/reportResults.js"></script>

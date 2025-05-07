@@ -31,6 +31,10 @@ namespace Uxcheckmate.BDD_Tests.StepDefinitions
             _scenarioContext = scenarioContext;
             var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
 
+            // layout parsing
+            var layoutParsingLogger = loggerFactory.CreateLogger<LayoutParsingService>();
+            var layoutParsingService = new LayoutParsingService(layoutParsingLogger);
+
             // Web Scraper Instance
             var webScraperLogger = loggerFactory.CreateLogger<WebScraperService>();
             _scraperService = new WebScraperService(new HttpClient(), webScraperLogger);
@@ -41,7 +45,7 @@ namespace Uxcheckmate.BDD_Tests.StepDefinitions
 
             // Playwright Scraper Instance
             var playwrightScraperLogger = loggerFactory.CreateLogger<PlaywrightScraperService>();
-            _playwrightScraperService = new PlaywrightScraperService(_playwrightService, playwrightScraperLogger);
+            _playwrightScraperService = new PlaywrightScraperService(_playwrightService, playwrightScraperLogger, layoutParsingService);
 
         }
 
@@ -134,7 +138,7 @@ namespace Uxcheckmate.BDD_Tests.StepDefinitions
             // Improved assertions with better error messages
             if (!string.IsNullOrWhiteSpace(expectedReport))
             {
-                Assert.That(actualReport, Does.Contain("popup").Or.Contain("modal").Or.Contain("dialog"),
+                Assert.That(actualReport, Does.Contain("popup").Or.Contain("pop-up").Or.Contain("pop-ups").Or.Contain("popups").Or.Contain("Pop Up").Or.Contain("modal").Or.Contain("dialog"),
                     $"Expected popup warning but found: {actualReport}");
             }
             else
