@@ -202,7 +202,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                         <button class="btn btn-secondary btn-sm" onclick="viewReportDetails(${r.id})">View Report</button>
                                     </div>
                                     <div class="col-sm">
-                                        <button class="btn btn-primary btn-sm">Export to Jira</button>    
+                                        <button class="btn btn-primary btn-sm" onclick="sendToJira(${r.id})>Export to Jira</button>    
                                     </div>
                                     <div class="col-sm">
                                         <button class="btn btn-danger btn-sm deleteReportbtn" onclick="deleteReport(${r.id})">Delete</button>
@@ -219,6 +219,67 @@ document.addEventListener('DOMContentLoaded', () => {
         container.appendChild(folderDiv);
     }
 });
+
+// Function to send a report to Jira via the backend
+function sendToJira(reportId) {
+    // Find the report from the groupedReports object
+    const report = findReportById(reportId);
+    if (!report) {
+        console.error('Report not found:', reportId);
+        alert('Unable to find report.');
+        return;
+    }
+
+    // Confirm the action with the user
+    if (!confirm(`Are you sure you want to export Report ID ${reportId} to Jira?`)) {
+        return;
+    }
+
+    // Get the button element to provide visual feedback
+    const sendButton = document.querySelector(`#report-${reportId} button.sendToJiraButton`);
+    if (sendButton) {
+        // Disable the button to prevent double clicks
+        sendButton.disabled = true;         
+        // Change button text to indicate action         
+        sendButton.textContent = "Sending...";       
+    }
+
+    // Send a POST request to the backend endpoint
+    fetch(`/Jira/ExportReportToJira?reportId=${reportId}`, {
+        method: 'POST',
+        headers: {
+            'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value 
+        }
+    })
+    .then(response => {
+        // Re-enable the button and restore text once the request completes
+        if (sendButton) {
+            sendButton.disabled = false;
+            sendButton.textContent = "Send to Jira";
+        }
+
+        // If the export succeeded
+        if (response.ok) {
+            alert(`Report ${reportId} successfully exported to Jira!`);
+        } 
+        // If the export failed
+        else {
+            response.text().then(text => {
+                console.error('Failed to send report to Jira:', text);
+                alert(`Failed to send report to Jira. (${response.status})`);
+            });
+        }
+    })
+    // If a network or unexpected error occurred
+    .catch(error => {
+        if (sendButton) {
+            sendButton.disabled = false;
+            sendButton.textContent = "Send to Jira";
+        }
+        console.error('Error sending report to Jira:', error);
+        alert('An error occurred while sending the report to Jira.');
+    });
+}
 
 // Toggle function to show/hide reports inside a folder
 function toggleReports(domain) {
