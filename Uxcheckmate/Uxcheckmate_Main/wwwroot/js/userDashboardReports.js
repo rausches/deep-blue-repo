@@ -189,6 +189,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                 <div class="col-sm">Report ID</div>
                                 <div class="col-sm">Date</div>
                                 <div class="col-sm">Actions</div>
+                                <div class="col-sm">Export</div>
                                 <div class="col-sm">Delete</div>
                             </div>
     
@@ -199,6 +200,9 @@ document.addEventListener('DOMContentLoaded', () => {
                                     <div class="col-sm">${formattedDate(r.date)}</div>
                                     <div class="col-sm">
                                         <button class="btn btn-secondary btn-sm" onclick="viewReportDetails(${r.id})">View Report</button>
+                                    </div>
+                                    <div class="col-sm">
+                                        <button class="btn btn-primary btn-sm">Export to Jira</button>    
                                     </div>
                                     <div class="col-sm">
                                         <button class="btn btn-danger btn-sm deleteReportbtn" onclick="deleteReport(${r.id})">Delete</button>
