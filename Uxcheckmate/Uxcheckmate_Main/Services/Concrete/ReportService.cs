@@ -55,17 +55,20 @@ namespace Uxcheckmate_Main.Services
 
         public async Task<ICollection<DesignIssue>> GenerateReportAsync(Report report, CancellationToken cancellationToken)
         {
+            // Initialize url to report attribute
             var url = report.Url;
             _logger.LogInformation("Starting report generation for URL: {Url}", url);
 
             var scanResults = new ConcurrentBag<DesignIssue>();
 
+            // If there is no url throw an exception
             if (string.IsNullOrEmpty(url))
             {
                 _logger.LogError("URL is null or empty.");
                 throw new ArgumentException("URL cannot be empty.", nameof(url));
             }
-
+            
+            // Scrape site
             ScrapedContent fullScraped;
             Dictionary<string, object> scrapedData;
 
@@ -89,7 +92,8 @@ namespace Uxcheckmate_Main.Services
 
             try
             {
-                designCategories = await _dbContext.DesignCategories.ToListAsync(cancellationToken);
+                // Get list of design categories
+                designCategories = await _dbContext.DesignCategories.ToListAsync();
                 _logger.LogInformation("Found {Count} design categories.", designCategories.Count);
             }
             catch (Exception ex)
@@ -98,15 +102,15 @@ namespace Uxcheckmate_Main.Services
                 return scanResults.ToList();
             }
 
+            // Run analysis for each category in parallel
             await Parallel.ForEachAsync(
                 designCategories,
-                new ParallelOptions
+                new ParallelOptions { MaxDegreeOfParallelism = 4},
+                async (category, cancellationToken) =>
                 {
-                    MaxDegreeOfParallelism = 4,
-                    CancellationToken = cancellationToken
-                },
-                async (category, ct) =>
-                {
+                    _logger.LogInformation("Analyzing category: {CategoryName} using scan method: {ScanMethod}", category.Name, category.ScanMethod);
+
+                    string message;
                     try
                     {
                         using var scope = _scopeFactory.CreateScope();
@@ -114,7 +118,7 @@ namespace Uxcheckmate_Main.Services
 
                         _logger.LogInformation("Analyzing category: {CategoryName} using scan method: {ScanMethod}", category.Name, category.ScanMethod);
 
-                        string message = category.ScanMethod switch
+                        message = category.ScanMethod switch
                         {
                             "OpenAI" => await _openAiService.AnalyzeWithOpenAI(url, category.Name, category.Description, scrapedData),
                             "Custom" => await RunCustomAnalysisAsync(url, category.Name, category.Description, scrapedData, fullScraped),
@@ -132,7 +136,7 @@ namespace Uxcheckmate_Main.Services
                             };
 
                             scopedDbContext.DesignIssues.Add(designIssue);
-                            await scopedDbContext.SaveChangesAsync(ct);
+                            await scopedDbContext.SaveChangesAsync(cancellationToken);
                             scanResults.Add(designIssue);
                         }
                     }
@@ -142,11 +146,34 @@ namespace Uxcheckmate_Main.Services
                     }
                     catch (Exception ex)
                     {
-                        _logger.LogError(ex, "Error analyzing category {CategoryName}", category.Name);
+                        _logger.LogError(ex, "Error analyzing category {CategoryName}: {ErrorMessage}", category.Name, ex.Message);
+                        message = "";
                     }
+
+                    // Connect service response to dbset attributes
+                 /*   if (!string.IsNullOrEmpty(message))
+                    {
+                        var designIssue = new DesignIssue
+                        {
+                            CategoryId = category.Id,
+                            ReportId = report.Id,
+                            Message = message,
+                            Severity = DetermineSeverity(message)
+                        };
+
+                        // Add to results collection
+                        scanResults.Add(designIssue);
+                        _logger.LogInformation("Design issue added for category {CategoryName} with severity {Severity}.", category.Name, designIssue.Severity);
+                    }
+                    else
+                    {
+                        _logger.LogInformation("No issues found for category: {CategoryName}", category.Name);
+                    }*/
                 });
 
-          /*try
+            /* SAVE TOKENS COMMENT OUT OPEN AI */
+
+            /*try
             {
                 var summaryText = await _openAiService.GenerateReportSummaryAsync(scanResults.ToList(), fullScraped.HtmlContent, url, cancellationToken);
                 report.Summary = summaryText;
@@ -187,52 +214,25 @@ namespace Uxcheckmate_Main.Services
         public async Task<string> RunCustomAnalysisAsync(string url, string categoryName, string categoryDescription, Dictionary<string, object> scrapedData, ScrapedContent fullScraped)
         {
             _logger.LogInformation("Running custom analysis for category: {CategoryName}", categoryName);
-            byte[] screenshotBytes;
-            try
+            Task<byte[]> screenshotTask = _screenshotService?.CaptureFullPageScreenshot(url) ?? Task.FromResult(new byte[0]);
+
+            string message = categoryName switch
             {
-                screenshotBytes = _screenshotService != null 
-                    ? await _screenshotService.CaptureFullPageScreenshot(url)
-                    : Array.Empty<byte>();
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Screenshot capture failed during custom analysis.");
-                screenshotBytes = Array.Empty<byte>();
-            }
-
-
-
-        string message = "";
-
-        try
-        {
-            message = categoryName switch
-            {
-                "Broken Links" => await _brokenLinksService.BrokenLinkAnalysis(url, scrapedData),
-                "Visual Hierarchy" => await _headingHierarchyService.AnalyzeAsync(scrapedData),
-                "Color Scheme" => await _colorSchemeService.AnalyzeWebsiteColorsAsync(scrapedData, Task.FromResult(screenshotBytes)),
+                "Broken Links"          => await _brokenLinksService.BrokenLinkAnalysis(url, scrapedData),
+                "Visual Hierarchy"      => await _headingHierarchyService.AnalyzeAsync(scrapedData),
+                "Color Scheme"          => await _colorSchemeService.AnalyzeWebsiteColorsAsync(scrapedData, screenshotTask),
                 "Mobile Responsiveness" => await _mobileResponsivenessService.RunMobileAnalysisAsync(url, scrapedData),
-                "Favicon" => await AnalyzeFaviconAsync(url, scrapedData),
-                "Font Legibility" => await AnalyzeFontLegibilityAsync(url, scrapedData),
-                "Pop Ups" => await _popUpsService.RunPopupAnalysisAsync(url, scrapedData),
-                "Animations" => await _animationService.RunAnimationAnalysisAsync(url, scrapedData),
-                "Audio" => await _audioService.RunAudioAnalysisAsync(url, scrapedData),
-                "Number of scrolls" => await _scrollService.RunScrollAnalysisAsync(url, scrapedData),
-                "F Pattern" => await _fPatternService.AnalyzeFPatternAsync(fullScraped.ViewportWidth, fullScraped.ViewportHeight, fullScraped.LayoutElements),
-                "Z Pattern" => await _zPatternService.AnalyzeZPatternAsync(fullScraped.ViewportWidth, fullScraped.ViewportHeight, fullScraped.LayoutElements),
-                "Symmetry" => await _symmetryService.AnalyzeSymmetryAsync(fullScraped.ViewportWidth, fullScraped.ViewportHeight, fullScraped.LayoutElements),
+                "Favicon"               => await AnalyzeFaviconAsync(url, scrapedData),
+                "Font Legibility"       => await AnalyzeFontLegibilityAsync(url, scrapedData),
+                "Pop Ups"               => await _popUpsService.RunPopupAnalysisAsync(url, scrapedData),
+                "Animations"            => await _animationService.RunAnimationAnalysisAsync(url, scrapedData),
+                "Audio"                 => await _audioService.RunAudioAnalysisAsync(url, scrapedData),
+                "Number of scrolls"     => await _scrollService.RunScrollAnalysisAsync(url, scrapedData),
+                "F Pattern"             => await _fPatternService.AnalyzeFPatternAsync(fullScraped.ViewportWidth, fullScraped.ViewportHeight, fullScraped.LayoutElements),
+                "Z Pattern"             => await _zPatternService.AnalyzeZPatternAsync(fullScraped.ViewportWidth, fullScraped.ViewportHeight, fullScraped.LayoutElements),
+                "Symmetry"              => await _symmetryService.AnalyzeSymmetryAsync(fullScraped.ViewportWidth, fullScraped.ViewportHeight, fullScraped.LayoutElements),
                 _ => ""
             };
-        }
-        catch (OperationCanceledException)
-        {
-            _logger.LogWarning("Custom analysis for category {CategoryName} was cancelled.", categoryName);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error during custom analysis for category {CategoryName}.", categoryName);
-            message = "An error occurred during analysis, please try again"; // Important! Return empty so it doesn't try to save a broken issue
-        }
 
             /* SAVE TOKENS COMMENT OUT OPEN AI */
 
@@ -263,6 +263,7 @@ namespace Uxcheckmate_Main.Services
             _logger.LogDebug("Dynamic sizing elements are present. No recommendations needed.");
             return string.Empty;
         }*/
+
         private async Task<string> AnalyzeFaviconAsync(string url, Dictionary<string, object> scrapedData)
         {
             bool hasFavicon = scrapedData.TryGetValue("hasFavicon", out var hasFaviconObj) && hasFaviconObj is bool value && value;
@@ -276,6 +277,7 @@ namespace Uxcheckmate_Main.Services
             _logger.LogInformation("✅ Favicon detected for URL: {Url}", url);
             return string.Empty;
         }
+
         private async Task<string> AnalyzeFontLegibilityAsync(string url, Dictionary<string, object> scrapedData)
         {
             if (scrapedData.TryGetValue("fonts", out var fontsObj) && fontsObj is List<string> fontsUsed)
@@ -325,6 +327,7 @@ namespace Uxcheckmate_Main.Services
                 return "No fonts were detected on this website. Ensure that text elements specify a font-family.";
             }
         }
+
         private int DetermineSeverity(string aiText)
         {
             _logger.LogDebug("Determining severity for analysis text.");

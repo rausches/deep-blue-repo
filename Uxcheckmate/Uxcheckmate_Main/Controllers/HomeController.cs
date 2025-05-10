@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.Mvc.ViewEngines;
 
+
 namespace Uxcheckmate_Main.Controllers;
 
 public class HomeController : Controller
@@ -73,25 +74,22 @@ public class HomeController : Controller
                 ModelState.AddModelError("url", "URL cannot be empty.");
                 return View("Index");
             }
+                // Normalize the URL *before* checking if it's reachable
+                url = NormalizeUrl(url);
 
-            // Normalize the URL *before* checking if it's reachable
-            url = NormalizeUrl(url);
-
-            if (!await IsUrlReachable(url, cancellationToken))
+            if (!await IsUrlReachable(url))
             {
                 TempData["UrlUnreachable"] = "The URL you entered seems incorrect or no longer exists. Please try again.";
                 return RedirectToAction("Index");
             }
 
             var websiteScreenshot = await CaptureScreenshot(url, cancellationToken);
-
             if (string.IsNullOrEmpty(websiteScreenshot ))
             {
                 _logger.LogError("Failed to capture screenshot for URL: {Url}", url);
                 ModelState.AddModelError("", "An error occurred while capturing the screenshot.");
                 return View("Index");
             }
-            
             TempData["WebsiteScreenshot"] = websiteScreenshot;
 
             // Check if the user is authenticated and get the user ID
@@ -111,20 +109,21 @@ public class HomeController : Controller
             _context.Reports.Add(report);
             await _context.SaveChangesAsync(cancellationToken);
 
-            // Run accessibility analysis
+            // Run accessibility and design analysis
             var accessibilityIssues = await _axeCoreService.AnalyzeAndSaveAccessibilityReport(report, cancellationToken);
 
             // Attach results, and set Processing status
             report.AccessibilityIssues = accessibilityIssues.ToList();
             report.Status = "Processing"; 
-            await _context.SaveChangesAsync(cancellationToken); 
+            await _context.SaveChangesAsync(cancellationToken);
+
+        // var designIssues = await _reportService.GenerateReportAsync(report);
 
             // Queue background design work
             await _backgroundTaskQueue.QueueBackgroundWorkItemAsync(async token =>
             {
                 try
                 {
-                    // Create a new scoped service provider for dependency injection
                     using var scope = _scopeFactory.CreateScope();
 
                     // Retrieve a scoped instance of the database context
@@ -133,7 +132,7 @@ public class HomeController : Controller
                     // Retrieve a scoped instance of the report service
                     var scopedReportService = scope.ServiceProvider.GetRequiredService<IReportService>();
 
-                    // Generate the design issues by analyzing the report
+                    // Generate the design issues
                     var designIssues = await scopedReportService.GenerateReportAsync(report, token);
 
                     // Retrieve the most up-to-date version of the report from the database
@@ -164,7 +163,7 @@ public class HomeController : Controller
             });
 
             // Fetch the full report inclunding related issues and categories
-        /* if (string.IsNullOrEmpty(userId)){
+        /*  if (string.IsNullOrEmpty(userId)){
                 report.AccessibilityIssues = accessibilityIssues.ToList();
                 report.DesignIssues = designIssues.ToList();
                 foreach (var issue in report.AccessibilityIssues){
@@ -173,9 +172,9 @@ public class HomeController : Controller
                 foreach (var issue in report.DesignIssues){
                     issue.Category = await _context.DesignCategories.FindAsync(issue.CategoryId);
                 }
-            }*/
+            }
             // Fetch the report from the database to include related issues and categories
-        /*  Report fullReport;
+            Report fullReport;
             if (!string.IsNullOrEmpty(userId)){
             // Fetch the full report including related issues and categories
             fullReport = await _context.Reports
@@ -191,7 +190,6 @@ public class HomeController : Controller
                 .Include(r => r.AccessibilityIssues).ThenInclude(a => a.Category)
                 .Include(r => r.DesignIssues).ThenInclude(d => d.Category)
                 .FirstOrDefaultAsync(r => r.Id == report.Id);
-
             // Handle the case where the report could not be fetched
             if (fullReport == null)
             {
@@ -208,7 +206,6 @@ public class HomeController : Controller
 
             // Add to TempData for PDF Printing when not logged in
             StoreReportInTempData(report);
-
             // If the request is an AJAX call, return the partial view
             if (isAjax)
             {
@@ -416,18 +413,15 @@ public class HomeController : Controller
         return url.TrimEnd('/');
     }
 
-    private async Task<bool> IsUrlReachable(string url, CancellationToken cancellationToken = default)
+    private async Task<bool> IsUrlReachable(string url)
     {
         try
         {
-            using var httpClient = new HttpClient
-            {
-                Timeout = TimeSpan.FromSeconds(30)
-            };
+            using var httpClient = new HttpClient();
             var request = new HttpRequestMessage(HttpMethod.Get, url);
             _logger.LogInformation("Request Headers: {Headers}", request.Headers);
 
-            var response = await httpClient.SendAsync(request, cancellationToken);
+            var response = await httpClient.SendAsync(request);
             _logger.LogInformation("Response Headers: {Headers}", response.Headers);
 
             return response.IsSuccessStatusCode;
@@ -435,7 +429,6 @@ public class HomeController : Controller
         catch (HttpRequestException ex)
         {
             _logger.LogError(ex, "The URL is unreachable: {Url}", url);
-            TempData["UrlUnreachable"] = "That URL is unreachable at this time. Please try again.";
             return false;
         }
     }
@@ -501,8 +494,7 @@ public class HomeController : Controller
         return report;
     }
 
-    [HttpGet]
-    [ResponseCache(NoStore = true, Duration = 0, Location = ResponseCacheLocation.None)]
+
     private void SortReportIssues(Report report, string sortOrder)
     {
         report.DesignIssues = sortOrder switch
