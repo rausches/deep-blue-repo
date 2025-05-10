@@ -19,7 +19,7 @@ namespace Uxcheckmate_Main.Services
             _playwrightService = playwrightService;
         }
 
-        public virtual async Task<ICollection<AccessibilityIssue>> AnalyzeAndSaveAccessibilityReport(Report report)
+        public virtual async Task<ICollection<AccessibilityIssue>> AnalyzeAndSaveAccessibilityReport(Report report, CancellationToken cancellationToken = default)
         {
             var issues = new List<AccessibilityIssue>();
 

@@ -7,6 +7,7 @@ using System.Net.Http;
 using Uxcheckmate_Main.Controllers;
 using Uxcheckmate_Main.Models;
 using Uxcheckmate_Main.Services;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Moq_Tests;
 public static class TestBuilder
@@ -36,11 +37,14 @@ public static class TestBuilder
                 new Mock<IScrollService>().Object,
                 new Mock<IFPatternService>().Object,
                 new Mock<IZPatternService>().Object,
-                new Mock<ISymmetryService>().Object
+                new Mock<ISymmetryService>().Object,
+                new Mock<IServiceScopeFactory>().Object
             ),
             new Mock<PdfExportService>().Object,
             new Mock<IScreenshotService>().Object,
-            new Mock<IViewRenderService>().Object
+            new Mock<IViewRenderService>().Object,
+            new Mock<IBackgroundTaskQueue>().Object,
+            new Mock<IServiceScopeFactory>().Object
         )
         {
             ControllerContext = new ControllerContext
