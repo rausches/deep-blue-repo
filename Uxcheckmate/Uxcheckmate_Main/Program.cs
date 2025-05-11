@@ -46,21 +46,26 @@ public class Program
                 .AddRoles<IdentityRole>()
                 .AddEntityFrameworkStores<AuthDbContext>();
 
+        builder.Services.AddSession(options =>
+        {
+            options.IdleTimeout = TimeSpan.FromMinutes(30);
+            options.Cookie.HttpOnly = true;
+            options.Cookie.IsEssential = true;
+        });
 
-
-            builder.Services.AddHttpClient<IOpenAiService, OpenAiService>((httpClient, services) =>
-            {
-                string openAiUrl = "https://api.openai.com/v1/chat/completions";
-                string openAiApiKey = builder.Configuration["OpenAiApiKey"];
-                httpClient.BaseAddress = new Uri(openAiUrl);          
-                httpClient.DefaultRequestHeaders.Add("Accept", "application/json");
-                httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", openAiApiKey);
-            
-                return new OpenAiService(
-                    httpClient,
-                    services.GetRequiredService<ILogger<OpenAiService>>()
-                );
-            });
+        builder.Services.AddHttpClient<IOpenAiService, OpenAiService>((httpClient, services) =>
+        {
+            string openAiUrl = "https://api.openai.com/v1/chat/completions";
+            string openAiApiKey = builder.Configuration["OpenAiApiKey"];
+            httpClient.BaseAddress = new Uri(openAiUrl);          
+            httpClient.DefaultRequestHeaders.Add("Accept", "application/json");
+            httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", openAiApiKey);
+        
+            return new OpenAiService(
+                httpClient,
+                services.GetRequiredService<ILogger<OpenAiService>>()
+            );
+        });
 
         builder.Services.AddHostedService<ReportCleanupService>();
 
@@ -106,7 +111,9 @@ public class Program
         builder.Services.AddScoped<ISymmetryService, SymmetryService>();
         builder.Services.AddSingleton<IBackgroundTaskQueue, BackgroundTaskQueue>();
         builder.Services.AddHostedService<QueueService>();
-
+        builder.Services.AddScoped<IJiraService, JiraService>();
+        builder.Services.Configure<JiraSettings>(builder.Configuration.GetSection("Jira"));
+        builder.Services.AddHttpClient<IJiraService, JiraService>();
 
         var app = builder.Build();
 
@@ -131,6 +138,7 @@ public class Program
         app.UseStaticFiles();  // Ensure static files (CSS, JS, images) are served
 
         app.UseRouting();
+        app.UseSession();
         app.UseAuthentication();
         app.UseAuthorization();
         // Map default route
