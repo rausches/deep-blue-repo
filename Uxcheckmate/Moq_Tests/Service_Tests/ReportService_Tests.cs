@@ -8,7 +8,6 @@ using Microsoft.Extensions.Logging;
 using Microsoft.EntityFrameworkCore;
 using Uxcheckmate_Main.Models;
 using Uxcheckmate_Main.Services;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace Service_Tests
 {
@@ -33,8 +32,6 @@ namespace Service_Tests
         private Mock<IZPatternService> _zPatternServiceMock;
         private Mock<ISymmetryService> _symmetryServiceMock;
         private ScrapedContent _mockScrapedContent;
-        private Mock<IServiceScopeFactory> _scopeFactoryMock;
-
  // await _reportService.RunCustomAnalysisAsync("url", "Color Scheme", "description", new Dictionary<string, object>());
         [SetUp]
         public void Setup()
@@ -79,14 +76,12 @@ namespace Service_Tests
             _fPatternServiceMock = new Mock<IFPatternService>();
             _zPatternServiceMock = new Mock<IZPatternService>();
             _symmetryServiceMock = new Mock<ISymmetryService>();
-            _scopeFactoryMock = new Mock<IServiceScopeFactory>();
-
 
 
 
             // Setup default playwright scraper response
             _playwrightScraperServiceMock
-                .Setup(s => s.ScrapeEverythingAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .Setup(s => s.ScrapeEverythingAsync(It.IsAny<string>()))
                 .ReturnsAsync(new ScrapedContent
                 {
                     Url = "https://example.com",
@@ -132,8 +127,7 @@ namespace Service_Tests
                 _scrollServiceMock.Object,
                 _fPatternServiceMock.Object,
                 _zPatternServiceMock.Object,
-                _symmetryServiceMock.Object,
-                _scopeFactoryMock.Object 
+                _symmetryServiceMock.Object
             );
         }
 
@@ -152,13 +146,13 @@ namespace Service_Tests
                 .ReturnsAsync(""); // No issues
 
             // Act
-            var result = await _reportService.GenerateReportAsync(report, It.IsAny<CancellationToken>());
+            var result = await _reportService.GenerateReportAsync(report);
 
             // Assert
             Assert.That(result, Is.Empty);
         }
 
-     /*   [Test]
+    /*    [Test]
         public async Task GenerateReportAsync_Returns_Issue_If_Issue_Found()
         {
             // Arrange
@@ -173,14 +167,33 @@ namespace Service_Tests
                 .ReturnsAsync("Issue Found");
 
             // Act
-            var result = await _reportService.GenerateReportAsync(report, CancellationToken.None);
+            var result = await _reportService.GenerateReportAsync(report);
 
             // Assert
             Assert.That(result, Is.Not.Null);
             Assert.That(result.Count, Is.EqualTo(1));
             Assert.That(result.First().Message, Is.EqualTo("Issue Found"));
+        }*/
+
+        [Test]
+        public async Task GenerateReportAsync_Calls_OpenAI_When_ScanMethod_Is_OpenAI()
+        {
+            // Arrange
+            var report = new Report { Url = "https://example.com" };
+
+            _openAiServiceMock
+                .Setup(s => s.AnalyzeWithOpenAI(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<Dictionary<string, object>>()))
+                .ReturnsAsync("AI-generated issue");
+
+            // Act
+            await _reportService.GenerateReportAsync(report);
+
+            // Assert
+            _openAiServiceMock.Verify(
+                s => s.AnalyzeWithOpenAI(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<Dictionary<string, object>>()),
+                Times.AtLeastOnce);
         }
-*/
+
         [Test]
         public async Task GenerateReportAsync_Skips_Category_With_Empty_ScanMethod()
         {
@@ -196,7 +209,7 @@ namespace Service_Tests
             var report = new Report { Url = "https://example.com" };
 
             // Act
-            var result = await _reportService.GenerateReportAsync(report, It.IsAny<CancellationToken>());
+            var result = await _reportService.GenerateReportAsync(report);
 
             // Assert
             Assert.That(result, Is.Not.Null);
@@ -259,3 +272,5 @@ namespace Service_Tests
 
     }
 }
+
+

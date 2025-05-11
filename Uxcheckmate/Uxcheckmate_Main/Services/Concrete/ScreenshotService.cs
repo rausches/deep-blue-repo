@@ -22,7 +22,7 @@ namespace Uxcheckmate_Main.Services
 
         // PageScreenshotOptions is a class in Playwright that allows you to specify options for taking a screenshot of a page.
         // The options include the full page, the quality of the image, the type of image, and the path to save the image.
-        public async Task<string> CaptureScreenshot(PageScreenshotOptions screenshotOptions, string url, CancellationToken cancellationToken = default)
+        public async Task<string> CaptureScreenshot(PageScreenshotOptions screenshotOptions, string url)
         {
             // Check if the URL is empty or null
             if (string.IsNullOrWhiteSpace(url))
