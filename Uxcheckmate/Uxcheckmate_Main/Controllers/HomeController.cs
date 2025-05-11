@@ -477,7 +477,7 @@ public class HomeController : Controller
                 _context.DesignIssues.RemoveRange(existingReport.DesignIssues);
                 _context.Reports.Remove(existingReport);
 
-                _context.Entry(existingReport).State = EntityState.Detached;
+              //  _context.Entry(existingReport).State = EntityState.Detached;
                 _logger.LogInformation("Old report for user {UserId} and URL {Url} removed.", userId, url);
             }
         }
