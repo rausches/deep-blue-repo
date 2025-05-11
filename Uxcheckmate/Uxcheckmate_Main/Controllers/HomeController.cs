@@ -101,32 +101,6 @@ public class HomeController : Controller
 
         // Run accessibility and design analysis
         var accessibilityIssues = await _axeCoreService.AnalyzeAndSaveAccessibilityReport(report);
-        var designIssues = await _reportService.GenerateReportAsync(report, CancellationToken.None);
-
-        // Fetch the full report inclunding related issues and categories
-        if (string.IsNullOrEmpty(userId)){
-            report.AccessibilityIssues = accessibilityIssues.ToList();
-            report.DesignIssues = designIssues.ToList();
-            foreach (var issue in report.AccessibilityIssues){
-                issue.Category = await _context.AccessibilityCategories.FindAsync(issue.CategoryId);
-            }
-            foreach (var issue in report.DesignIssues){
-                issue.Category = await _context.DesignCategories.FindAsync(issue.CategoryId);
-            }
-        }
-        // Fetch the report from the database to include related issues and categories
-        Report fullReport;
-        if (!string.IsNullOrEmpty(userId)){
-        // Fetch the full report including related issues and categories
-        fullReport = await _context.Reports
-            .Include(r => r.AccessibilityIssues).ThenInclude(a => a.Category)
-            .Include(r => r.DesignIssues).ThenInclude(d => d.Category)
-            .FirstOrDefaultAsync(r => r.Id == report.Id);
-        }else{
-            fullReport = report;
-        }
-        // Run accessibility and design analysis
-        var accessibilityIssues = await _axeCoreService.AnalyzeAndSaveAccessibilityReport(report);
         var designIssues = await _reportService.GenerateReportAsync(report);
 
         // Fetch the full report inclunding related issues and categories
