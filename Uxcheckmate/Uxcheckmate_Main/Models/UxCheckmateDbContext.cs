@@ -26,8 +26,8 @@ public partial class UxCheckmateDbContext : DbContext
     public virtual DbSet<DesignIssue> DesignIssues { get; set; }
 
     public virtual DbSet<Report> Reports { get; set; }
-    public virtual DbSet<FontLegibility> FontLegibility { get; set; }
 
+    public virtual DbSet<FontLegibility> FontLegibility { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder){
             if (!optionsBuilder.IsConfigured){
@@ -112,9 +112,12 @@ public partial class UxCheckmateDbContext : DbContext
 
         OnModelCreatingPartial(modelBuilder);
     }
-
     public virtual DbSet<UserFeedback> UserFeedbacks { get; set; }
 
+    public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+    {
+        return base.SaveChangesAsync(cancellationToken);
+    }
 
     partial void OnModelCreatingPartial(ModelBuilder modelBuilder);
 }

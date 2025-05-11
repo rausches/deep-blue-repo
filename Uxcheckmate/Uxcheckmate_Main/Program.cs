@@ -62,6 +62,8 @@ public class Program
                 );
             });
 
+        builder.Services.AddHostedService<ReportCleanupService>();
+
         // Add services to the container.
         builder.Services.AddControllersWithViews();
         builder.Services.AddRazorPages();
@@ -102,6 +104,8 @@ public class Program
         builder.Services.AddScoped<IFPatternService, FPatternService>();
         builder.Services.AddScoped<IZPatternService, ZPatternService>();
         builder.Services.AddScoped<ISymmetryService, SymmetryService>();
+        builder.Services.AddSingleton<IBackgroundTaskQueue, BackgroundTaskQueue>();
+        builder.Services.AddHostedService<QueueService>();
 
 
         var app = builder.Build();
