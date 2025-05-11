@@ -1,4 +1,4 @@
-/*using NUnit.Framework;
+using NUnit.Framework;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Moq;
@@ -79,4 +79,3 @@ namespace UrlValidation_Tests
                 }
     }
 }
-*/
