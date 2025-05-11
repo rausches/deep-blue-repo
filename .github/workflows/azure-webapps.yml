@@ -77,6 +77,10 @@ jobs:
           else
             echo "❌ Browser binaries missing!" && exit 1
           fi
+
+      - name: List Playwright browsers
+        run: ls -la ~/.cache/ms-playwright
+      
       - name: Deployment
         uses: azure/webapps-deploy@v2
         with:
