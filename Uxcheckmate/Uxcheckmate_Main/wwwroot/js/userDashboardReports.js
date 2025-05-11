@@ -1,3 +1,211 @@
+/**
+ * Handles sending a report to Jira.
+ * Checks connection status, prompts user for project key, then sends export request.
+ */
+function sendToJira(reportId) {
+    fetch('/JiraAPI/IsConnected')
+        .then(response => response.json())
+        .then(data => {
+            if (!data.connected) {
+                // If not connected, start OAuth authorization flow
+                window.location.href = `/JiraAuth/Authorize?reportId=${reportId}`;
+                return;
+            }
+
+            const report = findReportById(reportId);
+            if (!report) {
+                alert("Unable to find report.");
+                return;
+            }
+
+            // Prompt user for Jira project key
+            const projectKey = prompt("Enter Jira project key to export to (e.g. MYPROJECT):");
+            if (!projectKey) {
+                alert("Export canceled. No project key provided.");
+                return;
+            }
+
+            // Optionally disable button during export (for future enhancement)
+            const sendButton = document.querySelector(`#report-${reportId} button.sendToJiraButton`);
+            if (sendButton) {
+                sendButton.disabled = true;
+                sendButton.textContent = "Sending...";
+            }
+
+            // Send export request to server
+            fetch(`/JiraAPI/ExportReportToJira?reportId=${reportId}&projectKey=${encodeURIComponent(projectKey)}`, {
+                method: 'POST'
+            })
+            .then(response => {
+                if (sendButton) {
+                    sendButton.disabled = false;
+                    sendButton.textContent = "Send to Jira";
+                }
+
+                if (response.ok) {
+                    alert(`Report ${reportId} successfully exported to Jira project ${projectKey}!`);
+                } else {
+                    response.text().then(text => {
+                        console.error('Failed to send report to Jira:', text);
+                        alert(`Failed to send report to Jira. (${response.status})`);
+                    });
+                }
+            })
+            .catch(error => {
+                if (sendButton) {
+                    sendButton.disabled = false;
+                    sendButton.textContent = "Send to Jira";
+                }
+                console.error('Error sending report to Jira:', error);
+                alert('An error occurred while sending the report to Jira.');
+            });
+        });
+}
+
+// Function to delete a report
+function deleteReport(reportId) {
+
+    fetch(`/Home/DeleteReport?reportId=${reportId}`, {
+        method: 'DELETE'
+    })
+    .then(response => {
+        if (response.ok) {
+            const reportElement = document.getElementById(`report-${reportId}`);
+            if (reportElement) {
+                reportElement.remove(); // Remove the report from the DOM
+
+                for (const domain in groupedReports) {
+                    const reportIndex = groupedReports[domain].findIndex(r => r.id === reportId);
+                    if (reportIndex !== -1) {
+                        // Remove the report from the groupedReports object
+                        groupedReports[domain].splice(reportIndex, 1);
+
+                        // Update the badge count
+                        const badge = document.querySelector(`#websiteAccordion-${domain.replace(/\W/g, '')} .badge`);
+                        if (badge) {
+                            badge.textContent = groupedReports[domain].length;
+                        }
+
+                        // If no reports remain for the domain, remove the domain card
+                        if (groupedReports[domain].length === 0) {
+                            const domainCard = document.getElementById(`websiteAccordion-${domain.replace(/\W/g, '')}`);
+                            if (domainCard) {
+                                domainCard.parentElement.remove();
+                            }
+                        }
+                        break;
+                    }
+                }
+            }
+        } else {
+            console.error('Failed to delete report:', response.statusText);
+        }
+    })
+    .catch(error => console.error('Error deleting report:', error));
+}
+
+
+// Function to format date
+function formattedDate(dateString) {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', { 
+         year: 'numeric', month: 'short', day: 'numeric' });
+}
+
+// Function to download a report as a PDF
+function downloadReport(reportId) {
+    fetch(`/Home/DownloadReport?id=${reportId}`)  
+        .then(response => response.blob())
+        .then(blob => {
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `Report_${reportId}.pdf`;  
+            link.click();  
+        })
+        .catch(error => console.error('Error downloading the report:', error));
+}
+
+// Function to view a report's details in a modal
+function viewReportDetails(reportId) {
+    const report = findReportById(reportId);
+    if (report) {
+        const modalBody = document.getElementById('reportModalBody');
+        const safeReportId = `report-${report.id}`; 
+
+        modalBody.innerHTML = `
+
+            <header class="myUserDashHeader">
+                <h1 id="reportHeader">${report.url}</h1>
+                <p>${formattedDate(report.date)}</p>
+                <a href="#" class="btn btn-secondary" onclick="downloadReport(${report.id})">Download Report</a>
+            </header>
+
+            <h3 class="mt-3 title-issues">Design Issues</h3>
+            <p class="text-subtle">${report.designIssues.length} Issues found</p>
+            ${report.designIssues.length > 0 ? `
+                <div class="accordion" id="designIssuesAccordion-${safeReportId}">
+                    ${report.designIssues.map((issue, index) => `
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="designIssueHeader-${safeReportId}-${index}">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#designIssueContent-${safeReportId}-${index}" aria-expanded="false" aria-controls="designIssueContent-${safeReportId}-${index}">
+                                    Severity: ${issue.severity}
+                                </button>
+                            </h2>
+                            <div id="designIssueContent-${safeReportId}-${index}" class="accordion-collapse collapse" aria-labelledby="designIssueHeader-${safeReportId}-${index}" data-bs-parent="#designIssuesAccordion-${safeReportId}">
+                                <div class="accordion-body">
+                                    <p><strong>Message:</strong> ${issue.message}</p>
+                                    <p><small class="text-subtle">Category: ${issue.category}</small></p>
+                                </div>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            ` : `
+                <p class="text-success">Congrats! No Design Issues</p>
+            `}
+
+            <h3 class="mt-3 title-issues">Accessibility Issues</h3>
+            <p class="text-subtle">${report.accessibilityIssues.length} Issues found</p>
+            ${report.accessibilityIssues.length > 0 ? `
+                <div class="accordion" id="accessibilityIssuesAccordion-${safeReportId}">
+                    ${report.accessibilityIssues.map((issue, index) => `
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="accessibilityIssueHeader-${safeReportId}-${index}">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#accessibilityIssueContent-${safeReportId}-${index}" aria-expanded="false" aria-controls="accessibilityIssueContent-${safeReportId}-${index}">
+                                    Severity: ${issue.severity}
+                                </button>
+                            </h2>
+                            <div id="accessibilityIssueContent-${safeReportId}-${index}" class="accordion-collapse collapse" aria-labelledby="accessibilityIssueHeader-${safeReportId}-${index}" data-bs-parent="#accessibilityIssuesAccordion-${safeReportId}">
+                                <div class="accordion-body">
+                                    <p><strong>Message:</strong> ${issue.message}</p>
+                                    <p><small class="text-subtle">Category: ${issue.category} | WCAG: ${issue.wcag}</small></p>
+                                </div>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            ` : `
+                <p class="text-success">No accessibility issues</p>
+            `}
+        `;
+
+        const modal = new bootstrap.Modal(document.getElementById('reportModal'));
+        modal.show();
+    } else {
+        console.error('Report not found:', reportId);
+    }
+}
+
+// Function to find a report by its ID
+function findReportById(id) {
+    for (const domain in groupedReports) {
+        const report = groupedReports[domain].find(r => r.id === id);
+        if (report) return report;
+    }
+    return null;
+}
+
+// Group reports by domain and dynamically load them into the dashboard
 let groupedReports = {}; 
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -75,102 +283,23 @@ document.addEventListener('DOMContentLoaded', () => {
         container.appendChild(folderDiv);
     }
 
-    // ✅ FINAL FIX: Resume export after login
+   // Automatically resume export if user was redirected back after Jira login 
     const urlParams = new URLSearchParams(window.location.search);
     const resumeReportId = urlParams.get("resumeReportId");
     if (resumeReportId) {
         sendToJira(parseInt(resumeReportId));
-        window.history.replaceState({}, document.title, window.location.pathname);
+        window.history.replaceState({}, document.title, window.location.pathname); // Clean URL
     }
 });
 
-function sendToJira(reportId) {
-    fetch('/JiraAPI/IsConnected')
-        .then(response => response.json())
-        .then(data => {
-            if (!data.connected) {
-                window.location.href = `/JiraAuth/Authorize?reportId=${reportId}`;
-                return;
-            }
-
-            const report = findReportById(reportId);
-            if (!report) {
-                alert("Unable to find report.");
-                return;
-            }
-
-            const projectKey = prompt("Enter Jira project key to export to (e.g. MYPROJECT):");
-            if (!projectKey) {
-                alert("Export canceled. No project key provided.");
-                return;
-            }
-
-            const sendButton = document.querySelector(`#report-${reportId} button.sendToJiraButton`);
-            if (sendButton) {
-                sendButton.disabled = true;
-                sendButton.textContent = "Sending...";
-            }
-
-            fetch(`/JiraAPI/ExportReportToJira?reportId=${reportId}&projectKey=${encodeURIComponent(projectKey)}`, {
-                method: 'POST'
-            })
-            .then(response => {
-                if (sendButton) {
-                    sendButton.disabled = false;
-                    sendButton.textContent = "Send to Jira";
-                }
-
-                if (response.ok) {
-                    alert(`Report ${reportId} successfully exported to Jira project ${projectKey}!`);
-                } else {
-                    response.text().then(text => {
-                        console.error('Failed to send report to Jira:', text);
-                        alert(`Failed to send report to Jira. (${response.status})`);
-                    });
-                }
-            })
-            .catch(error => {
-                if (sendButton) {
-                    sendButton.disabled = false;
-                    sendButton.textContent = "Send to Jira";
-                }
-                console.error('Error sending report to Jira:', error);
-                alert('An error occurred while sending the report to Jira.');
-            });
-        });
+// Toggle function to show/hide reports inside a folder
+function toggleReports(domain) {
+    const list = document.getElementById(`reports-${domain}`);
+    list.style.display = (list.style.display === 'none') ? 'block' : 'none';
 }
 
-function findReportById(reportId) {
-    for (const domain in groupedReports) {
-        const report = groupedReports[domain].find(r => r.id === parseInt(reportId));
-        if (report) return report;
-    }
-    return null;
-}
-
-// Your existing functions:
-function formattedDate(dateStr) {
-    const date = new Date(dateStr);
-    return date.toLocaleDateString();
-}
-
-function deleteReport(reportId) {
-    if (!confirm("Are you sure you want to delete this report?")) return;
-
-    fetch(`/Reports/Delete/${reportId}`, {
-        method: 'DELETE'
-    })
-    .then(response => {
-        if (response.ok) {
-            const reportElement = document.getElementById(`report-${reportId}`);
-            if (reportElement) reportElement.remove();
-        } else {
-            alert("Failed to delete report.");
-        }
-    })
-    .catch(error => console.error("Error deleting report:", error));
-}
-
-function viewReportDetails(reportId) {
-    window.location.href = `/Reports/Details/${reportId}`;
+// Export the functions for testing purposes
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = { deleteReport, formattedDate, downloadReport, viewReportDetails, findReportById };
+    module.exports.groupedReports = groupedReports; // Export the groupedReports object for testing
 }
