@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
@@ -24,7 +24,7 @@ public partial class Report
     [Column("UserID")]
     public string? UserID { get; set; }
 
-    public string Status { get; set; } = "Pending";
+    public string? Status { get; set; } = "Pending";
 
     [Column("CreatedAt")]
     public DateTime? CreatedAt { get; set; } = DateTime.UtcNow;
