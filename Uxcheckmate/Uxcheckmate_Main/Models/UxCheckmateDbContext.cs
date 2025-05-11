@@ -113,5 +113,8 @@ public partial class UxCheckmateDbContext : DbContext
         OnModelCreatingPartial(modelBuilder);
     }
 
+    public virtual DbSet<UserFeedback> UserFeedbacks { get; set; }
+
+
     partial void OnModelCreatingPartial(ModelBuilder modelBuilder);
 }

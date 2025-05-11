@@ -7,6 +7,7 @@ using System.Text.Json;
 using System.Diagnostics;
 using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
+using System.Text.RegularExpressions;
 using Microsoft.Playwright;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -190,6 +191,33 @@ public class HomeController : Controller
         }).ToList();
         return View(reportDTOs);
     }
+
+    [Authorize] // Need to be logged in to submit feedback
+    public async Task<IActionResult> UserFeedback(){
+        return View();
+    }
+
+    [Authorize]
+    [HttpPost]
+    public async Task<IActionResult> SubmitFeedback(UserFeedback feedback)
+    {
+        if (string.IsNullOrWhiteSpace(feedback.Message)){
+            ModelState.AddModelError("", "Feedback cannot be empty.");
+            return View("Feedback");
+        }
+        var isValid = Regex.IsMatch(feedback.Message, @"^[a-zA-Z0-9\s.,?!'""\-\(\)\[\]@]*$");
+        if (!isValid){
+            ModelState.AddModelError("", "Feedback contains invalid characters.");
+            return View("Feedback");
+        }
+        feedback.UserID = User.Identity?.Name; 
+        feedback.DateSubmitted = DateTime.UtcNow;
+        _context.UserFeedbacks.Add(feedback);
+        await _context.SaveChangesAsync();
+        TempData["Success"] = "Feedback submitted!";
+        return RedirectToAction("Feedback");
+    }
+
 
     [HttpGet]
     public async Task<IActionResult> DownloadReport(int id = 0)
