@@ -319,10 +319,6 @@ namespace Uxcheckmate_Main.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<DateTime?>("CreatedAt")
-                        .HasColumnType("datetime2")
-                        .HasColumnName("CreatedAt");
-
                     b.Property<DateOnly>("Date")
                         .HasColumnType("date");
 

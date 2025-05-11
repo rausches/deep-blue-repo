@@ -1,5 +1,4 @@
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Moq;
 using NUnit.Framework; 
@@ -20,8 +19,6 @@ namespace ErrorPage_Tests
         private Mock<PdfExportService> _mockpdfExportService;
         private Mock<IViewRenderService> _mockViewRenderService;
         private Mock<IScreenshotService> _mockScreenshotService;
-        private Mock<IBackgroundTaskQueue> _mockBackgroundTaskQueue;
-        private Mock<IServiceScopeFactory> _mockScopeFactory;
 
         [SetUp]
         public void Setup()
@@ -35,15 +32,14 @@ namespace ErrorPage_Tests
             _mockpdfExportService = new Mock<PdfExportService>();
             _mockScreenshotService = new Mock<IScreenshotService>();
             _mockViewRenderService = new Mock<IViewRenderService>();
-            _mockBackgroundTaskQueue = new Mock<IBackgroundTaskQueue>();
-            _mockScopeFactory = new Mock<IServiceScopeFactory>();
+
         }
 
         [Test]
         public void Error404_ReturnsErrorPageView()
         {
             // Arrange
-           var controller = new HomeController(_mockLogger.Object, _mockHttpClient.Object, _mockDbContext.Object, _mockOpenAiService.Object, _mockAxeCoreService.Object, _mockReportService.Object, _mockpdfExportService.Object, _mockScreenshotService.Object, _mockViewRenderService.Object,   _mockBackgroundTaskQueue.Object, _mockScopeFactory.Object);
+           var controller = new HomeController(_mockLogger.Object, _mockHttpClient.Object, _mockDbContext.Object, _mockOpenAiService.Object, _mockAxeCoreService.Object, _mockReportService.Object, _mockpdfExportService.Object, _mockScreenshotService.Object, _mockViewRenderService.Object);
 
             // Act
             var result = controller.ErrorPage() as ViewResult;

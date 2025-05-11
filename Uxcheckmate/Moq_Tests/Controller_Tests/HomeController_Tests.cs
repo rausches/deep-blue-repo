@@ -13,11 +13,9 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Moq;
 using NUnit.Framework;
-using Microsoft.Playwright;
 using Uxcheckmate_Main.Controllers;
 using Uxcheckmate_Main.Models;
 using Uxcheckmate_Main.Services;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace Controller_Tests
 {
@@ -37,9 +35,6 @@ namespace Controller_Tests
         private Mock<DbSet<Report>> _mockReportDbSet;
         private Mock<ICompositeViewEngine> _viewEngineMock;
         private Mock<ITempDataDictionary> _tempDataMock;
-        private Mock<IViewRenderService> _viewRenderServiceMock;
-        private Mock<IBackgroundTaskQueue> _backgroundTaskQueueMock;
-        private Mock<IServiceScopeFactory> _serviceScopeFactoryMock;
 
         [SetUp]  
         public void Setup()
@@ -53,10 +48,12 @@ namespace Controller_Tests
             _screenshotServiceMock = new Mock<IScreenshotService>();
             _viewEngineMock = new Mock<ICompositeViewEngine>();
             _tempDataMock = new Mock<ITempDataDictionary>();
-            _viewRenderServiceMock = new Mock<IViewRenderService>();
-            _backgroundTaskQueueMock = new Mock<IBackgroundTaskQueue>();
-            _serviceScopeFactoryMock = new Mock<IServiceScopeFactory>();
 
+            // Mock the CaptureScreenshot method
+            _screenshotServiceMock
+                .Setup(s => s.CaptureScreenshot(It.IsAny<Microsoft.Playwright.PageScreenshotOptions>(), It.IsAny<string>()))
+                .ReturnsAsync("mockScreenshotPath");
+                
             // Configure in-memory database options
             var options = new DbContextOptionsBuilder<UxCheckmateDbContext>()
                 .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())  // Unique name per test
@@ -84,9 +81,7 @@ namespace Controller_Tests
                 _reportServiceMock.Object,
                 _pdfExportServiceMock.Object,
                 _screenshotServiceMock.Object,
-                viewRenderServiceMock.Object,
-                _backgroundTaskQueueMock.Object,
-                _serviceScopeFactoryMock.Object
+                viewRenderServiceMock.Object
             );
 
             // Configure TempData for controller
