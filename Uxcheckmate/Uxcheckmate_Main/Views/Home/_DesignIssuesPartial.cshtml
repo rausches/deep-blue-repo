@@ -66,7 +66,7 @@
                                 @* Display each issue in the severity category *@
                                 foreach (var issue in issues)
                                 {
-                                    <div class="issueContainer p-3 mb-3 border rounded issue-card">
+                                    <div class="issueContainer p-3 mb-3 border rounded">
                                         <div class="col-md-12">
                                             @* Display category badge *@
                                             <span class="badge bg-secondary">@issue.Category.Name</span>
@@ -122,7 +122,7 @@ else
                         @* Display each issue in the category *@
                         @foreach (var issue in categoryGroup)
                         {
-                            <div class="issueContainer p-3 mb-3 border rounded issue-card" id="designIssueItem">
+                            <div class="issueContainer p-3 mb-3 border rounded" id="designIssueItem">
                                 <div class="row">
                                     @* Issue message and severity badge *@
                                     <div class="col-md-11" id=@issue.Category.Name.Replace(" ", "-").ToLower()>@issue.Message</div>

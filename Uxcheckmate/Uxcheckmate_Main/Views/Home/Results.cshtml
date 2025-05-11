@@ -27,7 +27,6 @@
   </div>
 </div>
 
-
 <div class="container">
     <div class="row headerRow">
         <div class="col-md-6">
@@ -38,12 +37,10 @@
             <h1 id="reportHeader">@Model.Url</h1>
             @* Display the total number of issues found *@
             <p id="totalIssues">Total Issues Found: @(@Model.DesignIssues.Count() + @Model.AccessibilityIssues.Count()) </p>
-        </div>
+        </div> 
     </div>
 
-
 <br>
-
 
 <div id="reportContainer">
     <div class="row sortSelectRow">
@@ -58,7 +55,6 @@
         </div>
     </div>
 
-
 @*
 ============================================================================================
                                     Design Issues
@@ -67,31 +63,23 @@
     <div class="row designRow">
         <div class="report-section mb-5">
             <h3 class="section-header mb-4">Design Issues</h3>
-
-
-<div class="position-relative" id="designIssuesWrapper">
-    <div id="designIssuesOverlay" class="overlay designIssuesOverlay">
-        <div class="spinner-grow text-light" role="status"></div>
-        <span class="sr-only text-light">Loading Design Issues...</span>
-    </div>
-
-
-    <div id="designIssuesContainer">
-
-
-            @await Html.PartialAsync("_DesignIssuesPartial", Model.DesignIssues)
-
-
-    </div>
-</div>
-
-
+            @if (Model.DesignIssues == null || !Model.DesignIssues.Any())
+            {
+                <div class="alert alert-success">
+                    <strong>No UX issues found! Your site looks great.</strong>
+                </div>
+            }
+            else
+            {
+                <div id="designIssuesContainer">
+                    @* Partial view rendering design issues *@
+                    @await Html.PartialAsync("_DesignIssuesPartial", Model.DesignIssues)
+                </div>
+            }
         </div>
     </div>
 
-
 <br>
-
 
 @*
 ============================================================================================
@@ -103,26 +91,20 @@
             <h3 class="section-header mb-4">Accessibility Issues</h3>
             <div id="accessibilityIssuesContainer">
                 @* Partial view rendering accessibility issues *@
-<div id="accessibilityIssuesContainer">
-    @if (Model.AccessibilityIssues == null || !Model.AccessibilityIssues.Any())
-    {
-        <div class="alert alert-primary" role="alert">
-            <strong>Way to go! Your site is WCAG-approved and accessible to all.</strong>
-        </div>
-    }
-    else
-    {
-        @await Html.PartialAsync("_AccessibilityIssuesPartial", Model.AccessibilityIssues)
-    }
-</div>
-
-
-
+                @if (Model.AccessibilityIssues == null || !Model.AccessibilityIssues.Any())
+                {
+                    <div class="alert alert-primary" role="alert">
+                        <strong>Way to go! Your site is <span class="alert-link"><a href="https://www.w3.org/TR/WCAG21/" target="_blank" rel="noopener noreferrer" style="none">WCAG</a></span>-approved and accessible to all.</strong>
+                    </div>
+                }
+                else
+                {
+                    @await Html.PartialAsync("_AccessibilityIssuesPartial", Model.AccessibilityIssues)
+                }
 
             </div>
         </div>
     </div>
-
 
 @*
 ============================================================================================
@@ -130,102 +112,19 @@
 ============================================================================================
 *@
 
-
     <a asp-action="DownloadReport" asp-route-id="@Model.Id" class="btn btn-primary">
         Download PDF Report
     </a>
 
-
 </div> @* End tag for #reportContainer *@
 </div> @*End tag for .container *@
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const modal = new bootstrap.Modal(document.getElementById('onLoadModal'));
+    modal.show();
+  });
+</script>
+
 @section Scripts {
     <script src="~/js/reportResults.js"></script>
-
-
-    <script>
-        document.addEventListener("DOMContentLoaded", function () {
-
-            // Define the reportId dynamically from Razor model binding
-            const reportId = @Model.Id;
-
-            // Grab the sorting dropdown
-            const sortSelect = document.getElementById('sortSelect');
-            let currentSortOrder = sortSelect.value; // Initial sort value
-
-            let pollingIntervalId; // Will store the setInterval ID for later clearing
-
-            // Function to poll the server for updated report issues
-            async function fetchUpdatedIssues() {
-                try {
-                    // Fetch updated issues from the server using current sort order
-                    const response = await fetch(`${window.location.origin}/Home/GetSortedIssues?id=${reportId}&sortOrder=${currentSortOrder}&t=${Date.now()}`);
-                    if (response.ok) {
-                        const data = await response.json();
-
-                        // Update the Design and Accessibility issues sections if data is received
-                        if (data.designHtml || data.accessibilityHtml) {
-                            document.getElementById('designIssuesContainer').innerHTML = data.designHtml;
-                            document.getElementById('accessibilityIssuesContainer').innerHTML = data.accessibilityHtml;
-
-                            // Update the total issues counter
-                            const totalIssues = document.querySelectorAll('.issue-card').length;
-                            document.getElementById('totalIssues').innerHTML = `Total Issues Found: ${totalIssues}`;
-                        }
-
-                        // If the backend reports the analysis is completed
-                        if (data.status === "Completed") {
-
-                            // Update the Report Summary dynamically
-                            const summaryElement = document.getElementById('summary');
-                            if (summaryElement) {
-                                summaryElement.innerText = data.summary || "No summary available.";
-                                summaryElement.classList.add('visible');
-                            }
-
-                            // Hide the loading overlay once report is ready
-                            const overlay = document.getElementById('designIssuesOverlay');
-                            if (overlay) {
-                                overlay.classList.add('hidden');
-                            }
-
-                            // If no design issues found, show a success alert
-                            const designIssuesCount = document.querySelectorAll('#designIssuesContainer .issue-card').length;
-                            if (designIssuesCount === 0) {
-                                document.getElementById('designIssuesContainer').innerHTML = `
-                                    <div class="alert alert-success">
-                                        <strong>No UX issues found! Your site looks great.</strong>
-                                    </div>
-                                `;
-                            }
-
-                            // Automatically pop open the summary modal once complete
-                            const modalElement = document.getElementById('onLoadModal');
-                            if (modalElement) {
-                                const modal = new bootstrap.Modal(modalElement);
-                                modal.show();
-                            }
-
-                            // Stop polling since the report is done
-                            clearInterval(pollingIntervalId);
-                            console.log("Polling stopped — report analysis completed!");
-                        }
-                    }
-                } catch (error) {
-                    console.error("Failed to fetch updated issues:", error);
-                }
-            }
-
-            // Start polling for report updates every 1 second
-            pollingIntervalId = setInterval(fetchUpdatedIssues, 1000);
-
-            // Fetch immediately as well so the user sees something quickly
-            fetchUpdatedIssues();
-
-            // When the user changes the sort option, re-fetch immediately
-            sortSelect.addEventListener('change', () => {
-                currentSortOrder = sortSelect.value;
-                fetchUpdatedIssues();
-            });
-        });
-    </script>
 }
