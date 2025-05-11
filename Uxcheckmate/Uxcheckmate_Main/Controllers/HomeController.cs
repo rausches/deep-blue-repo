@@ -105,10 +105,6 @@ public class HomeController : Controller
             // Create and save the report record.
             var report = await CreateOrUpdateReport(url, cancellationToken);
 
-            // Save the report immediately to get a valid ID
-            _context.Reports.Add(report);
-            await _context.SaveChangesAsync(cancellationToken);
-
             // Run accessibility and design analysis
             var accessibilityIssues = await _axeCoreService.AnalyzeAndSaveAccessibilityReport(report, cancellationToken);
 
@@ -480,17 +476,15 @@ public class HomeController : Controller
                 _context.AccessibilityIssues.RemoveRange(existingReport.AccessibilityIssues);
                 _context.DesignIssues.RemoveRange(existingReport.DesignIssues);
                 _context.Reports.Remove(existingReport);
-                await _context.SaveChangesAsync();
 
                 _context.Entry(existingReport).State = EntityState.Detached;
                 _logger.LogInformation("Old report for user {UserId} and URL {Url} removed.", userId, url);
             }
+        }
             _context.Reports.Add(report);
             await _context.SaveChangesAsync();
             _logger.LogInformation("New report saved to DB with ID: {ReportId}", report.Id);
-        }else{
-            _logger.LogInformation("User not authenticated. Generating a report without saving to DB.");
-        }
+
         return report;
     }
 
