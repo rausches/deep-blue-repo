@@ -171,7 +171,7 @@ namespace Uxcheckmate_Main.Services
             return result?.Choices?.FirstOrDefault()?.Message?.Content ?? rawMessage;
         }
 
-        public async Task<string> GenerateReportSummaryAsync(List<DesignIssue> issues, string html, string url, CancellationToken cancellationToken)
+        public async Task<string> GenerateReportSummaryAsync(List<DesignIssue> issues, string html, string url)
         {
             if (issues == null || !issues.Any())
             {
