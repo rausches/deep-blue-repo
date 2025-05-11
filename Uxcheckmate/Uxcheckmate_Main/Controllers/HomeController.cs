@@ -101,7 +101,7 @@ public class HomeController : Controller
 
         // Run accessibility and design analysis
         var accessibilityIssues = await _axeCoreService.AnalyzeAndSaveAccessibilityReport(report);
-        var designIssues = await _reportService.GenerateReportAsync(report);
+        var designIssues = await _reportService.GenerateReportAsync(report, CancellationToken.None);
 
         // Fetch the full report inclunding related issues and categories
         if (string.IsNullOrEmpty(userId)){
