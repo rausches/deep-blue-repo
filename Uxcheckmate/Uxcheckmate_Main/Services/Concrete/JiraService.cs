@@ -27,13 +27,13 @@ namespace Uxcheckmate_Main.Services
             // Loop through design issues and create Jira tasks
             foreach (var issue in report.DesignIssues)
             {
-                await CreateJiraIssueAsync(accessToken, cloudId, projectId, $"[Design] {CleanSummary(issue.Message)}", issue.Severity, report.Url);
+                await CreateJiraIssueAsync(accessToken, cloudId, projectId, issue.Title, issue.Message);
             }
 
             // Loop through accessibility issues and create Jira tasks
             foreach (var issue in report.AccessibilityIssues)
             {
-                await CreateJiraIssueAsync(accessToken, cloudId, projectId, $"[Accessibility] {CleanSummary(issue.Message)}", issue.Severity, report.Url);
+                await CreateJiraIssueAsync(accessToken, cloudId, projectId, issue.Title, issue.Message);
             }
         }
 
@@ -60,7 +60,7 @@ namespace Uxcheckmate_Main.Services
             return result?.Values ?? new List<JiraProject>();
         }
 
-        private async Task CreateJiraIssueAsync(string accessToken, string cloudId, string projectId, string summary, int severity, string reportUrl)
+        private async Task CreateJiraIssueAsync(string accessToken, string cloudId, string projectId, string summary, string issueMessage)
         {
             var jiraIssue = new
             {
@@ -75,7 +75,7 @@ namespace Uxcheckmate_Main.Services
                         version = 1,
                         content = new object[]
                         {
-                            new { type = "paragraph", content = new object[] { new { type = "text", text = $"Report URL: {reportUrl}\nSeverity: {severity}" } } }
+                            new { type = "paragraph", content = new object[] { new { type = "text", text = $"Details: {issueMessage}" } } }
                         }
                     }
                 }
