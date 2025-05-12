@@ -384,7 +384,8 @@ public class HomeController : Controller
         var accessibilityHtml = await _viewRenderService.RenderViewToStringAsync(this, "_AccessibilityIssuesPartial", report.AccessibilityIssues);
 
         // Return the rendered partial views as a JSON object
-        return Json(new { designHtml, accessibilityHtml });
+        return Json(new { designHtml, accessibilityHtml,
+                status = report.Status, summary = report.Summary });
     }
 
     // ============================================================================================================
