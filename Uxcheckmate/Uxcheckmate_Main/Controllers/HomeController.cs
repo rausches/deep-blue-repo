@@ -7,6 +7,7 @@ using System.Text.Json;
 using System.Diagnostics;
 using Microsoft.AspNetCore.Authorization;
 using System.Security.Claims;
+using System.Text.RegularExpressions;
 using Microsoft.Playwright;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -26,12 +27,10 @@ public class HomeController : Controller
     private readonly PdfExportService _pdfExportService;
     private readonly IScreenshotService _screenshotService;
     private readonly IViewRenderService _viewRenderService;
-    private readonly IBackgroundTaskQueue _backgroundTaskQueue;
-    private readonly IServiceScopeFactory _scopeFactory;
 
     public HomeController(ILogger<HomeController> logger, HttpClient httpClient, UxCheckmateDbContext dbContext, 
         IOpenAiService openAiService, IAxeCoreService axeCoreService, IReportService reportService, 
-        PdfExportService pdfExportService, IScreenshotService screenshotService, IViewRenderService viewRenderService,IBackgroundTaskQueue backgroundTaskQueue, IServiceScopeFactory scopeFactory)
+        PdfExportService pdfExportService, IScreenshotService screenshotService, IViewRenderService viewRenderService)
         
     {
         _logger = logger;
@@ -42,8 +41,6 @@ public class HomeController : Controller
         _pdfExportService = pdfExportService;
         _screenshotService = screenshotService;
         _viewRenderService = viewRenderService;
-        _backgroundTaskQueue = backgroundTaskQueue;
-        _scopeFactory = scopeFactory;
     }
 
 
@@ -65,158 +62,91 @@ public class HomeController : Controller
     // Report Logic
     // ============================================================================================================
     [HttpPost]
-    public async Task<IActionResult> Report(string url, string sortOrder = "category", bool isAjax = false, CancellationToken cancellationToken = default)
+    public async Task<IActionResult> Report(string url, string sortOrder = "category", bool isAjax = false)
     {
-        try
+        if (string.IsNullOrEmpty(url))
         {
-            if (string.IsNullOrEmpty(url))
-            {
-                ModelState.AddModelError("url", "URL cannot be empty.");
-                return View("Index");
-            }
-                // Normalize the URL *before* checking if it's reachable
-                url = NormalizeUrl(url);
+            ModelState.AddModelError("url", "URL cannot be empty.");
+            return View("Index");
+        }
+            // Normalize the URL *before* checking if it's reachable
+            url = NormalizeUrl(url);
 
-            if (!await IsUrlReachable(url))
-            {
-                TempData["UrlUnreachable"] = "The URL you entered seems incorrect or no longer exists. Please try again.";
-                return RedirectToAction("Index");
-            }
+        if (!await IsUrlReachable(url))
+        {
+            TempData["UrlUnreachable"] = "The URL you entered seems incorrect or no longer exists. Please try again.";
+            return RedirectToAction("Index");
+        }
 
-            var websiteScreenshot = await CaptureScreenshot(url, cancellationToken);
-            if (string.IsNullOrEmpty(websiteScreenshot ))
-            {
-                _logger.LogError("Failed to capture screenshot for URL: {Url}", url);
-                ModelState.AddModelError("", "An error occurred while capturing the screenshot.");
-                return View("Index");
-            }
-            TempData["WebsiteScreenshot"] = websiteScreenshot;
+        var websiteScreenshot = await CaptureScreenshot(url);
+        if (string.IsNullOrEmpty(websiteScreenshot ))
+        {
+            _logger.LogError("Failed to capture screenshot for URL: {Url}", url);
+            ModelState.AddModelError("", "An error occurred while capturing the screenshot.");
+            return View("Index");
+        }
+        TempData["WebsiteScreenshot"] = websiteScreenshot;
 
-            // Check if the user is authenticated and get the user ID
-            string? userId = null;
-            bool isAdmin = false;
-            if (User.Identity.IsAuthenticated)
-            {
-                userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-                    var roleClaims = User.FindAll(ClaimTypes.Role);
-                    isAdmin = roleClaims.Any(c => c.Value == "Admin");
-            }
-
-            // Create and save the report record.
-            var report = await CreateOrUpdateReport(url, cancellationToken);
+        // Check if the user is authenticated and get the user ID
+        string? userId = null;
+        bool isAdmin = false;
+        if (User.Identity.IsAuthenticated)
+        {
+            userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                var roleClaims = User.FindAll(ClaimTypes.Role);
+                isAdmin = roleClaims.Any(c => c.Value == "Admin");
+        }
 
             // Run accessibility and design analysis
             var accessibilityIssues = await _axeCoreService.AnalyzeAndSaveAccessibilityReport(report, cancellationToken);
 
-            // Attach results, and set Processing status
+        // Fetch the full report inclunding related issues and categories
+        if (string.IsNullOrEmpty(userId)){
             report.AccessibilityIssues = accessibilityIssues.ToList();
-            report.Status = "Processing"; 
-            await _context.SaveChangesAsync(cancellationToken);
-
-        // var designIssues = await _reportService.GenerateReportAsync(report);
-
-            // Queue background design work
-            await _backgroundTaskQueue.QueueBackgroundWorkItemAsync(async token =>
-            {
-                try
-                {
-                    using var scope = _scopeFactory.CreateScope();
-
-                    // Retrieve a scoped instance of the database context
-                    var scopedDbContext = scope.ServiceProvider.GetRequiredService<UxCheckmateDbContext>();
-                    
-                    // Retrieve a scoped instance of the report service
-                    var scopedReportService = scope.ServiceProvider.GetRequiredService<IReportService>();
-
-                    // Generate the design issues
-                    var designIssues = await scopedReportService.GenerateReportAsync(report, token);
-
-                    // Retrieve the most up-to-date version of the report from the database
-                    var freshReport = await scopedDbContext.Reports
-                        .Include(r => r.AccessibilityIssues)
-                        .Include(r => r.DesignIssues)
-                        .FirstOrDefaultAsync(r => r.Id == report.Id, token);
-
-                    if (freshReport != null)
-                    {
-                        // Update the report with the new design issues
-                        freshReport.DesignIssues = designIssues.ToList();
-
-                        // Set the report's status to "Completed"
-                        freshReport.Status = "Completed";
-
-                        // Copy the summary from the original report 
-                        freshReport.Summary = report.Summary;
-
-                        // Save all changes back to the database
-                        await scopedDbContext.SaveChangesAsync(token);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, "Background design analysis failed.");
-                }
-            });
-
-            // Fetch the full report inclunding related issues and categories
-        /*  if (string.IsNullOrEmpty(userId)){
-                report.AccessibilityIssues = accessibilityIssues.ToList();
-                report.DesignIssues = designIssues.ToList();
-                foreach (var issue in report.AccessibilityIssues){
-                    issue.Category = await _context.AccessibilityCategories.FindAsync(issue.CategoryId);
-                }
-                foreach (var issue in report.DesignIssues){
-                    issue.Category = await _context.DesignCategories.FindAsync(issue.CategoryId);
-                }
+            report.DesignIssues = designIssues.ToList();
+            foreach (var issue in report.AccessibilityIssues){
+                issue.Category = await _context.AccessibilityCategories.FindAsync(issue.CategoryId);
             }
-            // Fetch the report from the database to include related issues and categories
-            Report fullReport;
-            if (!string.IsNullOrEmpty(userId)){
-            // Fetch the full report including related issues and categories
-            fullReport = await _context.Reports
-                .Include(r => r.AccessibilityIssues).ThenInclude(a => a.Category)
-                .Include(r => r.DesignIssues).ThenInclude(d => d.Category)
-                .FirstOrDefaultAsync(r => r.Id == report.Id);
-            }else{
-                fullReport = report;
-            }*/
-
-            // Load fresh report for view
-            var fullReport = await _context.Reports
-                .Include(r => r.AccessibilityIssues).ThenInclude(a => a.Category)
-                .Include(r => r.DesignIssues).ThenInclude(d => d.Category)
-                .FirstOrDefaultAsync(r => r.Id == report.Id);
-            // Handle the case where the report could not be fetched
-            if (fullReport == null)
-            {
-                _logger.LogError("Failed to fetch report with ID: {ReportId}", report.Id);
-                ModelState.AddModelError("", "An error occurred while fetching the report.");
-                return View("Index");
+            foreach (var issue in report.DesignIssues){
+                issue.Category = await _context.DesignCategories.FindAsync(issue.CategoryId);
             }
-
-            // Sort the report issues based on the selected sort order
-            SortReportIssues(fullReport, sortOrder);
-
-            // Apply sorting based on the provided sort order
-            ViewBag.CurrentSort = sortOrder;
-
-            // Add to TempData for PDF Printing when not logged in
-            StoreReportInTempData(report);
-            // If the request is an AJAX call, return the partial view
-            if (isAjax)
-            {
-                return PartialView("_ReportSections", fullReport);
-            }
-
-            // Return the full results view
-            return View("Results", fullReport);
         }
-        catch (Exception ex)
+        // Fetch the report from the database to include related issues and categories
+        Report fullReport;
+        if (!string.IsNullOrEmpty(userId)){
+        // Fetch the full report including related issues and categories
+        fullReport = await _context.Reports
+            .Include(r => r.AccessibilityIssues).ThenInclude(a => a.Category)
+            .Include(r => r.DesignIssues).ThenInclude(d => d.Category)
+            .FirstOrDefaultAsync(r => r.Id == report.Id);
+        }else{
+            fullReport = report;
+        }
+
+        // Handle the case where the report could not be fetched
+        if (fullReport == null)
         {
-            _logger.LogError(ex, "Unhandled error during report generation for URL: {Url}", url);
-            TempData["ScrapingError"] = "An unexpected error occurred during the scan. Please try again.";
-            return RedirectToAction("Index");
+            _logger.LogError("Failed to fetch report with ID: {ReportId}", report.Id);
+            ModelState.AddModelError("", "An error occurred while fetching the report.");
+            return View("Index");
         }
+
+        // Sort the report issues based on the selected sort order
+        SortReportIssues(fullReport, sortOrder);
+
+        // Apply sorting based on the provided sort order
+        ViewBag.CurrentSort = sortOrder;
+
+        // Add to TempData for PDF Printing when not logged in
+        StoreReportInTempData(report);
+        // If the request is an AJAX call, return the partial view
+        if (isAjax)
+        {
+            return PartialView("_ReportSections", fullReport);
+        }
+
+        // Return the full results view
+        return View("Results", fullReport);
     }
 
     [HttpGet]
@@ -257,6 +187,33 @@ public class HomeController : Controller
         }).ToList();
         return View(reportDTOs);
     }
+
+    [Authorize] // Need to be logged in to submit feedback
+    public async Task<IActionResult> UserFeedback(){
+        return View();
+    }
+
+    [Authorize]
+    [HttpPost]
+    public async Task<IActionResult> SubmitFeedback(UserFeedback feedback)
+    {
+        if (string.IsNullOrWhiteSpace(feedback.Message)){
+            ModelState.AddModelError("", "Feedback cannot be empty.");
+            return View("Feedback");
+        }
+        var isValid = Regex.IsMatch(feedback.Message, @"^[a-zA-Z0-9\s.,?!'""\-\(\)\[\]@]*$");
+        if (!isValid){
+            ModelState.AddModelError("", "Feedback contains invalid characters.");
+            return View("Feedback");
+        }
+        feedback.UserID = User.Identity?.Name; 
+        feedback.DateSubmitted = DateTime.UtcNow;
+        _context.UserFeedbacks.Add(feedback);
+        await _context.SaveChangesAsync();
+        TempData["Success"] = "Feedback submitted!";
+        return RedirectToAction("Feedback");
+    }
+
 
     [HttpGet]
     public async Task<IActionResult> DownloadReport(int id = 0)
@@ -324,11 +281,7 @@ public class HomeController : Controller
             .FirstOrDefaultAsync(r => r.Id == id);
 
         // If the report is not found, return a 404 Not Found response
-        if (report == null)
-        {
-            _logger.LogWarning("Polling requested but report ID {Id} was not found.", id);
-            return Json(new { designHtml = "", accessibilityHtml = "" });
-        }
+        if (report == null) return NotFound();
 
         // Store the current sort order in ViewBag to be used by partial views for rendering sorted data
         ViewBag.CurrentSort = sortOrder;
@@ -362,8 +315,7 @@ public class HomeController : Controller
         var accessibilityHtml = await _viewRenderService.RenderViewToStringAsync(this, "_AccessibilityIssuesPartial", report.AccessibilityIssues);
 
         // Return the rendered partial views as a JSON object
-        return Json(new { designHtml, accessibilityHtml,
-                status = report.Status, summary = report.Summary });
+        return Json(new { designHtml, accessibilityHtml });
     }
 
     // ============================================================================================================
@@ -429,7 +381,7 @@ public class HomeController : Controller
         }
     }
 
-    private async Task<string?> CaptureScreenshot(string url, CancellationToken cancellationToken = default)
+    private async Task<string?> CaptureScreenshot(string url)
     {
         if (string.IsNullOrEmpty(url))
         {
@@ -440,7 +392,7 @@ public class HomeController : Controller
         try
         {
             var screenshotOptions = new PageScreenshotOptions { FullPage = true };
-            var screenshot = await _screenshotService.CaptureScreenshot(screenshotOptions, url, cancellationToken);
+            var screenshot = await _screenshotService.CaptureScreenshot(screenshotOptions, url);
 
             if (string.IsNullOrEmpty(screenshot))
             {
@@ -456,7 +408,7 @@ public class HomeController : Controller
             return null;
         }
     }
-    private async Task<Report> CreateOrUpdateReport(string url, CancellationToken cancellationToken = default)
+    private async Task<Report> CreateOrUpdateReport(string url)
     {
         string? userId = User.Identity.IsAuthenticated ? User.FindFirstValue(ClaimTypes.NameIdentifier) : null;
 

@@ -46,16 +46,24 @@
                         </li>
                         @if (User.Identity.IsAuthenticated)
                         {
-                            <li class="nav-item">
                                 @if (User.IsInRole("Admin"))
                                 {
-                                    <a class="nav-link" asp-area="" asp-controller="Admin" asp-action="Index">Admin Dashboard</a>
+                                    <li class="nav-item">
+                                        <a class="nav-link" asp-area="" asp-controller="Admin" asp-action="Index">Admin Dashboard</a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link" asp-area="" asp-controller="Admin" asp-action="AdminFeedback">Feedback</a>
+                                    </li>
                                 }
                                 else
                                 {
-                                    <a class="nav-link" asp-area="" asp-controller="Home" asp-action="UserDash">Dashboard</a>
+                                    <li class="nav-item">
+                                        <a class="nav-link" asp-area="" asp-controller="Home" asp-action="UserDash">Dashboard</a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link" asp-area="" asp-controller="Home" asp-action="Feedback">Feedback</a>
+                                    </li>
                                 }
-                            </li>
                         }
                         else
                         {

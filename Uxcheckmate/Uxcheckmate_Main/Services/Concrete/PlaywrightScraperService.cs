@@ -25,7 +25,7 @@ namespace Uxcheckmate_Main.Services
             _layoutParsingService = layoutParsingService;
         }
 
-        public async Task<ScrapedContent> ScrapeEverythingAsync(string url, CancellationToken cancellationToken)
+        public async Task<ScrapedContent> ScrapeEverythingAsync(string url)
         {
             // Get a browser instance from the Playwright service (already launched)
             var browser = await _playwrightService.GetBrowserAsync();

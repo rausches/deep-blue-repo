@@ -1,7 +1,31 @@
+@model Uxcheckmate_Main.Models.UserFeedback
+
 @{
     ViewData["Title"] = "Feedback";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Feedback</h1>
+<div class="container mt-4">
+    <h1 class="text-center mb-4">Feedback</h1>
+    <div class="mx-auto" style="max-width: 800px;">
+        <form asp-action="SubmitFeedback" method="post">
+            <div class="form-group">
+                <label asp-for="Message"></label>
+                <textarea asp-for="Message" class="form-control" rows="4" maxlength="255" oninput="updateCharCount()" aria-describedby="charCount"></textarea>
+                <small id="charCount" class="form-text text-muted">0 / 255 characters used</small>
+            </div>
+            <button type="submit" id="submitFeedback" class="btn btn-primary">Submit</button>
+        </form>
+        @if (!ViewData.ModelState.IsValid){
+            <div class="alert alert-danger">
+                @Html.ValidationSummary()
+            </div>
+        }
+        @if (TempData["Success"] != null){
+            <div class="alert alert-success mt-3">@TempData["Success"]</div>
+        }
+    </div>
 </div>
+
+@section Scripts {
+    <script src="~/js/feedback.js" asp-append-version="true"></script>
+}
