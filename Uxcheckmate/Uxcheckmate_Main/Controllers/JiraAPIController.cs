@@ -6,7 +6,7 @@ using Uxcheckmate_Main.Services;
 
 namespace Uxcheckmate_Main.Controllers
 {
-    [Authorize] 
+    [Authorize]
     [ApiController]
     [Route("JiraAPI")]
     public class JiraAPIController : ControllerBase
@@ -31,6 +31,24 @@ namespace Uxcheckmate_Main.Controllers
             // User is considered connected if both values are present
             bool connected = !string.IsNullOrEmpty(accessToken) && !string.IsNullOrEmpty(cloudId);
             return Ok(new { connected });
+        }
+
+        [HttpGet("GetProjects")]
+        public async Task<IActionResult> GetProjects()
+        {
+            // Retrieve Jira connection info from session
+            var accessToken = HttpContext.Session.GetString("JiraAccessToken");
+            var cloudId = HttpContext.Session.GetString("JiraCloudId");
+
+            // Validate connection
+            if (string.IsNullOrEmpty(accessToken) || string.IsNullOrEmpty(cloudId))
+                return BadRequest("You must connect Jira first.");
+
+            // Call Jira service to get projects
+            var projects = await _jiraService.GetProjectsAsync(accessToken, cloudId);
+
+            // Return Projects
+            return Ok(projects.Select(p => new { id = p.Id, key = p.Key, name = p.Name }));
         }
 
         [HttpPost("ExportReportToJira")]
