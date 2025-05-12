@@ -11,14 +11,12 @@ namespace Uxcheckmate_Main.Services
         private readonly ILogger<AxeCoreService> _logger;
         protected readonly UxCheckmateDbContext _dbContext;
         private readonly IPlaywrightService _playwrightService;
-        private readonly IOpenAiService _openAiService;
 
-        public AxeCoreService(ILogger<AxeCoreService> logger, UxCheckmateDbContext dbContext, IPlaywrightService playwrightService, IOpenAiService openAiService)
+        public AxeCoreService(ILogger<AxeCoreService> logger, UxCheckmateDbContext dbContext, IPlaywrightService playwrightService)
         {
             _logger = logger;
             _dbContext = dbContext;
             _playwrightService = playwrightService;
-            _openAiService = openAiService;
         }
 
         public virtual async Task<ICollection<AccessibilityIssue>> AnalyzeAndSaveAccessibilityReport(Report report, CancellationToken cancellationToken = default)
