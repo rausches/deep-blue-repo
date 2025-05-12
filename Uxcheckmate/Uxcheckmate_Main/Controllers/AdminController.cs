@@ -1,9 +1,11 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Uxcheckmate_Main.Models;
 using Uxcheckmate_Main.ViewModels;
 using Uxcheckmate_Main.Areas.Identity.Data;
+
 
 namespace Uxcheckmate_Main.Controllers;
 
@@ -30,6 +32,41 @@ public class AdminController : Controller
         }).ToList();
 
         return View(model);
+    }
+
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> AdminFeedback()
+    {
+        var grouped = await _appContext.UserFeedbacks
+            .GroupBy(f => f.UserID)
+            .Select(g => new AdminFeedbackViewModel
+            {
+                UserId = g.Key,
+                Feedbacks = g.ToList()
+            }).ToListAsync();
+        return View(grouped);
+    }
+
+    [HttpPost]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> DeleteFeedback(int id)
+    {
+        var feedback = await _appContext.UserFeedbacks.FindAsync(id);
+        if (feedback != null){
+            _appContext.UserFeedbacks.Remove(feedback);
+            await _appContext.SaveChangesAsync();
+        }
+        return RedirectToAction("AdminFeedback");
+    }
+
+    [HttpPost]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> DeleteAllFeedback(string userId)
+    {
+        var userFeedbacks = _appContext.UserFeedbacks.Where(f => f.UserID == userId);
+        _appContext.UserFeedbacks.RemoveRange(userFeedbacks);
+        await _appContext.SaveChangesAsync();
+        return RedirectToAction("AdminFeedback");
     }
 
     [HttpPost]
