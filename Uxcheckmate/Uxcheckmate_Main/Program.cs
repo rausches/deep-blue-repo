@@ -111,7 +111,6 @@ public class Program
         builder.Services.AddScoped<ISymmetryService, SymmetryService>();
         builder.Services.AddSingleton<IBackgroundTaskQueue, BackgroundTaskQueue>();
         builder.Services.AddHostedService<QueueService>();
-        builder.Services.AddScoped<IJiraService, JiraService>();
         builder.Services.Configure<JiraSettings>(builder.Configuration.GetSection("Jira"));
         builder.Services.AddHttpClient<IJiraService, JiraService>();
 
