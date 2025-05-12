@@ -1,9 +1,13 @@
-Feature: Task List
-As a user, I want to view a task list of all issues in the report
+Feature: Jira Tasks
+As a user, I'd like to be able to export the issue as a task to Jira
 
-Scenario: Logged in user can view a task list of all issues
-    Given user is logged in
-    And the user views a report
-    Then they will see a button for a task list
+Scenario: Logged in user can export to Jira
+    Given the user is logged in
+    And the user is on the dashboard
+    And the user opens a report entry
+    Then they will see a button to export to jira
     And they will click the button
-    Then they will see a list of all issues in bullet form
+    And they will log into Jira
+    And they will select the project to add to
+    Then they will see a loading spinner 
+    Then the Jira modal will close
