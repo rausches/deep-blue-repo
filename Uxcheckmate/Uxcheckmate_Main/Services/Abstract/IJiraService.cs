@@ -7,6 +7,7 @@ namespace Uxcheckmate_Main.Services
 {
     public interface IJiraService
     {
+        Task<List<JiraProject>> GetProjectsAsync(string accessToken, string cloudId);
         Task ExportReportAsync(Report report, string accessToken, string cloudId, string projectKey);
     }
 }
