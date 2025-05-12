@@ -1,7 +1,4 @@
-/**
- * Handles sending a report to Jira.
- * Checks connection status, prompts user for project key, then sends export request.
- */
+// Initiates the export of a report to Jira.
 function sendToJira(reportId) {
     fetch('/JiraAPI/IsConnected')
         .then(response => response.json())
@@ -12,54 +9,76 @@ function sendToJira(reportId) {
                 return;
             }
 
-            const report = findReportById(reportId);
-            if (!report) {
-                alert("Unable to find report.");
-                return;
-            }
-
-            // Prompt user for Jira project key
-            const projectKey = prompt("Enter Jira project key to export to (e.g. MYPROJECT):");
-            if (!projectKey) {
-                alert("Export canceled. No project key provided.");
-                return;
-            }
-
-            // Optionally disable button during export (for future enhancement)
-            const sendButton = document.querySelector(`#report-${reportId} button.sendToJiraButton`);
-            if (sendButton) {
-                sendButton.disabled = true;
-                sendButton.textContent = "Sending...";
-            }
-
-            // Send export request to server
-            fetch(`/JiraAPI/ExportReportToJira?reportId=${reportId}&projectKey=${encodeURIComponent(projectKey)}`, {
-                method: 'POST'
-            })
-            .then(response => {
-                if (sendButton) {
-                    sendButton.disabled = false;
-                    sendButton.textContent = "Send to Jira";
-                }
-
-                if (response.ok) {
-                    alert(`Report ${reportId} successfully exported to Jira project ${projectKey}!`);
-                } else {
-                    response.text().then(text => {
-                        console.error('Failed to send report to Jira:', text);
-                        alert(`Failed to send report to Jira. (${response.status})`);
-                    });
-                }
-            })
-            .catch(error => {
-                if (sendButton) {
-                    sendButton.disabled = false;
-                    sendButton.textContent = "Send to Jira";
-                }
-                console.error('Error sending report to Jira:', error);
-                alert('An error occurred while sending the report to Jira.');
-            });
+            // If connected, fetch available Jira projects
+            fetch('/JiraAPI/GetProjects')
+                .then(response => response.json())
+                .then(projects => {
+                    // Show project selection modal
+                    showProjectDropdownModal(projects, reportId);
+                });
         });
+}
+
+//Creates and displays a Bootstrap modal allowing the user to select a Jira project. 
+function showProjectDropdownModal(projects, reportId) {
+    // Check if modal already exists; if not, create it
+    let modal = document.getElementById('projectSelectModal');
+    if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'projectSelectModal';
+        modal.classList.add('modal', 'fade');
+        modal.tabIndex = -1;
+        modal.innerHTML = `
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Select Jira Project</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <select class="form-select" id="jiraProjectDropdown"></select>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" id="confirmProjectButton">Export</button>
+                </div>
+            </div>
+        </div>`;
+        document.body.appendChild(modal);
+    }
+
+    // Populate dropdown with available projects
+    const select = modal.querySelector('#jiraProjectDropdown');
+    select.innerHTML = '';
+    projects.forEach(p => {
+        const option = document.createElement('option');
+        option.value = p.id;
+        option.textContent = `${p.key} - ${p.name}`;
+        select.appendChild(option);
+    });
+
+    // Set up button to trigger export with selected project
+    modal.querySelector('#confirmProjectButton').onclick = function() {
+        const selectedId = select.value;
+        exportReportToJira(reportId, selectedId);
+        bootstrap.Modal.getInstance(modal).hide();
+    };
+
+    // Show the modal
+    new bootstrap.Modal(modal).show();
+}
+
+// Sends a request to export a report to Jira under the selected project.
+function exportReportToJira(reportId, projectId) {
+    fetch(`/JiraAPI/ExportReportToJira?reportId=${reportId}&projectKey=${encodeURIComponent(projectId)}`, {
+        method: 'POST'
+    })
+    .then(response => {
+        if (response.ok) {
+            alert(`Report ${reportId} successfully exported to Jira project.`);
+        } else {
+            response.text().then(text => alert(`Failed to send report to Jira. (${response.status})`));
+        }
+    });
 }
 
 // Function to delete a report
