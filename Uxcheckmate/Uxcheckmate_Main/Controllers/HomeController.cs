@@ -478,7 +478,7 @@ public class HomeController : Controller
             return null;
         }
     }
-    private async Task<Report> CreateOrUpdateReport(string url)
+    private async Task<Report> CreateOrUpdateReport(string url, CancellationToken cancellationToken = default)
     {
         string? userId = User.Identity.IsAuthenticated ? User.FindFirstValue(ClaimTypes.NameIdentifier) : null;
 
