@@ -239,8 +239,10 @@ namespace Uxcheckmate_Main.Services
                 _ => ""
             };
 
+            /* SAVE TOKENS COMMENT OUT OPEN AI */
+
             // Send to OpenAI to enhance message
-            if (!string.IsNullOrEmpty(message))
+            /* if (!string.IsNullOrEmpty(message))
             {
                 _logger.LogInformation("Improving message with OpenAI for category: {CategoryName}", categoryName);
                 message = await _openAiService.ImproveMessageAsync(message, categoryName);
@@ -248,7 +250,7 @@ namespace Uxcheckmate_Main.Services
             else
             {
                 _logger.LogInformation("No message to improve for category: {CategoryName}", categoryName);
-            }
+            }*/
 
             return message;
         }
