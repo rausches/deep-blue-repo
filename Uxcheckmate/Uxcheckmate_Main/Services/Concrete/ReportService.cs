@@ -125,22 +125,6 @@ namespace Uxcheckmate_Main.Services
                             _ => ""
                         };
 
-                        string shortTitle = "";
-
-                        if (!string.IsNullOrEmpty(message))
-                        {
-                            try
-                            {
-                                // Call OpenAI to get short title for Jira summary
-                                shortTitle = await _openAiService.GenerateTitleAsync(message, category.Name);
-                            }
-                            catch (Exception ex)
-                            {
-                                _logger.LogError(ex, "Failed to generate short title for design issue.");
-                                shortTitle = "Untitled issue"; // fallback
-                            }
-                        }
-
                         if (!string.IsNullOrEmpty(message))
                         {
                             var designIssue = new DesignIssue
@@ -148,7 +132,6 @@ namespace Uxcheckmate_Main.Services
                                 CategoryId = category.Id,
                                 ReportId = report.Id,
                                 Message = message,
-                                Title = shortTitle,
                                 Severity = DetermineSeverity(message)
                             };
 
@@ -190,7 +173,7 @@ namespace Uxcheckmate_Main.Services
 
             /* SAVE TOKENS COMMENT OUT OPEN AI */
 
-            try
+           /* try
             {
                 var summaryText = await _openAiService.GenerateReportSummaryAsync(scanResults.ToList(), fullScraped.HtmlContent, url, cancellationToken);
                 report.Summary = summaryText;
@@ -203,7 +186,7 @@ namespace Uxcheckmate_Main.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to generate summary.");
-            }
+            }*/
 
             try
             {
@@ -254,7 +237,7 @@ namespace Uxcheckmate_Main.Services
             /* SAVE TOKENS COMMENT OUT OPEN AI */
 
             // Send to OpenAI to enhance message
-            if (!string.IsNullOrEmpty(message))
+          /*  if (!string.IsNullOrEmpty(message))
             {
                 _logger.LogInformation("Improving message with OpenAI for category: {CategoryName}", categoryName);
                 message = await _openAiService.ImproveMessageAsync(message, categoryName);
@@ -262,7 +245,7 @@ namespace Uxcheckmate_Main.Services
             else
             {
                 _logger.LogInformation("No message to improve for category: {CategoryName}", categoryName);
-            }
+            }*/
 
             return message;
         }

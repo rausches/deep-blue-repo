@@ -7,6 +7,9 @@ namespace Uxcheckmate_Main.Services
     { 
         Task<string> AnalyzeWithOpenAI(string url, string categoryName, string categoryDescription, Dictionary<string, object> scrapedData);
         Task<string> ImproveMessageAsync(string rawMessage, string categoryName);
+        Task<string> GenerateTitleAsync(string rawMessage, string categoryName);
+        Task<string> GenerateImprovedDescriptionAsync(string rawMessage, string categoryName);
+        Task<string> GenerateAccTitleAsync(string rawMessage, string categoryName, string selector);
         Task<string> GenerateReportSummaryAsync(List<DesignIssue> issues, string html, string url, CancellationToken cancellationToken);
     }
 }

@@ -3,6 +3,8 @@ using System.Text;
 using System.Text.Json;
 using Microsoft.Extensions.Options;
 using Uxcheckmate_Main.Models;
+using Uxcheckmate_Main.Services;
+using Microsoft.EntityFrameworkCore;
 
 namespace Uxcheckmate_Main.Services
 {
@@ -15,11 +17,16 @@ namespace Uxcheckmate_Main.Services
     {
         private readonly HttpClient _httpClient;
         private readonly JiraSettings _settings;
+        private readonly UxCheckmateDbContext _context;
+        private readonly IOpenAiService _openAiService; 
 
-        public JiraService(HttpClient httpClient, IOptions<JiraSettings> settings)
+        public JiraService(HttpClient httpClient, IOptions<JiraSettings> settings, UxCheckmateDbContext dbContext, 
+        IOpenAiService openAiService)
         {
             _httpClient = httpClient;
             _settings = settings.Value;
+            _context = dbContext;
+            _openAiService = openAiService;
         }
 
         public async Task ExportReportAsync(Report report, string accessToken, string cloudId, string projectId)
@@ -27,12 +34,31 @@ namespace Uxcheckmate_Main.Services
             // Loop through design issues and create Jira tasks
             foreach (var issue in report.DesignIssues)
             {
+                if (string.IsNullOrEmpty(issue.Title))
+                {
+                    // Generate a title for the issue using OpenAI
+                    issue.Title = await _openAiService.GenerateTitleAsync(issue.Message, issue.Category?.Name ?? "General");
+                    await _context.SaveChangesAsync();
+                }
+
+                // Generate an improved description for the issue using OpenAI
+                issue.Message = await _openAiService.GenerateImprovedDescriptionAsync(issue.Message, issue.Category?.Name ?? "General");
+
                 await CreateJiraIssueAsync(accessToken, cloudId, projectId, issue.Title, issue.Message);
             }
 
             // Loop through accessibility issues and create Jira tasks
             foreach (var issue in report.AccessibilityIssues)
             {
+                if (string.IsNullOrEmpty(issue.Title))
+                {
+                    // Generate a title for the issue using OpenAI
+                    issue.Title = await _openAiService.GenerateAccTitleAsync(issue.Message, issue.Category?.Name ?? "General", issue.Selector);
+                    await _context.SaveChangesAsync();
+                }
+                // Generate an improved description for the issue using OpenAI
+                issue.Message = await _openAiService.GenerateImprovedDescriptionAsync(issue.Message, issue.Category?.Name ?? "General");
+
                 await CreateJiraIssueAsync(accessToken, cloudId, projectId, issue.Title, issue.Message);
             }
         }
