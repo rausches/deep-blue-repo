@@ -320,7 +320,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                         <button class="btn btn-secondary btn-sm" onclick="viewReportDetails(${r.id})">View Report</button>
                                     </div>
                                     <div class="col-sm">
-                                        <button class="btn btn-primary btn-sm" onclick="sendToJira(${r.id})">Export to Jira</button>    
+                                        <button class="btn btn-primary btn-sm exportJiraBtn" onclick="sendToJira(${r.id})">Export to Jira</button>    
                                     </div>
                                     <div class="col-sm">
                                         <button class="btn btn-danger btn-sm deleteReportbtn" onclick="deleteReport(${r.id})">Delete</button>

@@ -2,9 +2,10 @@ Feature: Jira Tasks
 As a user, I'd like to be able to export the issue as a task to Jira
 
 Scenario: Logged in user can export to Jira
-    Given the user is logged in
+    Given the user navigates to the login page
+    And the user logs in
     And the user is on the dashboard
-    And the user opens a report entry
+    When the user clicks on a domain entry
     Then they will see a button to export to jira
     And they will click the button
     And they will log into Jira
