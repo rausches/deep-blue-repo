@@ -48,19 +48,19 @@ public class Program
 
 
 
-            builder.Services.AddHttpClient<IOpenAiService, OpenAiService>((httpClient, services) =>
-            {
-                string openAiUrl = "https://api.openai.com/v1/chat/completions";
-                string openAiApiKey = builder.Configuration["OpenAiApiKey"];
-                httpClient.BaseAddress = new Uri(openAiUrl);          
-                httpClient.DefaultRequestHeaders.Add("Accept", "application/json");
-                httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", openAiApiKey);
-            
-                return new OpenAiService(
-                    httpClient,
-                    services.GetRequiredService<ILogger<OpenAiService>>()
-                );
-            });
+        builder.Services.AddHttpClient<IOpenAiService, OpenAiService>((httpClient, services) =>
+        {
+            string openAiUrl = "https://api.openai.com/v1/chat/completions";
+            string openAiApiKey = builder.Configuration["OpenAiApiKey"];
+            httpClient.BaseAddress = new Uri(openAiUrl);          
+            httpClient.DefaultRequestHeaders.Add("Accept", "application/json");
+            httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", openAiApiKey);
+        
+            return new OpenAiService(
+                httpClient,
+                services.GetRequiredService<ILogger<OpenAiService>>()
+            );
+        });
 
         // Add services to the container.
         builder.Services.AddControllersWithViews();
@@ -77,7 +77,7 @@ public class Program
         builder.Services.AddScoped<IPlaywrightService, PlaywrightService>();
         builder.Services.AddScoped<PlaywrightService>();
 
-        // Register Pa11yUrlBasedService and Pa11yService
+        // Register AxeCoreService
         builder.Services.AddScoped<IAxeCoreService, AxeCoreService>();
 
         // Register ScreenshotService
@@ -102,6 +102,11 @@ public class Program
         builder.Services.AddScoped<IFPatternService, FPatternService>();
         builder.Services.AddScoped<IZPatternService, ZPatternService>();
         builder.Services.AddScoped<ISymmetryService, SymmetryService>();
+
+        //Register Background Services
+        builder.Services.AddSingleton<IBackgroundTaskQueue, BackgroundTaskQueue>();
+        builder.Services.AddHostedService<QueueService>();
+        builder.Services.AddHostedService<ReportCleanupService>();
 
 
         var app = builder.Build();
