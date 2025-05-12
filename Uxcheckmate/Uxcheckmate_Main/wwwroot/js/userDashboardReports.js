@@ -37,6 +37,7 @@ function showProjectDropdownModal(projects, reportId) {
                 </div>
                 <div class="modal-body">
                     <select class="form-select" id="jiraProjectDropdown"></select>
+                    <div id="jiraExportStatus" class="mt-3 text-center text-muted small"></div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-primary" id="confirmProjectButton">Export</button>
@@ -60,7 +61,6 @@ function showProjectDropdownModal(projects, reportId) {
     modal.querySelector('#confirmProjectButton').onclick = function() {
         const selectedId = select.value;
         exportReportToJira(reportId, selectedId);
-        bootstrap.Modal.getInstance(modal).hide();
     };
 
     // Show the modal
@@ -69,14 +69,49 @@ function showProjectDropdownModal(projects, reportId) {
 
 // Sends a request to export a report to Jira under the selected project.
 function exportReportToJira(reportId, projectId) {
+    // Get references to modal elements
+    const modal = document.getElementById('projectSelectModal');
+    const exportButton = modal.querySelector('#confirmProjectButton');
+    const statusDiv = modal.querySelector('#jiraExportStatus');
+
+    // Show spinner and disable export button to prevent double submission
+    if (exportButton) {
+        exportButton.disabled = true;
+        exportButton.innerHTML = `
+            <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Sending...
+        `;
+    }
+
+    // Send POST request to the server to export the report
     fetch(`/JiraAPI/ExportReportToJira?reportId=${reportId}&projectKey=${encodeURIComponent(projectId)}`, {
         method: 'POST'
     })
     .then(response => {
         if (response.ok) {
-            alert(`Report ${reportId} successfully exported to Jira project.`);
+            // Success: show success message in modal
+            statusDiv.textContent = "Report successfully exported to Jira.";
+
+            // Automatically close modal after a short delay (1 second)
+            setTimeout(() => {
+                bootstrap.Modal.getInstance(modal).hide(); // Close modal
+                statusDiv.textContent = ""; // Clear message for next time
+            }, 1000);
         } else {
-            response.text().then(text => alert(`Failed to send report to Jira. (${response.status})`));
+            // Server responded with error: show error message in modal
+            response.text().then(text => {
+                statusDiv.textContent = `Failed to send report. (${response.status})`;
+            });
+        }
+    })
+    .catch(() => {
+        // Network or unexpected error: show error message in modal
+        statusDiv.textContent = "An error occurred while sending the report.";
+    })
+    .finally(() => {
+        // Re-enable button and reset text no matter what happened
+        if (exportButton) {
+            exportButton.disabled = false;
+            exportButton.textContent = "Export";
         }
     });
 }
