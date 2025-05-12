@@ -6,7 +6,7 @@ using NUnit.Framework;
 using System.Threading.Tasks;
 using Uxcheckmate_Main.Controllers;
 
-namespace Services_Tests
+namespace Controller_Tests
 {
     [TestFixture]
     public class JiraAuthController_Tests
