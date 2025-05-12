@@ -61,6 +61,10 @@ jobs:
             exit 1
           fi
           npx playwright --version
+
+      - name: clear previous build causing loops
+        run: rm -rf ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}
+          
       - name: Publish
         run: dotnet publish ./Uxcheckmate/Uxcheckmate_Main/Uxcheckmate_Main.csproj --configuration Release --output '${{ env.AZURE_WEBAPP_PACKAGE_PATH }}'
 
