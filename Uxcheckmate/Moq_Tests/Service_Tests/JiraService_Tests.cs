@@ -9,9 +9,9 @@ using Microsoft.Extensions.Options;
 using Uxcheckmate_Main.Services;
 using Uxcheckmate_Main.Models;
 
-namespace Services_Tests
+namespace Service_Tests
 {
-    [TestFixture] // Marks this class as containing NUnit tests
+    [TestFixture]
     public class JiraService_Tests
     {
         private JiraService _jiraService;
@@ -31,7 +31,6 @@ namespace Services_Tests
             _dbContextMock = new Mock<UxCheckmateDbContext>();
             _openAiServiceMock = new Mock<IOpenAiService>();
 
-            // Instantiate the JiraService with mocks (dependency injection)
             _jiraService = new JiraService(httpClient, options, _dbContextMock.Object, _openAiServiceMock.Object);
         }
 
