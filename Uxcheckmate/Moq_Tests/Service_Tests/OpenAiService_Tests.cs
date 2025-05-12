@@ -261,7 +261,7 @@ namespace Service_Tests
 
             // Act
             // Call the service method under test
-            var result = await _openAiService.GenerateReportSummaryAsync(mockIssues, mockHtml, mockUrl);
+            var result = await _openAiService.GenerateReportSummaryAsync(mockIssues, mockHtml, mockUrl, It.IsAny<CancellationToken>());
 
             // Assert
             // The result should be a non-null, non-empty string

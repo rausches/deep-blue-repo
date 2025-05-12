@@ -82,7 +82,7 @@ public class Program
         builder.Services.AddScoped<IPlaywrightService, PlaywrightService>();
         builder.Services.AddScoped<PlaywrightService>();
 
-        // Register Pa11yUrlBasedService and Pa11yService
+        // Register AxeCoreService
         builder.Services.AddScoped<IAxeCoreService, AxeCoreService>();
 
         // Register ScreenshotService
