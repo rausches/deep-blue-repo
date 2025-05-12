@@ -51,8 +51,8 @@ namespace Services_Tests
                     ItExpr.IsAny<HttpRequestMessage>(),   
 
                     // Match any CancellationToken
-                    ItExpr.IsAny<CancellationToken>()
-                .ReturnsAsync(new HttpResponseMessage)
+                    ItExpr.IsAny<CancellationToken>())
+                .ReturnsAsync(new HttpResponseMessage
                 {
                     // Simulate success response
                     StatusCode = HttpStatusCode.OK,
