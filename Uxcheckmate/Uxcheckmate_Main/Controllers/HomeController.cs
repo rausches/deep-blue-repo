@@ -97,12 +97,8 @@ public class HomeController : Controller
                 isAdmin = roleClaims.Any(c => c.Value == "Admin");
         }
 
-        // Create and save the report record.
-        var report = await CreateOrUpdateReport(url);
-
-        // Run accessibility and design analysis
-        var accessibilityIssues = await _axeCoreService.AnalyzeAndSaveAccessibilityReport(report);
-        var designIssues = await _reportService.GenerateReportAsync(report);
+            // Run accessibility and design analysis
+            var accessibilityIssues = await _axeCoreService.AnalyzeAndSaveAccessibilityReport(report, cancellationToken);
 
         // Fetch the full report inclunding related issues and categories
         if (string.IsNullOrEmpty(userId)){
@@ -432,17 +428,15 @@ public class HomeController : Controller
                 _context.AccessibilityIssues.RemoveRange(existingReport.AccessibilityIssues);
                 _context.DesignIssues.RemoveRange(existingReport.DesignIssues);
                 _context.Reports.Remove(existingReport);
-                await _context.SaveChangesAsync();
 
-                _context.Entry(existingReport).State = EntityState.Detached;
+              //  _context.Entry(existingReport).State = EntityState.Detached;
                 _logger.LogInformation("Old report for user {UserId} and URL {Url} removed.", userId, url);
             }
+        }
             _context.Reports.Add(report);
             await _context.SaveChangesAsync();
             _logger.LogInformation("New report saved to DB with ID: {ReportId}", report.Id);
-        }else{
-            _logger.LogInformation("User not authenticated. Generating a report without saving to DB.");
-        }
+
         return report;
     }
 
