@@ -11,12 +11,14 @@ namespace Uxcheckmate_Main.Services
         private readonly ILogger<AxeCoreService> _logger;
         protected readonly UxCheckmateDbContext _dbContext;
         private readonly IPlaywrightService _playwrightService;
+        private readonly IOpenAiService _openAiService;
 
-        public AxeCoreService(ILogger<AxeCoreService> logger, UxCheckmateDbContext dbContext, IPlaywrightService playwrightService)
+        public AxeCoreService(ILogger<AxeCoreService> logger, UxCheckmateDbContext dbContext, IPlaywrightService playwrightService, IOpenAiService openAiService)
         {
             _logger = logger;
             _dbContext = dbContext;
             _playwrightService = playwrightService;
+            _openAiService = openAiService;
         }
 
         public virtual async Task<ICollection<AccessibilityIssue>> AnalyzeAndSaveAccessibilityReport(Report report, CancellationToken cancellationToken = default)
@@ -115,14 +117,28 @@ namespace Uxcheckmate_Main.Services
 
                         var category = _dbContext.AccessibilityCategories.FirstOrDefault(c => c.Name == categoryName) 
                             ?? _dbContext.AccessibilityCategories.FirstOrDefault(c => c.Name == "Other");
-
+                        
+                        string aiTitle = "";
+                        try
+                        {
+                            aiTitle = await _openAiService.GenerateTitleAsync(
+                                violation.Help ?? violation.Description ?? "Accessibility issue",
+                                category.Name
+                            );
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger.LogError(ex, "Failed to generate AI title for accessibility issue.");
+                            aiTitle = "Untitled accessibility issue";
+                        }
                         string details = node.FailureSummary ?? "No additional details available";
 
                         var issue = new AccessibilityIssue
                         {
                             ReportId = report.Id,
                             Message = violation.Help ?? violation.Description ?? "No description available",
-                            Details = details,  // 
+                            Title = aiTitle,
+                            Details = details, 
                             Selector = node.Html ?? "No HTML available",
                             Severity = DetermineSeverity(violation.Impact),
                             WCAG = violation.WcagTags?.Any() == true 
