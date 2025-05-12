@@ -322,6 +322,13 @@ namespace Uxcheckmate_Main.Migrations
                     b.Property<DateOnly>("Date")
                         .HasColumnType("date");
 
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+                        
+                    b.Property<string>("Summary")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("Url")
                         .IsRequired()
                         .HasMaxLength(128)
@@ -337,6 +344,30 @@ namespace Uxcheckmate_Main.Migrations
                         .HasName("PK__Report__3214EC27DC95E762");
 
                     b.ToTable("Report");
+                });
+
+            modelBuilder.Entity("Uxcheckmate_Main.Models.UserFeedback", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("DateSubmitted")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Message")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<string>("UserID")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("UserFeedbacks");
                 });
 
             modelBuilder.Entity("Uxcheckmate_Main.Models.AccessibilityIssue", b =>

@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
 using Moq;
 using Reqnroll;
 using System.Security.Claims;
@@ -49,6 +50,14 @@ namespace BDD_Tests.StepDefinitions
         {
             PerformLogin(email, password);
         }
+        [Given(@"the user logs in as admin")]
+        public void GivenTheUserLogsInAsAdmin()
+        {
+            var config = new ConfigurationBuilder().AddUserSecrets<BasicSteps>().Build();
+            string email = config["TestAdmin:Email"]; // NEED USER SECRETS TO RUN THIS CODE
+            string password = config["TestAdmin:Password"];
+            PerformLogin(email, password);
+        }
         private void PerformLogin(string email, string password)
         {
             driver.FindElement(By.LinkText("Login")).Click();
@@ -61,6 +70,7 @@ namespace BDD_Tests.StepDefinitions
             var loginButton = driver.FindElement(By.CssSelector("button[type='submit']"));
             loginButton.Click();
         }
+        
         [When(@"the user enters a URL to analyze(?: with ""(.*)"")?")]
         public void WhenTheUserEntersAUrlToAnalyze(string url = "https://example.com")
         {
