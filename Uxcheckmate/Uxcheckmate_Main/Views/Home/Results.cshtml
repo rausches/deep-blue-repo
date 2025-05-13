@@ -60,30 +60,24 @@
                                     Design Issues
 ============================================================================================
 *@
-    <div class="row designRow">
-        <div class="report-section mb-5">
-            <h3 class="section-header mb-4">Design Issues</h3>
+<div class="row designRow position-relative">
+    <div class="report-section mb-5">
+        <h3 class="section-header mb-4">Design Issues</h3>
 
+        <!-- FULL ROW OVERLAY -->
+        <div id="designIssuesOverlay" class="overlay">
+            <div class="spinner-grow text-light" role="status"></div>
+        </div>
 
-<div class="position-relative" id="designIssuesWrapper">
-    <div id="designIssuesOverlay" class="overlay designIssuesOverlay">
-        <div class="spinner-grow text-light" role="status"></div>
-        <span class="sr-only text-light">Loading Design Issues...</span>
-    </div>
-
-
-    <div id="designIssuesContainer">
-
-
-            @await Html.PartialAsync("_DesignIssuesPartial", Model.DesignIssues)
-
+        <!-- ISSUES CONTENT -->
+        <div id="designIssuesWrapper">
+            <div id="designIssuesContainer">
+                @await Html.PartialAsync("_DesignIssuesPartial", Model.DesignIssues)
+            </div>
+        </div>
 
     </div>
 </div>
-
-
-        </div>
-    </div>
 
 
 <br>

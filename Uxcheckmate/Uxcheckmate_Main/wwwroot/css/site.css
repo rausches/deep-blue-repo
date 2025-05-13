@@ -781,21 +781,21 @@ User Dashboard Styling
   font-weight: bold;
 }
 
-.overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.6); /* dark transparent overlay */
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-  opacity: 1;
-  transition: opacity 0.5s ease;
+#designIssuesOverlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5); /* Dim background */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+    border-radius: 15px;
+    backdrop-filter: blur(3px);
 }
-.overlay.hidden {
-  opacity: 0;
-  pointer-events: none; /* allow clicking through once hidden */
+
+#designIssuesOverlay.hidden {
+    display: none;
+}
