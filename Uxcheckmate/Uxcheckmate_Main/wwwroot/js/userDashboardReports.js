@@ -55,7 +55,7 @@ function downloadReport(reportId) {
         .then(blob => {
             const link = document.createElement('a');
             link.href = URL.createObjectURL(blob);
-            link.download = `Report_${reportId}.pdf`;  
+            link.download = `UxCheckmate_Report_ID_${reportId}.pdf`;  
             link.click();  
         })
         .catch(error => console.error('Error downloading the report:', error));
