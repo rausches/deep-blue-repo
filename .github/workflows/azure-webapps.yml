@@ -46,31 +46,40 @@ jobs:
           npx playwright install
         env:
           DEBUG: pw:*
+          PLAYWRIGHT_BROWSERS_PATH: ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}/playwright
 
       - name: Show browser location
         run: |
-          echo "Playright browser location: "
+          echo "Playwright browser location: "
           find ~/.cache/ms-playwright -name "chrome*" | head -n 5
-          
+
       - name: clear previous build causing loops
-        run: rm -rf ${{ env.AZURE_WEBAPP_PACKAGE_PATH }} 
-          
+        run: rm -rf ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}
+
       - name: Publish
-        run: dotnet publish ./Uxcheckmate/Uxcheckmate_Main/Uxcheckmate_Main.csproj --configuration Release --output '${{ env.AZURE_WEBAPP_PACKAGE_PATH }}'
+        run: dotnet publish ./Uxcheckmate/Uxcheckmate_Main/Uxcheckmate_Main.csproj --configuration Release --output '${{ github.workspace }}/publish'
 
       - name: Create test file
         run: |
           echo "Deployment test file. Created at $(date)" > ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}/deployment-test.txt
-      - name: Copy Playwright Chromium Browsers to simpler path 
+
+      - name: Set Playwright browser path
+        run: |
+          echo "Setting Playwright browser path..."
+          export PLAYWRIGHT_BROWSERS_PATH="${{ env.AZURE_WEBAPP_PACKAGE_PATH }}/playwright"
+
+      - name: Copy Playwright Chromium Browsers to simpler path
         run: |
           echo "📁 Copying Playwright Chromium browsers to simplified path..."
           mkdir -p '${{ env.AZURE_WEBAPP_PACKAGE_PATH }}/playwright'
           cp -r ~/.cache/ms-playwright/chromium-* '${{ env.AZURE_WEBAPP_PACKAGE_PATH }}/playwright/'
-      - name: Check  browser binaries
+
+      - name: Check browser binaries
         run: |
-          echo "🔍 Checking if Playwright browsers was copied.."
+          echo "🔍 Checking Playwright browser binaries..."
+          ls -la ~/.cache/ms-playwright
           ls -la ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}/playwright/
-      
+
       - name: Deployment
         uses: azure/webapps-deploy@v2
         with:
