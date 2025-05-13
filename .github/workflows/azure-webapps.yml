@@ -42,15 +42,22 @@ jobs:
       - name: Install Playwright v1.50.0
         run: |
           echo "📦 Installing Playwright v1.50.0..."
+          export PLAYWRIGHT_BROWSERS_PATH="${{ env.AZURE_WEBAPP_PACKAGE_PATH }}/playwright"
           npm install playwright@1.50.0
           npx playwright install
         env:
           DEBUG: pw:*
           PLAYWRIGHT_BROWSERS_PATH: ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}/playwright
 
+      - name: Verify Playwright installation
+        run: |
+          echo "Verifying Playwright installation..."
+          ls -la ~/.cache/ms-playwright
+          ls -la ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}/playwright
+
       - name: Show browser location
         run: |
-          echo "Playwright browser location: "
+          echo "Checking Playwright browser location: "
           find ~/.cache/ms-playwright -name "chrome*" | head -n 5
 
       - name: clear previous build causing loops
