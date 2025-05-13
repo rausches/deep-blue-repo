@@ -71,11 +71,11 @@ jobs:
         run: rm -rf ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}
 
       - name: Publish
-        run: dotnet publish ./Uxcheckmate/Uxcheckmate_Main/Uxcheckmate_Main.csproj --configuration Release --output '${{ github.workspace }}/publish'
+        run: dotnet publish ./Uxcheckmate/Uxcheckmate_Main/Uxcheckmate_Main.csproj -c Release -o ./Uxcheckmate/Uxcheckmate_Main/bin/Release/net9.0/publish
 
       - name: Create test file
         run: |
-          echo "Deployment test file. Created at $(date)" > ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}/deployment-test.txt
+          echo "Deployment test file. Created at $(date)" > ./Uxcheckmate/Uxcheckmate_Main/bin/Release/net9.0/publish/deployment-test.txt
 
       - name: Set Playwright browser path
         run: |
