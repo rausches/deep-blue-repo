@@ -341,7 +341,7 @@ public class HomeController : Controller
             }
         }
         var pdfBytes = _pdfExportService.GenerateReportPdf(report);
-        return File(pdfBytes, "application/pdf", $"UXCheckmate_Report_{report.Id}.pdf");
+        return File(pdfBytes, "application/pdf", $"UxCheckmate_Report_ID_{report.Id}.pdf");
     }
 
     [HttpGet]
