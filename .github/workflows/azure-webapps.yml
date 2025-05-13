@@ -49,6 +49,7 @@ jobs:
       - name: Install Playwright v1.50.0
         run: |
           echo "📦 Installing Playwright v1.50.0..."
+          mkdir -p ~/.cache/ms-playwright
           npm install playwright@1.50.0
           npx playwright install
         env:
@@ -59,7 +60,7 @@ jobs:
         run: |
           echo "Verifying Playwright installation..."
           ls -la ~/.cache/ms-playwright
-          ls -la ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}/playwright
+          ls -la ./Uxcheckmate/Uxcheckmate_Main/bin/Release/net9.0/publish/playwright || echo "Publish folder not found"
 
       - name: Show browser location
         run: |
