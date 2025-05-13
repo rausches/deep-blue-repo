@@ -41,6 +41,7 @@ jobs:
       - name: Install missing Linux dependencies for Playwright
         run: |
           echo "🔧 Installing Playwright Linux dependencies..."
+          cd Uxcheckmate/Uxcheckmate_Main
           npm install
         env:
           DEBUG: pw:*
