@@ -12,8 +12,12 @@ using Microsoft.Playwright;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.Mvc.ViewEngines;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.UI.Services;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Extensions.Caching.Memory;
-
 
 namespace Uxcheckmate_Main.Controllers;
 
@@ -28,6 +32,8 @@ public class HomeController : Controller
     private readonly PdfExportService _pdfExportService;
     private readonly IScreenshotService _screenshotService;
     private readonly IViewRenderService _viewRenderService;
+    private readonly SignInManager<IdentityUser> _signInManager;
+    private readonly UserManager<IdentityUser> _userManager;
     private readonly IBackgroundTaskQueue _backgroundTaskQueue;
     private readonly IServiceScopeFactory _scopeFactory;
     private readonly IMemoryCache _cache;
@@ -35,7 +41,7 @@ public class HomeController : Controller
 
     public HomeController(ILogger<HomeController> logger, HttpClient httpClient, UxCheckmateDbContext dbContext, 
         IOpenAiService openAiService, IAxeCoreService axeCoreService, IReportService reportService, 
-        PdfExportService pdfExportService, IScreenshotService screenshotService, IViewRenderService viewRenderService,IBackgroundTaskQueue backgroundTaskQueue, IServiceScopeFactory scopeFactory, IMemoryCache cache)
+        PdfExportService pdfExportService, IScreenshotService screenshotService, IViewRenderService viewRenderService,IBackgroundTaskQueue backgroundTaskQueue, IServiceScopeFactory scopeFactory, IMemoryCache cache, UserManager<IdentityUser> userManager)
         
     {
         _logger = logger;
@@ -46,6 +52,7 @@ public class HomeController : Controller
         _pdfExportService = pdfExportService;
         _screenshotService = screenshotService;
         _viewRenderService = viewRenderService;
+        _userManager = userManager;
         _backgroundTaskQueue = backgroundTaskQueue;
         _scopeFactory = scopeFactory;
         _cache = cache;
@@ -215,11 +222,30 @@ public class HomeController : Controller
             return View("Results", fullReport);
         }
         catch (Exception ex)
+
         {
             _logger.LogError(ex, "Unhandled error during report generation for URL: {Url}", url);
             TempData["ScrapingError"] = "An unexpected error occurred during the scan. Please try again.";
             return RedirectToAction("Index");
         }
+    }
+    
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> SaveReportToUser(int reportId)
+    {
+        var report = await _context.Reports.FindAsync(reportId);
+        if (report == null) return NotFound();
+
+        var userId = _userManager.GetUserId(User);
+        if (string.IsNullOrEmpty(report.UserID))
+        {
+            report.UserID = userId;
+            _context.Reports.Update(report);
+            await _context.SaveChangesAsync();
+        }
+
+        return RedirectToAction("ReportDetails", new { id = reportId }); // or your actual view route
     }
 
     [HttpGet]
@@ -507,11 +533,16 @@ public class HomeController : Controller
             AccessibilityIssues = new List<AccessibilityIssue>(),
             DesignIssues = new List<DesignIssue>()
         };
-        if (!string.IsNullOrEmpty(userId)){
-            // Seeing if user already has a report under the url
-            var existingReport = await _context.Reports.Include(r => r.AccessibilityIssues).Include(r => r.DesignIssues).FirstOrDefaultAsync(r => r.Url == url && r.UserID == userId);
-            if (existingReport != null){
-                // Deleting old report information [May decide to archive in later sprint]
+        if (!string.IsNullOrEmpty(userId))
+        {
+            // Authenticated user flow (replace old report, then save)
+            var existingReport = await _context.Reports
+                .Include(r => r.AccessibilityIssues)
+                .Include(r => r.DesignIssues)
+                .FirstOrDefaultAsync(r => r.Url == url && r.UserID == userId);
+
+            if (existingReport != null)
+            {
                 _context.AccessibilityIssues.RemoveRange(existingReport.AccessibilityIssues);
                 _context.DesignIssues.RemoveRange(existingReport.DesignIssues);
                 _context.Reports.Remove(existingReport);
@@ -519,11 +550,18 @@ public class HomeController : Controller
               //  _context.Entry(existingReport).State = EntityState.Detached;
                 _logger.LogInformation("Old report for user {UserId} and URL {Url} removed.", userId, url);
             }
-        }
+
             _context.Reports.Add(report);
             await _context.SaveChangesAsync();
             _logger.LogInformation("New report saved to DB with ID: {ReportId}", report.Id);
-
+        }
+        else
+        {
+            // Unauthenticated user — SAVE the report anyway so it gets an ID
+            _context.Reports.Add(report);
+            await _context.SaveChangesAsync(); // This gives the report a valid ID!
+            _logger.LogInformation("Anonymous report saved to DB with ID: {ReportId}", report.Id);
+        }
         return report;
     }
 
@@ -543,6 +581,17 @@ public class HomeController : Controller
             "severity-low-high" => report.AccessibilityIssues.OrderBy(i => i.Severity).ThenBy(i => i.Category.Name).ToList(),
             _ => report.AccessibilityIssues.OrderBy(i => i.Category.Name).ThenByDescending(i => i.Severity).ToList()
         };
+    }
+    
+    [HttpPost]
+    public IActionResult StoreReportIdBeforeAuth(int reportId, string authType)
+    {
+        TempData["ReportId"] = reportId;
+
+        if (authType == "register")
+            return Redirect($"/Identity/Account/Register?reportId={reportId}");
+        else
+            return Redirect($"/Identity/Account/Login?reportId={reportId}");
     }
 
     private void StoreReportInTempData(Report report)
