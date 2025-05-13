@@ -8,6 +8,7 @@ using Uxcheckmate_Main.Models;
 using System.Collections.Concurrent;
 using System.Threading.Tasks;
 using System.Diagnostics;
+using Microsoft.Extensions.Caching.Memory;
 
 
 namespace Uxcheckmate_Main.Services
@@ -33,8 +34,10 @@ namespace Uxcheckmate_Main.Services
         private readonly IZPatternService _zPatternService;
         private readonly ISymmetryService _symmetryService;
         private readonly IServiceScopeFactory _scopeFactory;
+        private readonly IMemoryCache _cache;
 
-        public ReportService(HttpClient httpClient, ILogger<ReportService> logger, UxCheckmateDbContext context, IOpenAiService openAiService, IBrokenLinksService brokenLinksService, IHeadingHierarchyService headingHierarchyService, IColorSchemeService colorSchemeService, IMobileResponsivenessService mobileResponsivenessService, IScreenshotService screenshotService, IPlaywrightScraperService playwrightScraperService, IPopUpsService popUpsService, IAnimationService animationService, IAudioService audioService, IScrollService scrollService, IFPatternService fPatternService, IZPatternService zPatternService, ISymmetryService symmetryService, IServiceScopeFactory scopeFactory)
+        public ReportService(HttpClient httpClient, ILogger<ReportService> logger, UxCheckmateDbContext context, IOpenAiService openAiService, IBrokenLinksService brokenLinksService, IHeadingHierarchyService headingHierarchyService, IColorSchemeService colorSchemeService, IMobileResponsivenessService mobileResponsivenessService, IScreenshotService screenshotService, IPlaywrightScraperService playwrightScraperService, IPopUpsService popUpsService, IAnimationService animationService, IAudioService audioService, IScrollService scrollService, IFPatternService fPatternService, IZPatternService zPatternService, ISymmetryService symmetryService, IServiceScopeFactory scopeFactory, 
+    IMemoryCache cache)
         {
             _httpClient = httpClient;
             _dbContext = context;
@@ -55,6 +58,7 @@ namespace Uxcheckmate_Main.Services
             _zPatternService = zPatternService;
             _symmetryService = symmetryService;
             _scopeFactory = scopeFactory;
+            _cache = cache;
         }
 
 
@@ -73,15 +77,31 @@ namespace Uxcheckmate_Main.Services
                 throw new ArgumentException("URL cannot be empty.", nameof(url));
             }
             
-            // Scrape site
+            // Scrape site with caching
             ScrapedContent fullScraped;
             Dictionary<string, object> scrapedData;
 
             try
             {
-                fullScraped = await _playwrightScraperService.ScrapeEverythingAsync(url, cancellationToken);
+                string cacheKey = $"scrapedcontent_{url.ToLowerInvariant()}";
+                
+                // Try to get from cache
+                if (!_cache.TryGetValue(cacheKey, out fullScraped))
+                {
+                    _logger.LogInformation("No cached scrape found for {Url}. Scraping now.", url);
+                    fullScraped = await _playwrightScraperService.ScrapeEverythingAsync(url, cancellationToken);
+
+                    // Cache it for 1 hour
+                    _cache.Set(cacheKey, fullScraped, TimeSpan.FromHours(1));
+                }
+                else
+                {
+                    _logger.LogInformation("Using cached scrape for {Url}.", url);
+                }
+
                 scrapedData = fullScraped.ToDictionary();
             }
+
             catch (OperationCanceledException)
             {
                 _logger.LogWarning("Scraping cancelled.");
@@ -111,7 +131,7 @@ namespace Uxcheckmate_Main.Services
             // Run analysis for each category in parallel
             await Parallel.ForEachAsync(
                 designCategories,
-                new ParallelOptions { MaxDegreeOfParallelism = 4 },
+                new ParallelOptions { MaxDegreeOfParallelism = 8 },
                 async (category, cancellationToken) =>
                 {
                     _logger.LogInformation("Analyzing category: {CategoryName} using scan method: {ScanMethod}", category.Name, category.ScanMethod);
