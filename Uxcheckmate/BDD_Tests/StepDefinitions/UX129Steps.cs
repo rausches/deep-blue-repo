@@ -66,28 +66,40 @@ namespace BDD_Tests.StepDefinitions
         [Then("they will click the button")]
         public void AndTheyWillClickTheButton()
         {
-            var wait = new WebDriverWait(_driver, TimeSpan.FromSeconds(10));
+            var wait = new WebDriverWait(_driver, TimeSpan.FromSeconds(180));
 
             // Wait for button to be fully interactable
             var exportButton = wait.Until(SeleniumExtras.WaitHelpers.ExpectedConditions
                 .ElementToBeClickable(By.ClassName("exportJiraBtn")));
 
             exportButton.Click();
-            // var for jira login
-            // assert they are on login page
         }
 
         [Then("they will log into Jira")]
         public void AndTheyWillLogIntoJira()
         {
-            // var for jira credientials
-            // find login input
-            // enter jira credentials 
-            // click enter
-            // wait until permissions page shows up
-            // click permissions
-            // wait until back on dashboard
-            // assert back on dashboard
+            var wait = new WebDriverWait(_driver, TimeSpan.FromSeconds(180));
+            // Jira login
+            var username = "t8604369@gmail.com";
+            var password = "6N@*wZJP$m3FR2a";
+
+            // Enter Username
+            var jiraLogin = wait.Until(d => d.FindElement(By.Id("username")));
+            jiraLogin.Clear();
+            jiraLogin.SendKeys(username);
+            var submitBtn = wait.Until(d => d.FindElement(By.Id("login-submit")));
+            submitBtn.Click();
+            
+            // Enter Password
+            var passwordInput =  wait.Until(SeleniumExtras.WaitHelpers.ExpectedConditions
+                .ElementToBeClickable(By.Id("password")));
+            passwordInput.Clear();
+            passwordInput.SendKeys(password);
+            submitBtn.Click();
+
+            var acceptBtn = wait.Until(SeleniumExtras.WaitHelpers.ExpectedConditions
+                .ElementToBeClickable(By.ClassName("css-1dw4iom")));
+            acceptBtn.Click();
         }
 
         [Then("they will select the project to add to")]
@@ -114,3 +126,6 @@ namespace BDD_Tests.StepDefinitions
         }
     }
 }
+//#username
+//#login-submit
+//#password
