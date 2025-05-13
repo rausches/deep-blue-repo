@@ -19,7 +19,7 @@ namespace Uxcheckmate_Main.Services
             _playwrightService = playwrightService;
         }
 
-        public virtual async Task<ICollection<AccessibilityIssue>> AnalyzeAndSaveAccessibilityReport(Report report)
+        public virtual async Task<ICollection<AccessibilityIssue>> AnalyzeAndSaveAccessibilityReport(Report report, CancellationToken cancellationToken = default)
         {
             var issues = new List<AccessibilityIssue>();
 
@@ -115,14 +115,14 @@ namespace Uxcheckmate_Main.Services
 
                         var category = _dbContext.AccessibilityCategories.FirstOrDefault(c => c.Name == categoryName) 
                             ?? _dbContext.AccessibilityCategories.FirstOrDefault(c => c.Name == "Other");
-
+                        
                         string details = node.FailureSummary ?? "No additional details available";
 
                         var issue = new AccessibilityIssue
                         {
                             ReportId = report.Id,
                             Message = violation.Help ?? violation.Description ?? "No description available",
-                            Details = details,  // 
+                            Details = details, 
                             Selector = node.Html ?? "No HTML available",
                             Severity = DetermineSeverity(violation.Impact),
                             WCAG = violation.WcagTags?.Any() == true 

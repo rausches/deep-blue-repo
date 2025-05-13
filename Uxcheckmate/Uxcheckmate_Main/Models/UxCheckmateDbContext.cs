@@ -112,6 +112,10 @@ public partial class UxCheckmateDbContext : DbContext
 
         OnModelCreatingPartial(modelBuilder);
     }
-
+    public virtual DbSet<UserFeedback> UserFeedbacks { get; set; }
+    public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+    {
+        return base.SaveChangesAsync(cancellationToken);
+    }
     partial void OnModelCreatingPartial(ModelBuilder modelBuilder);
 }

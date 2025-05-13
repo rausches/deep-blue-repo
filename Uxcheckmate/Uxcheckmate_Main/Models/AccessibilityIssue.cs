@@ -28,6 +28,9 @@ public partial class AccessibilityIssue
     [Column(TypeName = "varchar(max)")]
     [Unicode(false)]
     public string Selector { get; set; } = null!;
+    
+    [Column("Title")]
+    public string? Title { get; set; } 
 
     public int Severity { get; set; }
 

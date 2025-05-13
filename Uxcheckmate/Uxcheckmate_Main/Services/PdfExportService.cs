@@ -1,6 +1,7 @@
 using QuestPDF.Fluent;
 using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
+using QuestPDF.Previewer;
 using Uxcheckmate_Main.Models;
 using System.Collections.Generic;
 using System.IO;
@@ -11,15 +12,20 @@ namespace Uxcheckmate_Main.Services
     {
         public byte[] GenerateReportPdf(Report report)
         {
-            string logoPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "uxCheckmateLogo.png");
+            string logoPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "uxCheckmateLogo_blackandwhite.png");
+            string backgroundImagePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "pdf_bg.PNG");
 
             return Document.Create(container =>
+            // var document = Document.Create(container =>
             {
                 container.Page(page =>
                 {
                     page.Size(PageSizes.A4);
                     page.Margin(30);
                     page.DefaultTextStyle(TextStyle.Default.FontSize(12));
+
+                    // Set background image
+                    page.Background().Image(backgroundImagePath);
 
                     // Unified Header
                     page.Header().Column(headerCol =>
@@ -35,7 +41,7 @@ namespace Uxcheckmate_Main.Services
                                     .Bold()
                                     .FontColor(Colors.Grey.Darken2);
 
-                                col.Item().Text($"Report Date: {report.Date}")
+                                col.Item().Text($"Report Date: {report.Date.ToString("MMM dd yyyy")}")
                                     .FontSize(10)
                                     .FontColor(Colors.Grey.Darken1);
                             });
@@ -43,80 +49,105 @@ namespace Uxcheckmate_Main.Services
                             // Right-aligned Logo (if exists)
                             if (File.Exists(logoPath))
                             {
-                                headerRow.ConstantItem(60).AlignRight().Height(40).Image(logoPath, ImageScaling.FitArea);
+                                headerRow.ConstantItem(60).AlignRight().Height(50).Image(logoPath, ImageScaling.FitArea);
                             }
                         });
 
                         // Second Row: Centered Report Title
-                        headerCol.Item().AlignCenter().Text("UXCheckmate Report")
-                            .SemiBold()
-                            .FontSize(24)
-                            .FontColor(Colors.Blue.Medium);
+                        headerCol.Item().AlignCenter().Text("UxCheckmate Report")
+                            .Bold()
+                            .FontSize(30)
+                            .FontColor("#001521");
                     });
-
+                    // Main Content Section 
                     page.Content().Column(col =>
                     {
                         col.Spacing(15);
 
-                        // Accessibility Issues Section
-                        col.Item().Container().Background(Colors.Grey.Lighten3).Padding(10).Column(section =>
+                        // Design Issues Section
+                        col.Item().Container().Padding(10).Column(section =>
                         {
-                            section.Item().Text("Accessibility Issues").Bold().FontSize(16);
-                            if (report.AccessibilityIssues?.Count > 0)
+                            // Section Title
+                            section.Item().Padding(10).Column(innerSection =>
                             {
-                                section.Item().Table(table =>
+                                innerSection.Item().Text("Design Issues").Bold().FontSize(24).FontColor("#052c65");
+                                innerSection.Item().Text($"Total Issues Found: {report.DesignIssues?.Count ?? 0}")
+                                    .FontSize(12)
+                                    .FontColor(Colors.Grey.Darken1);
+                            });
+
+                            if (report.DesignIssues?.Count > 0)
+                            {
+                                foreach (var issue in report.DesignIssues)
                                 {
-                                    table.ColumnsDefinition(columns =>
+                                section.Item().Container().Padding(10).Column(issueCol =>
+                                {
+                                    // First row: Category (left) and Severity (right)
+                                    issueCol.Item().Container().BorderBottom(1).BorderColor(Colors.Grey.Lighten1).Row(row =>
                                     {
-                                        columns.RelativeColumn(3);
-                                        columns.RelativeColumn(1);
-                                    });
+                                        row.RelativeItem().Text($"Category: {issue.Category.Name}")
+                                            .FontSize(14)
+                                            .FontColor("#052c65")
+                                            .Bold();                                        
 
-                                    table.Header(header =>
-                                    {
-                                        header.Cell().Text("Issue").Bold();
-                                        header.Cell().Text("Severity").Bold();
+                                        row.ConstantItem(150).AlignRight().Container().Background(GetSeverityColor(issue.Severity))
+                                            .Padding(5).Text($"Severity: {GetSeverityText(issue.Severity)}")
+                                            .FontSize(12)
+                                            .FontColor(Colors.White)
+                                            .Bold();
                                     });
-
-                                    foreach (var issue in report.AccessibilityIssues)
-                                    {
-                                        table.Cell().Text(issue.Message);
-                                        table.Cell().Text(issue.Severity.ToString()).FontColor(GetSeverityColor(issue.Severity));
-                                    }
+                                    // Second row: Description
+                                    issueCol.Item().Text($"{issue.Message}")
+                                        .FontSize(11);
                                 });
+
+                                }
                             }
                             else
                             {
-                                section.Item().Text("No accessibility issues found.").Italic();
+                                section.Item().Text("No design issues found.").Italic();
                             }
+
                         });
 
-                        // Design Issues Section
-                        col.Item().Container().Background(Colors.Grey.Lighten4).Padding(10).Column(section =>
+                        // Accessibility Issues Section
+                        col.Item().Container().Padding(10).Column(section =>
                         {
-                            section.Item().Text("Design Issues").Bold().FontSize(16);
+                            // Section Title
+                            section.Item().Padding(10).Column(innerSection =>
+                            {
+                                innerSection.Item().Text("Accessibility Issues").Bold().FontSize(24).FontColor("#052c65");
+                                innerSection.Item().Text($"Total Issues Found: {report.AccessibilityIssues?.Count ?? 0}")
+                                    .FontSize(12)
+                                    .FontColor(Colors.Grey.Darken1);
+                            });
+
                             if (report.DesignIssues?.Count > 0)
                             {
-                                section.Item().Table(table =>
+                                foreach (var issue in report.DesignIssues)
                                 {
-                                    table.ColumnsDefinition(columns =>
+                                section.Item().Container().Padding(10).Column(issueCol =>
+                                {
+                                    // First row: Category (left) and Severity (right)
+                                    issueCol.Item().Container().BorderBottom(1).BorderColor(Colors.Grey.Lighten1).Row(row =>
                                     {
-                                        columns.RelativeColumn(3);
-                                        columns.RelativeColumn(1);
-                                    });
+                                        row.RelativeItem().Text($"Category: {issue.Category.Name}")
+                                            .FontSize(14)
+                                            .FontColor("#052c65")
+                                            .Bold();                                        
 
-                                    table.Header(header =>
-                                    {
-                                        header.Cell().Text("Issue").Bold();
-                                        header.Cell().Text("Severity").Bold();
+                                        row.ConstantItem(150).AlignRight().Container().Background(GetSeverityColor(issue.Severity))
+                                            .Padding(5).Text($"Severity: {GetSeverityText(issue.Severity)}")
+                                            .FontSize(12)
+                                            .FontColor(Colors.White)
+                                            .Bold();
                                     });
-
-                                    foreach (var issue in report.DesignIssues)
-                                    {
-                                        table.Cell().Text(issue.Message);
-                                        table.Cell().Text(issue.Severity.ToString()).FontColor(GetSeverityColor(issue.Severity));
-                                    }
+                                    // Second row: Description
+                                    issueCol.Item().Text($"{issue.Message}")
+                                        .FontSize(11);
                                 });
+
+                                }
                             }
                             else
                             {
@@ -127,7 +158,7 @@ namespace Uxcheckmate_Main.Services
 
                     page.Footer()
                         .AlignCenter()
-                        .Text($"Generated by UXCheckmate - {System.DateTime.UtcNow}")
+                        .Text($"Generated by UxCheckmate - {System.DateTime.Now.ToString("MMM dd yyyy")}")
                         .FontSize(10).FontColor(Colors.Grey.Darken1);
                 });
             }).GeneratePdf();
@@ -135,12 +166,28 @@ namespace Uxcheckmate_Main.Services
 
         private string GetSeverityColor(object severity)
         {
-            return severity?.ToString()?.ToLower() switch
+            return severity switch
             {
-                "high" => Colors.Red.Darken2,
-                "medium" => Colors.Orange.Darken2,
-                "low" => Colors.Green.Darken2,
-                _ => Colors.Black
+                1 => "#0CC5EA", // Low severity (hex color for rgb(12, 197, 234))
+                2 => "#FFC107", // Moderate severity
+                3 => "#DC3545", // Severe severity
+                4 => "#212529", // Critical or very low severity
+
+                string s when s.Equals("Critical", StringComparison.OrdinalIgnoreCase) => "#212529",
+                string s when s.Equals("Severe", StringComparison.OrdinalIgnoreCase) => "#DC3545",
+                string s when s.Equals("Moderate", StringComparison.OrdinalIgnoreCase) => "#FFC107",
+                string s when s.Equals("Low", StringComparison.OrdinalIgnoreCase) => "#0CC5EA",
+            };
+        }
+
+        private string GetSeverityText(object severity)
+        {
+            return severity switch
+            {
+                1 => "Low",
+                2 => "Moderate",
+                3 => "Severe",
+                4 => "Critical",
             };
         }
     }

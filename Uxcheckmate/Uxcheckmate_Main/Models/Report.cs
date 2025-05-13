@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
@@ -23,6 +23,11 @@ public partial class Report
     public string? Summary { get; set; }
     [Column("UserID")]
     public string? UserID { get; set; }
+
+    public string? Status { get; set; } = "Pending";
+
+    [Column("CreatedAt")]
+    public DateTime? CreatedAt { get; set; } = DateTime.UtcNow;
 
     [InverseProperty("Report")]
     public virtual ICollection<AccessibilityIssue> AccessibilityIssues { get; set; } = new List<AccessibilityIssue>();

@@ -1,0 +1,45 @@
+@model List<Uxcheckmate_Main.ViewModels.AdminFeedbackViewModel>
+
+@{
+    ViewData["Title"] = "Admin Feedback";
+    var feedbackIndex = 0;
+}
+<div class="text-center">
+    <h1 class="display-4">User Feedback</h1>
+</div>
+<div class="container mt-4">
+    @foreach (var user in Model){
+        var collapseId = $"collapseFeedback{feedbackIndex++}";
+        <div class="mb-3">
+            <h5>User ID: @user.UserId</h5>
+            @if (user.Feedbacks.Any()){
+                <div class="d-flex gap-2 mb-2">
+                <button class="btn btn-primary btn-sm" type="button" data-bs-toggle="collapse" data-bs-target="#@collapseId" aria-expanded="false" aria-controls="@collapseId">
+                    View Feedback (@user.Feedbacks.Count)
+                </button>
+                <form method="post" asp-action="DeleteAllFeedback" asp-controller="Admin" onsubmit="return confirm('Are you sure you want to delete ALL feedback from this user?');">
+                    <input type="hidden" name="userId" value="@user.UserId" />
+                    <button type="submit" class="btn btn-danger btn-sm">Delete All Feedback</button>
+                </form>
+            </div>
+                <div class="collapse" id="@collapseId">
+                    <ul class="list-group">
+                        @foreach (var feedback in user.Feedbacks.OrderByDescending(f => f.DateSubmitted)){
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <div>
+                                    <strong>@feedback.DateSubmitted.ToLocalTime().ToString("g")</strong><br />
+                                    @feedback.Message
+                                </div>
+                                <form method="post" asp-action="DeleteFeedback" asp-controller="Admin" asp-route-id="@feedback.Id" onsubmit="return confirm('Are you sure you want to delete this feedback?');">
+                                    <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+                                </form>
+                            </li>
+                        }
+                    </ul>
+                </div>
+            }else{
+                <p><em>No feedback submitted.</em></p>
+            }
+        </div>
+    }
+</div>
