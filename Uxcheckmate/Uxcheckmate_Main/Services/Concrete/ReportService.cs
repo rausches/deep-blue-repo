@@ -239,7 +239,32 @@ namespace Uxcheckmate_Main.Services
         public async Task<string> RunCustomAnalysisAsync(string url, string categoryName, string categoryDescription, Dictionary<string, object> scrapedData, ScrapedContent fullScraped)
         {
             _logger.LogInformation("Running custom analysis for category: {CategoryName}", categoryName);
-            Task<byte[]> screenshotTask = _screenshotService?.CaptureFullPageScreenshot(url) ?? Task.FromResult(new byte[0]);
+            string cacheKey = $"fullpage_screenshot_{url.ToLowerInvariant()}";
+            Task<byte[]> screenshotTask;
+
+            // Check cache for existing full page screenshot
+            if (_cache.TryGetValue(cacheKey, out byte[] cachedScreenshot))
+            {
+                _logger.LogInformation("Using cached full page screenshot for {Url}.", url);
+                screenshotTask = Task.FromResult(cachedScreenshot);
+            }
+            else
+            {
+                _logger.LogInformation("Capturing new full page screenshot for {Url}.", url);
+
+                // Capture screenshot and cache it after capture completes
+                screenshotTask = _screenshotService?.CaptureFullPageScreenshot(url) ?? Task.FromResult(new byte[0]);
+                screenshotTask = screenshotTask.ContinueWith(t =>
+                {
+                    var result = t.Result;
+                    if (result != null && result.Length > 0)
+                    {
+                        _cache.Set(cacheKey, result, TimeSpan.FromHours(1)); // Cache for 1 hour
+                        _logger.LogInformation("Full page screenshot cached for {Url}.", url);
+                    }
+                    return result;
+                });
+            }
 
             string message = categoryName switch
             {
