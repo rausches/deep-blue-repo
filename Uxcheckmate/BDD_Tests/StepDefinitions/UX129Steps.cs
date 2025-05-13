@@ -105,27 +105,38 @@ namespace BDD_Tests.StepDefinitions
         [Then("they will select the project to add to")]
         public void AndTheyWillSelectTheProjectToAddTo()
         {
-            // find dropdown
-            // click dropdown
-            // select test project
-            // click enter
+            var wait = new WebDriverWait(_driver, TimeSpan.FromSeconds(180));
+
+            // Wait until we get back to dashboard
+            wait.Until(SeleniumExtras.WaitHelpers.ExpectedConditions.ElementIsVisible(By.Id("projectSelectModal")));
+
+            // Open dropdown options and select project
+            var projectDropdown = new SelectElement(_driver.FindElement(By.Id("jiraProjectDropdown")));
+            projectDropdown.SelectByText("TES - TestTest");
+
+            // Click export
+            var confirmProjectBtn = wait.Until(d => d.FindElement(By.Id("confirmProjectButton")));
+            confirmProjectBtn.Click();
         }
 
         [Then("they will see a loading spinner")]
         public void ThenTheyWillSeeALoadingSpinner()
         {
-            //var for spinner
-            // assert that loading spinner is visible
+            var wait = new WebDriverWait(_driver, TimeSpan.FromSeconds(180));
+
+            // Spinner is visible
+            wait.Until(SeleniumExtras.WaitHelpers.ExpectedConditions.ElementIsVisible(By.ClassName("spinner-border")));
         }
 
         [Then("the Jira modal will close")]
         public void ThenTheJiraModalWillClose()
         {
-            // find jira modal
-            // assert that modal is not visible
+            var wait = new WebDriverWait(_driver, TimeSpan.FromSeconds(180));
+
+            bool isInvisible = wait.Until(SeleniumExtras.WaitHelpers.ExpectedConditions.InvisibilityOfElementLocated(By.Id("projectSelectModal")));
+
+            // Assert that the modal is gone
+            Assert.That(isInvisible, Is.True);
         }
     }
 }
-//#username
-//#login-submit
-//#password
