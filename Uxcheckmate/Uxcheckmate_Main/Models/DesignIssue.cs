@@ -24,6 +24,9 @@ public partial class DesignIssue
 
     public int Severity { get; set; }
 
+    [Column("Title")]
+    public string? Title { get; set; } 
+
     [ForeignKey("CategoryId")]
     [InverseProperty("DesignIssues")]
     public virtual DesignCategory Category { get; set; } = null!;

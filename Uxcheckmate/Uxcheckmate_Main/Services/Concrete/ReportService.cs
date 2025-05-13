@@ -8,6 +8,7 @@ using Uxcheckmate_Main.Models;
 using System.Collections.Concurrent;
 using System.Threading.Tasks;
 using System.Diagnostics;
+using Microsoft.Extensions.Caching.Memory;
 
 
 namespace Uxcheckmate_Main.Services
@@ -33,8 +34,10 @@ namespace Uxcheckmate_Main.Services
         private readonly IZPatternService _zPatternService;
         private readonly ISymmetryService _symmetryService;
         private readonly IServiceScopeFactory _scopeFactory;
+        private readonly IMemoryCache _cache;
 
-        public ReportService(HttpClient httpClient, ILogger<ReportService> logger, UxCheckmateDbContext context, IOpenAiService openAiService, IBrokenLinksService brokenLinksService, IHeadingHierarchyService headingHierarchyService, IColorSchemeService colorSchemeService, IMobileResponsivenessService mobileResponsivenessService, IScreenshotService screenshotService, IPlaywrightScraperService playwrightScraperService, IPopUpsService popUpsService, IAnimationService animationService, IAudioService audioService, IScrollService scrollService, IFPatternService fPatternService, IZPatternService zPatternService, ISymmetryService symmetryService, IServiceScopeFactory scopeFactory)
+        public ReportService(HttpClient httpClient, ILogger<ReportService> logger, UxCheckmateDbContext context, IOpenAiService openAiService, IBrokenLinksService brokenLinksService, IHeadingHierarchyService headingHierarchyService, IColorSchemeService colorSchemeService, IMobileResponsivenessService mobileResponsivenessService, IScreenshotService screenshotService, IPlaywrightScraperService playwrightScraperService, IPopUpsService popUpsService, IAnimationService animationService, IAudioService audioService, IScrollService scrollService, IFPatternService fPatternService, IZPatternService zPatternService, ISymmetryService symmetryService, IServiceScopeFactory scopeFactory, 
+    IMemoryCache cache)
         {
             _httpClient = httpClient;
             _dbContext = context;
@@ -55,6 +58,7 @@ namespace Uxcheckmate_Main.Services
             _zPatternService = zPatternService;
             _symmetryService = symmetryService;
             _scopeFactory = scopeFactory;
+            _cache = cache;
         }
 
 
@@ -73,15 +77,31 @@ namespace Uxcheckmate_Main.Services
                 throw new ArgumentException("URL cannot be empty.", nameof(url));
             }
             
-            // Scrape site
+            // Scrape site with caching
             ScrapedContent fullScraped;
             Dictionary<string, object> scrapedData;
 
             try
             {
-                fullScraped = await _playwrightScraperService.ScrapeEverythingAsync(url, cancellationToken);
+                string cacheKey = $"scrapedcontent_{url.ToLowerInvariant()}";
+                
+                // Try to get from cache
+                if (!_cache.TryGetValue(cacheKey, out fullScraped))
+                {
+                    _logger.LogInformation("No cached scrape found for {Url}. Scraping now.", url);
+                    fullScraped = await _playwrightScraperService.ScrapeEverythingAsync(url, cancellationToken);
+
+                    // Cache it for 1 hour
+                    _cache.Set(cacheKey, fullScraped, TimeSpan.FromHours(1));
+                }
+                else
+                {
+                    _logger.LogInformation("Using cached scrape for {Url}.", url);
+                }
+
                 scrapedData = fullScraped.ToDictionary();
             }
+
             catch (OperationCanceledException)
             {
                 _logger.LogWarning("Scraping cancelled.");
@@ -219,7 +239,32 @@ namespace Uxcheckmate_Main.Services
         public async Task<string> RunCustomAnalysisAsync(string url, string categoryName, string categoryDescription, Dictionary<string, object> scrapedData, ScrapedContent fullScraped)
         {
             _logger.LogInformation("Running custom analysis for category: {CategoryName}", categoryName);
-            Task<byte[]> screenshotTask = _screenshotService?.CaptureFullPageScreenshot(url) ?? Task.FromResult(new byte[0]);
+            string cacheKey = $"fullpage_screenshot_{url.ToLowerInvariant()}";
+            Task<byte[]> screenshotTask;
+
+            // Check cache for existing full page screenshot
+            if (_cache.TryGetValue(cacheKey, out byte[] cachedScreenshot))
+            {
+                _logger.LogInformation("Using cached full page screenshot for {Url}.", url);
+                screenshotTask = Task.FromResult(cachedScreenshot);
+            }
+            else
+            {
+                _logger.LogInformation("Capturing new full page screenshot for {Url}.", url);
+
+                // Capture screenshot and cache it after capture completes
+                screenshotTask = _screenshotService?.CaptureFullPageScreenshot(url) ?? Task.FromResult(new byte[0]);
+                screenshotTask = screenshotTask.ContinueWith(t =>
+                {
+                    var result = t.Result;
+                    if (result != null && result.Length > 0)
+                    {
+                        _cache.Set(cacheKey, result, TimeSpan.FromHours(1)); // Cache for 1 hour
+                        _logger.LogInformation("Full page screenshot cached for {Url}.", url);
+                    }
+                    return result;
+                });
+            }
 
             string message = categoryName switch
             {
@@ -242,7 +287,7 @@ namespace Uxcheckmate_Main.Services
             /* SAVE TOKENS COMMENT OUT OPEN AI */
 
             // Send to OpenAI to enhance message
-            /* if (!string.IsNullOrEmpty(message))
+          /*  if (!string.IsNullOrEmpty(message))
             {
                 _logger.LogInformation("Improving message with OpenAI for category: {CategoryName}", categoryName);
                 message = await _openAiService.ImproveMessageAsync(message, categoryName);

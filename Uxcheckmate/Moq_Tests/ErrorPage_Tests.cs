@@ -6,6 +6,7 @@ using NUnit.Framework;
 using Uxcheckmate_Main.Controllers;
 using Uxcheckmate_Main.Models;
 using Uxcheckmate_Main.Services; 
+using Microsoft.Extensions.Caching.Memory;
 
 namespace ErrorPage_Tests
 {
@@ -22,6 +23,7 @@ namespace ErrorPage_Tests
         private Mock<IScreenshotService> _mockScreenshotService;
         private Mock<IBackgroundTaskQueue> _mockBackgroundTaskQueue;
         private Mock<IServiceScopeFactory> _mockScopeFactory;
+        private Mock<IMemoryCache> _mockCache;
 
         [SetUp]
         public void Setup()
@@ -37,13 +39,14 @@ namespace ErrorPage_Tests
             _mockViewRenderService = new Mock<IViewRenderService>();
             _mockBackgroundTaskQueue = new Mock<IBackgroundTaskQueue>();
             _mockScopeFactory = new Mock<IServiceScopeFactory>();
+            _mockCache = new Mock<IMemoryCache>();
         }
 
         [Test]
         public void Error404_ReturnsErrorPageView()
         {
             // Arrange
-           var controller = new HomeController(_mockLogger.Object, _mockHttpClient.Object, _mockDbContext.Object, _mockOpenAiService.Object, _mockAxeCoreService.Object, _mockReportService.Object, _mockpdfExportService.Object, _mockScreenshotService.Object, _mockViewRenderService.Object,   _mockBackgroundTaskQueue.Object, _mockScopeFactory.Object);
+           var controller = new HomeController(_mockLogger.Object, _mockHttpClient.Object, _mockDbContext.Object, _mockOpenAiService.Object, _mockAxeCoreService.Object, _mockReportService.Object, _mockpdfExportService.Object, _mockScreenshotService.Object, _mockViewRenderService.Object,   _mockBackgroundTaskQueue.Object, _mockScopeFactory.Object, _mockCache.Object);
 
             // Act
             var result = controller.ErrorPage() as ViewResult;

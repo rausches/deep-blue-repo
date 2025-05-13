@@ -18,6 +18,7 @@ using Uxcheckmate_Main.Controllers;
 using Uxcheckmate_Main.Models;
 using Uxcheckmate_Main.Services;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace Controller_Tests
 {
@@ -40,6 +41,7 @@ namespace Controller_Tests
         private Mock<IViewRenderService> _viewRenderServiceMock;
         private Mock<IBackgroundTaskQueue> _backgroundTaskQueueMock;
         private Mock<IServiceScopeFactory> _serviceScopeFactoryMock;
+        private Mock<IMemoryCache> _cacheMock;
 
         [SetUp]  
         public void Setup()
@@ -56,6 +58,7 @@ namespace Controller_Tests
             _viewRenderServiceMock = new Mock<IViewRenderService>();
             _backgroundTaskQueueMock = new Mock<IBackgroundTaskQueue>();
             _serviceScopeFactoryMock = new Mock<IServiceScopeFactory>();
+            _cacheMock = new Mock<IMemoryCache>();
 
             // Configure in-memory database options
             var options = new DbContextOptionsBuilder<UxCheckmateDbContext>()
@@ -86,7 +89,8 @@ namespace Controller_Tests
                 _screenshotServiceMock.Object,
                 viewRenderServiceMock.Object,
                 _backgroundTaskQueueMock.Object,
-                _serviceScopeFactoryMock.Object
+                _serviceScopeFactoryMock.Object,
+                _cacheMock.Object
             );
 
             // Configure TempData for controller

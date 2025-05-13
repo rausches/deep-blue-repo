@@ -46,7 +46,12 @@ public class Program
                 .AddRoles<IdentityRole>()
                 .AddEntityFrameworkStores<AuthDbContext>();
 
-
+        builder.Services.AddSession(options =>
+        {
+            options.IdleTimeout = TimeSpan.FromMinutes(30);
+            options.Cookie.HttpOnly = true;
+            options.Cookie.IsEssential = true;
+        });
 
         builder.Services.AddHttpClient<IOpenAiService, OpenAiService>((httpClient, services) =>
         {
@@ -102,12 +107,10 @@ public class Program
         builder.Services.AddScoped<IFPatternService, FPatternService>();
         builder.Services.AddScoped<IZPatternService, ZPatternService>();
         builder.Services.AddScoped<ISymmetryService, SymmetryService>();
-
-        //Register Background Services
         builder.Services.AddSingleton<IBackgroundTaskQueue, BackgroundTaskQueue>();
         builder.Services.AddHostedService<QueueService>();
-        builder.Services.AddHostedService<ReportCleanupService>();
-
+        builder.Services.Configure<JiraSettings>(builder.Configuration.GetSection("Jira"));
+        builder.Services.AddHttpClient<IJiraService, JiraService>();
 
         var app = builder.Build();
 
@@ -132,6 +135,7 @@ public class Program
         app.UseStaticFiles();  // Ensure static files (CSS, JS, images) are served
 
         app.UseRouting();
+        app.UseSession();
         app.UseAuthentication();
         app.UseAuthorization();
         // Map default route

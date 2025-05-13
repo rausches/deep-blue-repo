@@ -88,6 +88,107 @@ namespace Uxcheckmate_Main.Services
             }
         }
 
+        public async Task<string> GenerateTitleAsync(string rawMessage, string categoryName)
+        {
+            string prompt = $@"
+            You are a senior UX design assistant. Your job is to summarize issue descriptions into short, clear Jira task titles.
+            Here is an issue for the '{categoryName}' category:
+            '{rawMessage}'
+
+            Write a concise, clear title under 10 words that describes the issue. Do not include quotation marks at the beginning and end of your response, do not start with 'Our analysis found'. Only return the title.";
+
+            var request = new
+            {
+                model = "gpt-4",
+                messages = new[]
+                {
+                    new { role = "system", content = "You are a helpful assistant that writes Jira task titles." },
+                    new { role = "user", content = prompt }
+                },
+                max_tokens = 60
+            };
+
+            var json = JsonSerializer.Serialize(request);
+            var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+            var response = await _httpClient.PostAsync("https://api.openai.com/v1/chat/completions", content);
+            var responseString = await response.Content.ReadAsStringAsync();
+
+            var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+            var result = JsonSerializer.Deserialize<OpenAiResponse>(responseString, options);
+
+            return result?.Choices?.FirstOrDefault()?.Message?.Content?.Trim() ?? "Untitled issue";
+        }
+
+        public async Task<string> GenerateAccTitleAsync(string rawMessage, string categoryName, string selector)
+        {
+            string prompt = $@"
+            You are a senior UX design assistant. Your job is to summarize issue descriptions into short, clear Jira task titles.
+            Here is an issue for the '{categoryName}' category:
+            '{rawMessage}' '{selector}'
+
+            Write a concise, clear title under 10 words that describes the issue. Do not include quotation marks at the beginning and end of your response, do not start with 'Our analysis found'. Only return the title.";
+
+            var request = new
+            {
+                model = "gpt-4",
+                messages = new[]
+                {
+                    new { role = "system", content = "You are a helpful assistant that writes Jira task titles." },
+                    new { role = "user", content = prompt }
+                },
+                max_tokens = 60
+            };
+
+            var json = JsonSerializer.Serialize(request);
+            var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+            var response = await _httpClient.PostAsync("https://api.openai.com/v1/chat/completions", content);
+            var responseString = await response.Content.ReadAsStringAsync();
+
+            var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+            var result = JsonSerializer.Deserialize<OpenAiResponse>(responseString, options);
+
+            return result?.Choices?.FirstOrDefault()?.Message?.Content?.Trim() ?? "Untitled issue";
+        }
+
+        public async Task<string> GenerateImprovedDescriptionAsync(string rawMessage, string categoryName)
+        {
+            string prompt = $@"
+            You are a senior accessibility and UX consultant.  
+            Given the following raw issue report from a web analysis for category '{categoryName}', rewrite it as a clear, actionable recommendation for a developer.  
+            Do not explain that an analysis was done.  
+            Do not add quotes or disclaimers.  
+            Be concise, specific, and helpful.
+
+            Raw issue:
+            {rawMessage}
+
+            Write only the recommendation:";
+
+            var request = new
+            {
+                model = "gpt-4",
+                messages = new[]
+                {
+                    new { role = "system", content = "You are a helpful assistant writing web accessibility + UX recommendations." },
+                    new { role = "user", content = prompt }
+                },
+                max_tokens = 300
+            };
+
+            var json = JsonSerializer.Serialize(request);
+            var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+            var response = await _httpClient.PostAsync("https://api.openai.com/v1/chat/completions", content);
+            var responseString = await response.Content.ReadAsStringAsync();
+
+            var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+            var result = JsonSerializer.Deserialize<OpenAiResponse>(responseString, options);
+
+            return result?.Choices?.FirstOrDefault()?.Message?.Content?.Trim() ?? rawMessage;
+        }
+
         private string FormatScrapedData(Dictionary<string, object> scrapedData)
         {
             StringBuilder sb = new StringBuilder();

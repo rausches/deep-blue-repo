@@ -9,6 +9,7 @@ using Microsoft.EntityFrameworkCore;
 using Uxcheckmate_Main.Models;
 using Uxcheckmate_Main.Services;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace Service_Tests
 {
@@ -34,6 +35,7 @@ namespace Service_Tests
         private Mock<ISymmetryService> _symmetryServiceMock;
         private ScrapedContent _mockScrapedContent;
         private Mock<IServiceScopeFactory> _scopeFactoryMock;
+        private Mock<IMemoryCache> _cacheMock;
 
  // await _reportService.RunCustomAnalysisAsync("url", "Color Scheme", "description", new Dictionary<string, object>());
         [SetUp]
@@ -80,6 +82,7 @@ namespace Service_Tests
             _zPatternServiceMock = new Mock<IZPatternService>();
             _symmetryServiceMock = new Mock<ISymmetryService>();
             _scopeFactoryMock = new Mock<IServiceScopeFactory>();
+            _cacheMock = new Mock<IMemoryCache>();
 
 
 
@@ -133,7 +136,8 @@ namespace Service_Tests
                 _fPatternServiceMock.Object,
                 _zPatternServiceMock.Object,
                 _symmetryServiceMock.Object,
-                _scopeFactoryMock.Object 
+                _scopeFactoryMock.Object,
+                _cacheMock.Object
             );
         }
 
