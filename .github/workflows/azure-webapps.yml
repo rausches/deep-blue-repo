@@ -53,14 +53,13 @@ jobs:
           npm install playwright@1.50.0
           npx playwright install
         env:
-          PLAYWRIGHT_BROWSERS_PATH: ~/.cache/ms-playwright
+          PLAYWRIGHT_BROWSERS_PATH: ./Uxcheckmate/Uxcheckmate_Main/bin/Release/net9.0/publish/ms-playwright
           DEBUG: pw:*
       
       - name: Verify Playwright installation
         run: |
-          echo "Verifying Playwright installation..."
-          ls -la ~/.cache/ms-playwright
-          ls -la ./Uxcheckmate/Uxcheckmate_Main/bin/Release/net9.0/publish/playwright || echo "Publish folder not found"
+          ls -la ./Uxcheckmate/Uxcheckmate_Main/bin/Release/net9.0/publish/ms-playwright
+
 
       - name: Show browser location
         run: |
