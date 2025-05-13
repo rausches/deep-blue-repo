@@ -793,6 +793,7 @@ User Dashboard Styling
     justify-content: center;
     z-index: 10;
     border-radius: 15px;
+    backdrop-filter: blur(3px);
 }
 
 #designIssuesOverlay.hidden {
