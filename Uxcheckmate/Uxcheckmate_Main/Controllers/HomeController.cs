@@ -12,6 +12,7 @@ using Microsoft.Playwright;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.Mvc.ViewEngines;
+using Microsoft.Extensions.Caching.Memory;
 
 
 namespace Uxcheckmate_Main.Controllers;
@@ -29,10 +30,12 @@ public class HomeController : Controller
     private readonly IViewRenderService _viewRenderService;
     private readonly IBackgroundTaskQueue _backgroundTaskQueue;
     private readonly IServiceScopeFactory _scopeFactory;
+    private readonly IMemoryCache _cache;
+
 
     public HomeController(ILogger<HomeController> logger, HttpClient httpClient, UxCheckmateDbContext dbContext, 
         IOpenAiService openAiService, IAxeCoreService axeCoreService, IReportService reportService, 
-        PdfExportService pdfExportService, IScreenshotService screenshotService, IViewRenderService viewRenderService,IBackgroundTaskQueue backgroundTaskQueue, IServiceScopeFactory scopeFactory)
+        PdfExportService pdfExportService, IScreenshotService screenshotService, IViewRenderService viewRenderService,IBackgroundTaskQueue backgroundTaskQueue, IServiceScopeFactory scopeFactory, IMemoryCache cache)
         
     {
         _logger = logger;
@@ -45,6 +48,7 @@ public class HomeController : Controller
         _viewRenderService = viewRenderService;
         _backgroundTaskQueue = backgroundTaskQueue;
         _scopeFactory = scopeFactory;
+        _cache = cache;
     }
 
 
@@ -461,6 +465,16 @@ public class HomeController : Controller
 
         try
         {
+            string cacheKey = $"screenshot_{url.ToLowerInvariant()}";
+
+            // Try get from cache
+            if (_cache.TryGetValue(cacheKey, out string cachedScreenshot))
+            {
+                _logger.LogInformation("Using cached screenshot for {Url}.", url);
+                return cachedScreenshot;
+            }
+
+            // Not cached → capture screenshot
             var screenshotOptions = new PageScreenshotOptions { FullPage = true };
             var screenshot = await _screenshotService.CaptureScreenshot(screenshotOptions, url);
 
@@ -469,6 +483,9 @@ public class HomeController : Controller
                 _logger.LogError("Failed to capture screenshot for URL: {Url}", url);
                 return null;
             }
+
+            // Cache for 1 hour
+            _cache.Set(cacheKey, screenshot, TimeSpan.FromHours(1));
 
             return screenshot;
         }
