@@ -39,24 +39,38 @@ jobs:
         env:
           DEBUG: pw:*
 
-      - name: Install Playwright v1.50.0 and browsers locally
+      - name: Install Playwright v1.50.0
         run: |
-          echo "📦 Installing Playwright v1.50.0 with local browser install..."
+          echo "📦 Installing Playwright v1.50.0..."
           npm install playwright@1.50.0
-          PLAYWRIGHT_BROWSERS_PATH=0 npx playwright install
+          npx playwright install
         env:
           DEBUG: pw:*
 
+      - name: Show browser location
+        run: |
+          echo "Playright browser location: "
+          find ~/.cache/ms-playwright -name "chrome*" | head -n 5
+          
       - name: clear previous build causing loops
         run: rm -rf ${{ env.AZURE_WEBAPP_PACKAGE_PATH }} 
-
+          
       - name: Publish
         run: dotnet publish ./Uxcheckmate/Uxcheckmate_Main/Uxcheckmate_Main.csproj --configuration Release --output '${{ env.AZURE_WEBAPP_PACKAGE_PATH }}'
 
       - name: Create test file
         run: |
           echo "Deployment test file. Created at $(date)" > ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}/deployment-test.txt
-
+      - name: Copy Playwright Chromium Browsers to simpler path 
+        run: |
+          echo "📁 Copying Playwright Chromium browsers to simplified path..."
+          mkdir -p '${{ env.AZURE_WEBAPP_PACKAGE_PATH }}/playwright'
+          cp -r ~/.cache/ms-playwright/chromium-* '${{ env.AZURE_WEBAPP_PACKAGE_PATH }}/playwright/'
+      - name: Check  browser binaries
+        run: |
+          echo "🔍 Checking if Playwright browsers was copied.."
+          ls -la ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}/playwright/
+      
       - name: Deployment
         uses: azure/webapps-deploy@v2
         with:
