@@ -49,11 +49,12 @@ jobs:
       - name: Install Playwright v1.50.0
         run: |
           echo "📦 Installing Playwright v1.50.0..."
-          mkdir -p ~/.cache/ms-playwright
+          export PLAYWRIGHT_BROWSERS_PATH=${{ env.AZURE_WEBAPP_PACKAGE_PATH }}/ms-playwright
+          cd Uxcheckmate/Uxcheckmate_Main
           npm install playwright@1.50.0
-          npx playwright install
+          npx playwright install chromium
         env:
-          PLAYWRIGHT_BROWSERS_PATH: ./Uxcheckmate/Uxcheckmate_Main/bin/Release/net9.0/publish/ms-playwright
+          PLAYWRIGHT_BROWSERS_PATH: ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}/ms-playwright
           DEBUG: pw:*
       
       - name: Verify Playwright installation
