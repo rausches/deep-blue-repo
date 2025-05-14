@@ -107,7 +107,7 @@ namespace Controller_Tests
         public void Set(string key, byte[] value) => _sessionStorage[key] = value;
         public bool TryGetValue(string key, out byte[] value) => _sessionStorage.TryGetValue(key, out value);
 
-        // Required for ASP.NET Core 7+ ISession interface
+        // ISession interface
         public Task LoadAsync(CancellationToken cancellationToken = default) => Task.CompletedTask;
         public Task CommitAsync(CancellationToken cancellationToken = default) => Task.CompletedTask;
     }
