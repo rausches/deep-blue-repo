@@ -8,9 +8,8 @@ on:
 
 env:
   AZURE_WEBAPP_NAME: DBUxCheckmateMain
-  AZURE_WEBAPP_PACKAGE_PATH: './Uxcheckmate/Uxcheckmate_Main/bin/Release/net9.0/publish'
+  AZURE_WEBAPP_PACKAGE_PATH: './publish'
   DB_STRING_SECRET: ${{ secrets.DB_STRING_SECRET }}
-  PLAYWRIGHT_BROWSERS_PATH: './Uxcheckmate/Uxcheckmate_Main/bin/Release/net9.0/publish/playwright'
 
 permissions:
   contents: read
@@ -33,19 +32,7 @@ jobs:
       - name: Build
         run: dotnet build ./Uxcheckmate/Uxcheckmate_Main/Uxcheckmate_Main.sln --configuration Release --no-restore
 
-      - name: Install Node.js for Playwright
-        uses: actions/setup-node@v3
-        with:
-          node-version: '20'
-
-      - name: Install Node dependencies
-        run: |
-          cd Uxcheckmate/Uxcheckmate_Main
-          npm install
-        env:
-          DEBUG: pw:*
-
-      - name: Install Playwright into custom folder
+      - name: Install Playwright into Playwright folder
         run: |
           echo "📦 Installing Playwright v1.50.0 into ${{ env.PLAYWRIGHT_BROWSERS_PATH }}..."
           mkdir -p ${{ env.PLAYWRIGHT_BROWSERS_PATH }}
@@ -53,13 +40,8 @@ jobs:
           npm install playwright@1.50.0
           PLAYWRIGHT_BROWSERS_PATH=${{ env.PLAYWRIGHT_BROWSERS_PATH }} npx playwright install chromium
         env:
+          PLAYWRIGHT_BROWSERS_PATH: ${{ env.PLAYWRIGHT_BROWSERS_PATH }}
           DEBUG: pw:*
-
-      - name: Verify custom Playwright install
-        run: ls -la ${{ env.PLAYWRIGHT_BROWSERS_PATH }}
-
-      - name: Clean previous publish output
-        run: rm -rf ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}
 
       - name: Publish
         run: dotnet publish ./Uxcheckmate/Uxcheckmate_Main/Uxcheckmate_Main.csproj -c Release -o ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}
