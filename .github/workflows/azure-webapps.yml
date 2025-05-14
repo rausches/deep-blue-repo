@@ -10,7 +10,6 @@ env:
   AZURE_WEBAPP_NAME: DBUxCheckmateMain
   AZURE_WEBAPP_PACKAGE_PATH: './Uxcheckmate/Uxcheckmate_Main/bin/Release/net9.0/publish'
   DB_STRING_SECRET: ${{ secrets.DB_STRING_SECRET }}
-  PLAYWRIGHT_BROWSERS_PATH: ~/.cache/ms-playwright
 
 permissions:
   contents: read
@@ -33,10 +32,10 @@ jobs:
       - name: Build
         run: dotnet build ./Uxcheckmate/Uxcheckmate_Main/Uxcheckmate_Main.sln --configuration Release --no-restore
 
-      - name: Install Node.js for playwright
+      - name: Install Node.js for Playwright
         uses: actions/setup-node@v3
         with:
-          node-version : '20'
+          node-version: '20'
 
       - name: Install missing Linux dependencies for Playwright
         run: |
@@ -56,18 +55,17 @@ jobs:
         env:
           PLAYWRIGHT_BROWSERS_PATH: ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}/ms-playwright
           DEBUG: pw:*
-      
+
       - name: Verify Playwright installation
         run: |
           ls -la ./Uxcheckmate/Uxcheckmate_Main/bin/Release/net9.0/publish/ms-playwright
 
-
-      - name: Show browser location
+      - name: Show browser location in publish path
         run: |
           echo "Checking Playwright browser location: "
-          find ~/.cache/ms-playwright -name "chrome*" | head -n 5
+          find ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}/ms-playwright -name "chrome*" | head -n 5
 
-      - name: clear previous build causing loops
+      - name: Clear previous build causing loops
         run: rm -rf ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}
 
       - name: Publish
@@ -77,20 +75,6 @@ jobs:
         run: |
           echo "Deployment test file. Created at $(date)" > ./Uxcheckmate/Uxcheckmate_Main/bin/Release/net9.0/publish/deployment-test.txt
 
-      - name: Set Playwright browser path
-        run: |
-          echo "Setting Playwright browser path..."
-          export PLAYWRIGHT_BROWSERS_PATH="${{ env.AZURE_WEBAPP_PACKAGE_PATH }}/playwright"
-
-      - name: Copy Playwright Chromium Browsers to simpler path
-        run: |
-          echo "📁 Copying Playwright Chromium browsers to simplified path..."
-          mkdir -p ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}/ms-playwright
-          cp -r /home/.cache/ms-playwright/* ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}/ms-playwright/
-
-      - name: Verify copied Playwright folder
-        run: ls -la ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}/ms-playwright
-          
       - name: Deployment
         uses: azure/webapps-deploy@v2
         with:
