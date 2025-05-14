@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
   push:
     branches:
-      - dev
+      - deploy-test-branch
 
 env:
   AZURE_WEBAPP_NAME: DBUxCheckmateMain
