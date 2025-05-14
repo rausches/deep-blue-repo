@@ -9,6 +9,7 @@ html, body {
   height: 100%;
   display: flex;
   flex-direction: column;
+  overflow: visible;
 }
 
 .main-content {
@@ -31,7 +32,7 @@ body {
 .full-screen {
   height: 100vh; /* Full viewport height */
   display: flex;
-  scroll-snap-align: start; /* Ensures full section scrolling */
+  overflow: hidden; 
 }
 
 main {
@@ -47,8 +48,10 @@ Navbar
 */
 
 .transparent-navbar {
-  background: transparent !important;
+  background: rgba(0, 0, 0, 0.313);
   border: none; 
+  top: 0;
+  position: sticky !important;
 }
 
 .navbar-nav {
@@ -473,6 +476,12 @@ Landing Page Styling
 .disclosure{
   padding: 5%;
 }
+
+/* .main.full-screen {
+    height: 100vh; 
+    overflow: hidden; 
+} */
+
 /*
 ==================================================
 Mobile Resizing for Form and Image
