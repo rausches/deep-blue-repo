@@ -33,6 +33,13 @@ jobs:
       - name: Build
         run: dotnet build ./Uxcheckmate/Uxcheckmate_Main/Uxcheckmate_Main.sln --configuration Release --no-restore
 
+      - name: Install missing Linux dependencies for Playwright
+        run: |
+          echo "🔧 Installing Playwright Linux dependencies..."
+          npx playwright install-deps
+        env:
+          DEBUG: pw:*
+
       - name: Install Playwright into Playwright folder
         run: |
           echo "📦 Installing Playwright v1.50.0 into ${{ env.PLAYWRIGHT_BROWSERS_PATH }}..."
