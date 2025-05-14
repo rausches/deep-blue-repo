@@ -10,6 +10,7 @@ env:
   AZURE_WEBAPP_NAME: DBUxCheckmateMain
   AZURE_WEBAPP_PACKAGE_PATH: './Uxcheckmate/Uxcheckmate_Main/bin/Release/net9.0/publish'
   DB_STRING_SECRET: ${{ secrets.DB_STRING_SECRET }}
+  PLAYWRIGHT_BROWSERS_PATH: './Uxcheckmate/Uxcheckmate_Main/bin/Release/net9.0/publish/playwright'
 
 permissions:
   contents: read
@@ -37,45 +38,37 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Install missing Linux dependencies for Playwright
+      - name: Install Node dependencies
         run: |
-          echo "🔧 Installing Playwright Linux dependencies..."
           cd Uxcheckmate/Uxcheckmate_Main
           npm install
         env:
           DEBUG: pw:*
 
-      - name: Install Playwright v1.50.0
+      - name: Install Playwright into custom folder
         run: |
-          echo "📦 Installing Playwright v1.50.0..."
-          export PLAYWRIGHT_BROWSERS_PATH=${{ env.AZURE_WEBAPP_PACKAGE_PATH }}/ms-playwright
+          echo "📦 Installing Playwright v1.50.0 into ${{ env.PLAYWRIGHT_BROWSERS_PATH }}..."
+          mkdir -p ${{ env.PLAYWRIGHT_BROWSERS_PATH }}
           cd Uxcheckmate/Uxcheckmate_Main
           npm install playwright@1.50.0
-          npx playwright install chromium
+          PLAYWRIGHT_BROWSERS_PATH=${{ env.PLAYWRIGHT_BROWSERS_PATH }} npx playwright install chromium
         env:
-          PLAYWRIGHT_BROWSERS_PATH: ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}/ms-playwright
           DEBUG: pw:*
 
-      - name: Verify Playwright installation
-        run: |
-          ls -la ./Uxcheckmate/Uxcheckmate_Main/bin/Release/net9.0/publish/ms-playwright
+      - name: Verify custom Playwright install
+        run: ls -la ${{ env.PLAYWRIGHT_BROWSERS_PATH }}
 
-      - name: Show browser location in publish path
-        run: |
-          echo "Checking Playwright browser location: "
-          find ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}/ms-playwright -name "chrome*" | head -n 5
-
-      - name: Clear previous build causing loops
+      - name: Clean previous publish output
         run: rm -rf ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}
 
       - name: Publish
-        run: dotnet publish ./Uxcheckmate/Uxcheckmate_Main/Uxcheckmate_Main.csproj -c Release -o ./Uxcheckmate/Uxcheckmate_Main/bin/Release/net9.0/publish
+        run: dotnet publish ./Uxcheckmate/Uxcheckmate_Main/Uxcheckmate_Main.csproj -c Release -o ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}
 
-      - name: Create test file
+      - name: Create deployment test file
         run: |
-          echo "Deployment test file. Created at $(date)" > ./Uxcheckmate/Uxcheckmate_Main/bin/Release/net9.0/publish/deployment-test.txt
+          echo "Deployment test file. Created at $(date)" > ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}/deployment-test.txt
 
-      - name: Deployment
+      - name: Deploy to Azure
         uses: azure/webapps-deploy@v2
         with:
           app-name: ${{ env.AZURE_WEBAPP_NAME }}
