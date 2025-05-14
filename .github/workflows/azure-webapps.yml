@@ -4,12 +4,13 @@ on:
   workflow_dispatch:
   push:
     branches:
-      - dev
+      - deploy-test-branch
 
 env:
   AZURE_WEBAPP_NAME: DBUxCheckmateMain
-  AZURE_WEBAPP_PACKAGE_PATH: "/home/site/wwwroot"
+  AZURE_WEBAPP_PACKAGE_PATH: './publish'
   DB_STRING_SECRET: ${{ secrets.DB_STRING_SECRET }}
+  PLAYWRIGHT_BROWSERS_PATH: './publish/playwright'
 
 permissions:
   contents: read
@@ -27,10 +28,10 @@ jobs:
           dotnet-version: '9.0.x'
 
       - name: Restore
-        run: dotnet restore ./Uxcheckmate/Uxcheckmate.sln
+        run: dotnet restore ./Uxcheckmate/Uxcheckmate_Main/Uxcheckmate_Main.sln
 
       - name: Build
-        run: dotnet build ./Uxcheckmate/Uxcheckmate.sln --configuration Release --no-restore
+        run: dotnet build ./Uxcheckmate/Uxcheckmate_Main/Uxcheckmate_Main.sln --configuration Release --no-restore
 
       - name: Install missing Linux dependencies for Playwright
         run: |
@@ -39,41 +40,25 @@ jobs:
         env:
           DEBUG: pw:*
 
-      - name: Install Playwright v1.50.0
+      - name: Install Playwright into Playwright folder
         run: |
-          echo "📦 Installing Playwright v1.50.0..."
+          echo "📦 Installing Playwright v1.50.0 into ${{ env.PLAYWRIGHT_BROWSERS_PATH }}..."
+          mkdir -p ${{ env.PLAYWRIGHT_BROWSERS_PATH }}
+          cd Uxcheckmate/Uxcheckmate_Main
           npm install playwright@1.50.0
-          npx playwright install
+          PLAYWRIGHT_BROWSERS_PATH=${{ env.PLAYWRIGHT_BROWSERS_PATH }} npx playwright install chromium
         env:
+          PLAYWRIGHT_BROWSERS_PATH: ${{ env.PLAYWRIGHT_BROWSERS_PATH }}
           DEBUG: pw:*
 
-      - name: Show browser location
-        run: |
-          echo "Playright browser location: "
-          find ~/.cache/ms-playwright -name "chrome*" | head -n 5
-          
-      - name: clear previous build causing loops
-        run: rm -rf ${{ env.AZURE_WEBAPP_PACKAGE_PATH }} 
-          
       - name: Publish
-        run: dotnet publish ./Uxcheckmate/Uxcheckmate_Main/Uxcheckmate_Main.csproj --configuration Release --output '${{ env.AZURE_WEBAPP_PACKAGE_PATH }}'
+        run: dotnet publish ./Uxcheckmate/Uxcheckmate_Main/Uxcheckmate_Main.csproj -c Release -o ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}
 
-      - name: Create test file
+      - name: Create deployment test file
         run: |
           echo "Deployment test file. Created at $(date)" > ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}/deployment-test.txt
 
-      - name: Copy Playwright Chromium Browsers to simpler path 
-        run: |
-          echo "📁 Copying Playwright Chromium browsers to simplified path..."
-          mkdir -p '${{ env.AZURE_WEBAPP_PACKAGE_PATH }}/playwright'
-          cp -r ~/.cache/ms-playwright/chromium-* '${{ env.AZURE_WEBAPP_PACKAGE_PATH }}/playwright/'
-
-      - name: Check  browser binaries
-        run: |
-          echo "🔍 Checking if Playwright browsers was copied.."
-          ls -la ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}/playwright/
-      
-      - name: Deployment
+      - name: Deploy to Azure
         uses: azure/webapps-deploy@v2
         with:
           app-name: ${{ env.AZURE_WEBAPP_NAME }}
