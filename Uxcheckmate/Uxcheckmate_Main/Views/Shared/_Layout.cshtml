@@ -24,9 +24,8 @@
 </head>
 
 <body class="d-flex flex-column min-vh-100"> <!-- Ensures full viewport height -->
-    <header> 
         <nav class="navbar navbar-expand-lg mb-3 transparent-navbar">
-            <div class="container-fluid">
+            <div class="container-fluid" >
                 <a class="navbar-brand me-auto" asp-area="" asp-controller="Home" asp-action="Index">UxCheckmate</a>
 
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
@@ -47,16 +46,24 @@
                         </li>
                         @if (User.Identity.IsAuthenticated)
                         {
-                            <li class="nav-item">
                                 @if (User.IsInRole("Admin"))
                                 {
-                                    <a class="nav-link" asp-area="" asp-controller="Admin" asp-action="Index">Admin Dashboard</a>
+                                    <li class="nav-item">
+                                        <a class="nav-link" asp-area="" asp-controller="Admin" asp-action="Index">Admin Dashboard</a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link" asp-area="" asp-controller="Admin" asp-action="AdminFeedback">Feedback</a>
+                                    </li>
                                 }
                                 else
                                 {
-                                    <a class="nav-link" asp-area="" asp-controller="Home" asp-action="UserDash">Dashboard</a>
+                                    <li class="nav-item">
+                                        <a class="nav-link" asp-area="" asp-controller="Home" asp-action="UserDash" id="userDash">Dashboard</a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link" asp-area="" asp-controller="Home" asp-action="Feedback">Feedback</a>
+                                    </li>
                                 }
-                            </li>
                         }
                         else
                         {
@@ -68,45 +75,45 @@
                             </li>
                         }
                         
-                <!-- Theme Switcher Inside Navbar Menu: Mobile -->
-                <li class="nav-item d-lg-none" id="themeSwitcherContainer">
-                    <div class="theme-switcher">
-                        <select id="theme-selector" class="form-select" title="Theme Selector">
-                            <option value="light">Theme: Light Mode</option>
-                            <option value="dark">Theme: Dark Mode</option>
-                        </select>
-                    </div>
-                </li>
-            </ul>
-        </div>
-
-        <!-- Theme Switcher: Desktop -->
-        <div class="theme-switcher ms-auto d-none d-lg-block">
-            <select id="theme-selector-lg" class="form-select" title="Large Theme Selector">
-                <option value="light">Theme: Light Mode</option>
-                <option value="dark">Theme: Dark Mode</option>
-            </select>
-        </div>
-    </div>
-</nav>
-    <div class="container-fluid flex-grow-1"> <!-- Expands to push footer down -->
-        <main role="main" class="pb-3">
-            @RenderBody()
-        </main>
-    </div>
-
-    <footer class="footer mt-auto"> <!-- Ensures footer stays at bottom -->
-        <div class="footerContainer">
-            <div class="row footerRow">
-                <div class="col-md-2">&copy; Deep Blue 2025</div>
-                <div class="col-md-8">
-                    <a asp-area="" asp-controller="Home" asp-action="Privacy" class="footerLinks">Privacy</a> | 
-                    <a asp-area="" asp-controller="Home" asp-action="Feedback" class="footerLinks">Feedback</a>
+                        <!-- Theme Switcher Inside Navbar Menu: Mobile -->
+                        <li class="nav-item d-lg-none" id="themeSwitcherContainer">
+                            <div class="theme-switcher">
+                                <select id="theme-selector" class="form-select" title="Theme Selector">
+                                    <option value="light">Theme: Light Mode</option>
+                                    <option value="dark">Theme: Dark Mode</option>
+                                </select>
+                            </div>
+                        </li>
+                    </ul>
                 </div>
-                <div class="col-md-2"></div>
+
+                <!-- Theme Switcher: Desktop -->
+                <div class="theme-switcher ms-auto d-none d-lg-block">
+                    <select id="theme-selector-lg" class="form-select" title="Large Theme Selector">
+                        <option value="light">Theme: Light Mode</option>
+                        <option value="dark">Theme: Dark Mode</option>
+                    </select>
+                </div>
             </div>
+        </nav>
+        <div class="container-fluid flex-grow-1"> <!-- Expands to push footer down -->
+            <main role="main" class="pb-3">
+                @RenderBody()
+            </main>
         </div>
-    </footer>
+
+        <footer class="footer mt-auto"> <!-- Ensures footer stays at bottom -->
+            <div class="footerContainer">
+                <div class="row footerRow">
+                    <div class="col-md-2">&copy; Deep Blue 2025</div>
+                    <div class="col-md-8">
+                        <a asp-area="" asp-controller="Home" asp-action="Privacy" class="footerLinks">Privacy</a> | 
+                        <a asp-area="" asp-controller="Home" asp-action="Feedback" class="footerLinks">Feedback</a>
+                    </div>
+                    <div class="col-md-2"></div>
+                </div>
+            </div>
+        </footer>
 
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>

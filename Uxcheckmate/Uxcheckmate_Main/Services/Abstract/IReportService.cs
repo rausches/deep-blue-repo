@@ -6,6 +6,6 @@ namespace Uxcheckmate_Main.Services
 {
     public interface IReportService
     {
-        Task<ICollection<DesignIssue>> GenerateReportAsync(Report report);
+        Task<ICollection<DesignIssue>> GenerateReportAsync(Report report, CancellationToken cancellationToken);
     }
 }

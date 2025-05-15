@@ -8,6 +8,7 @@ using Uxcheckmate_Main.Models;
 using System.Collections.Concurrent;
 using System.Threading.Tasks;
 using System.Diagnostics;
+using Microsoft.Extensions.Caching.Memory;
 
 
 namespace Uxcheckmate_Main.Services
@@ -32,10 +33,11 @@ namespace Uxcheckmate_Main.Services
         private readonly IFPatternService _fPatternService;
         private readonly IZPatternService _zPatternService;
         private readonly ISymmetryService _symmetryService;
+        private readonly IServiceScopeFactory _scopeFactory;
+        private readonly IMemoryCache _cache;
 
-
-
-        public ReportService(HttpClient httpClient, ILogger<ReportService> logger, UxCheckmateDbContext context, IOpenAiService openAiService, IBrokenLinksService brokenLinksService, IHeadingHierarchyService headingHierarchyService, IColorSchemeService colorSchemeService, IMobileResponsivenessService mobileResponsivenessService, IScreenshotService screenshotService, IPlaywrightScraperService playwrightScraperService, IPopUpsService popUpsService, IAnimationService animationService, IAudioService audioService, IScrollService scrollService, IFPatternService fPatternService, IZPatternService zPatternService, ISymmetryService symmetryService)
+        public ReportService(HttpClient httpClient, ILogger<ReportService> logger, UxCheckmateDbContext context, IOpenAiService openAiService, IBrokenLinksService brokenLinksService, IHeadingHierarchyService headingHierarchyService, IColorSchemeService colorSchemeService, IMobileResponsivenessService mobileResponsivenessService, IScreenshotService screenshotService, IPlaywrightScraperService playwrightScraperService, IPopUpsService popUpsService, IAnimationService animationService, IAudioService audioService, IScrollService scrollService, IFPatternService fPatternService, IZPatternService zPatternService, ISymmetryService symmetryService, IServiceScopeFactory scopeFactory, 
+    IMemoryCache cache)
         {
             _httpClient = httpClient;
             _dbContext = context;
@@ -55,15 +57,18 @@ namespace Uxcheckmate_Main.Services
             _fPatternService = fPatternService;
             _zPatternService = zPatternService;
             _symmetryService = symmetryService;
+            _scopeFactory = scopeFactory;
+            _cache = cache;
         }
 
 
-        public async Task<ICollection<DesignIssue>> GenerateReportAsync(Report report)
+        public async Task<ICollection<DesignIssue>> GenerateReportAsync(Report report, CancellationToken cancellationToken)
         {
             // Initialize url to report attribute
             var url = report.Url;
             _logger.LogInformation("Starting report generation for URL: {Url}", url);
 
+            var scanResults = new ConcurrentBag<DesignIssue>();
 
             // If there is no url throw an exception
             if (string.IsNullOrEmpty(url))
@@ -72,43 +77,61 @@ namespace Uxcheckmate_Main.Services
                 throw new ArgumentException("URL cannot be empty.", nameof(url));
             }
             
-            // Scrape site
-            var fullScraped = await _playwrightScraperService.ScrapeEverythingAsync(url);
-            var scrapedData = fullScraped.ToDictionary();
+            // Scrape site with caching
+            ScrapedContent fullScraped;
+            Dictionary<string, object> scrapedData;
 
-            // Call the scrapers in parallel
-          //  var staticScrapeTask = _scraperService.ScrapeAsync(url);
-           // var dynamicScrapeTask = _playwrightScraperService.ScrapeAsync(url);
-
-           // await Task.WhenAll(staticScrapeTask, dynamicScrapeTask);
-
-           // var scrapedData = staticScrapeTask.Result;
-           // var assets = dynamicScrapeTask.Result;
-
-            // Merge Static and Dynamic content into one dictionary
-           // scrapedData = MergeScrapedData(scrapedData, assets);
-
-           /* foreach (var css in assets.ExternalCssContents)
+            try
             {
-                _logger.LogInformation("External CSS Content Preview:\n{Css}", css.Substring(0, Math.Min(200, css.Length)));
+                string cacheKey = $"scrapedcontent_{url.ToLowerInvariant()}";
+                
+                // Try to get from cache
+                if (!_cache.TryGetValue(cacheKey, out fullScraped))
+                {
+                    _logger.LogInformation("No cached scrape found for {Url}. Scraping now.", url);
+                    fullScraped = await _playwrightScraperService.ScrapeEverythingAsync(url, cancellationToken);
+
+                    // Cache it for 1 hour
+                    _cache.Set(cacheKey, fullScraped, TimeSpan.FromHours(1));
+                }
+                else
+                {
+                    _logger.LogInformation("Using cached scrape for {Url}.", url);
+                }
+
+                scrapedData = fullScraped.ToDictionary();
             }
 
-            foreach (var js in assets.ExternalJsContents)
+            catch (OperationCanceledException)
             {
-                _logger.LogInformation("External JS Content Preview:\n{Js}", js.Substring(0, Math.Min(200, js.Length)));
-            }*/
+                _logger.LogWarning("Scraping cancelled.");
+                return scanResults.ToList();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Scraping failed.");
+                return scanResults.ToList(); // Return what we have, even if empty
+            }
 
             // Get list of design categories
-            var designCategories = await _dbContext.DesignCategories.ToListAsync();
-            _logger.LogInformation("Found {Count} design categories.", designCategories.Count);
+            List<DesignCategory> designCategories;
 
-            // Use ConcurrentBag for thread-safe collection of results
-            var scanResults = new ConcurrentBag<DesignIssue>();
+            try
+            {
+                // Get list of design categories
+                designCategories = await _dbContext.DesignCategories.ToListAsync();
+                _logger.LogInformation("Found {Count} design categories.", designCategories.Count);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to retrieve design categories.");
+                return scanResults.ToList();
+            }
 
             // Run analysis for each category in parallel
             await Parallel.ForEachAsync(
                 designCategories,
-                new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount * 2 },
+                new ParallelOptions { MaxDegreeOfParallelism = 4 },
                 async (category, cancellationToken) =>
                 {
                     _logger.LogInformation("Analyzing category: {CategoryName} using scan method: {ScanMethod}", category.Name, category.ScanMethod);
@@ -116,12 +139,36 @@ namespace Uxcheckmate_Main.Services
                     string message;
                     try
                     {
+                        using var scope = _scopeFactory.CreateScope();
+                        var scopedDbContext = scope.ServiceProvider.GetRequiredService<UxCheckmateDbContext>();
+
+                        _logger.LogInformation("Analyzing category: {CategoryName} using scan method: {ScanMethod}", category.Name, category.ScanMethod);
+
                         message = category.ScanMethod switch
                         {
                             "OpenAI" => await _openAiService.AnalyzeWithOpenAI(url, category.Name, category.Description, scrapedData),
                             "Custom" => await RunCustomAnalysisAsync(url, category.Name, category.Description, scrapedData, fullScraped),
                             _ => ""
                         };
+
+                        if (!string.IsNullOrEmpty(message))
+                        {
+                            var designIssue = new DesignIssue
+                            {
+                                CategoryId = category.Id,
+                                ReportId = report.Id,
+                                Message = message,
+                                Severity = DetermineSeverity(message)
+                            };
+
+                            scopedDbContext.DesignIssues.Add(designIssue);
+                            await scopedDbContext.SaveChangesAsync(cancellationToken);
+                            scanResults.Add(designIssue);
+                        }
+                    }
+                    catch (OperationCanceledException)
+                    {
+                        _logger.LogWarning("Analysis cancelled for category {CategoryName}", category.Name);
                     }
                     catch (Exception ex)
                     {
@@ -130,7 +177,7 @@ namespace Uxcheckmate_Main.Services
                     }
 
                     // Connect service response to dbset attributes
-                    if (!string.IsNullOrEmpty(message))
+                   /* if (!string.IsNullOrEmpty(message))
                     {
                         var designIssue = new DesignIssue
                         {
@@ -147,28 +194,77 @@ namespace Uxcheckmate_Main.Services
                     else
                     {
                         _logger.LogInformation("No issues found for category: {CategoryName}", category.Name);
-                    }
+                    }*/
                 });
-            if (report.Id > 0){
-                // Add all design issues to the context
-                _dbContext.DesignIssues.AddRange(scanResults);
-                // Save to database
-                await _dbContext.SaveChangesAsync();
-            }else{
-                _logger.LogInformation("Skipping saving DesignIssues");    
+            /* SAVE TOKENS COMMENT OUT OPEN AI */
+
+            try
+            {
+                var summaryText = await _openAiService.GenerateReportSummaryAsync(scanResults.ToList(), fullScraped.HtmlContent, url, cancellationToken);
+                report.Summary = summaryText;
+                _logger.LogInformation("Generated summary for report.");
             }
-            // Call OpenAI to generate summary
-            var summaryText = await _openAiService.GenerateReportSummaryAsync(scanResults.ToList(), fullScraped.HtmlContent, url);
-            _logger.LogInformation("Generated summary: {Summary}", summaryText);
-            report.Summary = summaryText;
-            // Return report
+            catch (OperationCanceledException)
+            {
+                _logger.LogWarning("Summary generation cancelled.");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to generate summary.");
+            }
+
+            try
+            {
+                using var finalScope = _scopeFactory.CreateScope();
+                var finalDbContext = finalScope.ServiceProvider.GetRequiredService<UxCheckmateDbContext>();
+                var finalReport = await finalDbContext.Reports.FirstOrDefaultAsync(r => r.Id == report.Id, cancellationToken);
+                if (finalReport != null)
+                {
+                    finalReport.Status = "Completed";
+                    await finalDbContext.SaveChangesAsync(cancellationToken);
+                }
+            }
+            catch (OperationCanceledException)
+            {
+                _logger.LogWarning("Final save operation cancelled.");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error saving final report status.");
+            }
+
             return scanResults.ToList();
         }
 
         public async Task<string> RunCustomAnalysisAsync(string url, string categoryName, string categoryDescription, Dictionary<string, object> scrapedData, ScrapedContent fullScraped)
         {
             _logger.LogInformation("Running custom analysis for category: {CategoryName}", categoryName);
-            Task<byte[]> screenshotTask = _screenshotService?.CaptureFullPageScreenshot(url) ?? Task.FromResult(new byte[0]);
+            string cacheKey = $"fullpage_screenshot_{url.ToLowerInvariant()}";
+            Task<byte[]> screenshotTask;
+
+            // Check cache for existing full page screenshot
+            if (_cache.TryGetValue(cacheKey, out byte[] cachedScreenshot))
+            {
+                _logger.LogInformation("Using cached full page screenshot for {Url}.", url);
+                screenshotTask = Task.FromResult(cachedScreenshot);
+            }
+            else
+            {
+                _logger.LogInformation("Capturing new full page screenshot for {Url}.", url);
+
+                // Capture screenshot and cache it after capture completes
+                screenshotTask = _screenshotService?.CaptureFullPageScreenshot(url) ?? Task.FromResult(new byte[0]);
+                screenshotTask = screenshotTask.ContinueWith(t =>
+                {
+                    var result = t.Result;
+                    if (result != null && result.Length > 0)
+                    {
+                        _cache.Set(cacheKey, result, TimeSpan.FromHours(1)); // Cache for 1 hour
+                        _logger.LogInformation("Full page screenshot cached for {Url}.", url);
+                    }
+                    return result;
+                });
+            }
 
             string message = categoryName switch
             {
@@ -187,6 +283,8 @@ namespace Uxcheckmate_Main.Services
                 "Symmetry"              => await _symmetryService.AnalyzeSymmetryAsync(fullScraped.ViewportWidth, fullScraped.ViewportHeight, fullScraped.LayoutElements),
                 _ => ""
             };
+
+            /* SAVE TOKENS COMMENT OUT OPEN AI */
 
             // Send to OpenAI to enhance message
             if (!string.IsNullOrEmpty(message))

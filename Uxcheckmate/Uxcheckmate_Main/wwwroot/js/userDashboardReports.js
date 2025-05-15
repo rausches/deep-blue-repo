@@ -1,3 +1,121 @@
+// Initiates the export of a report to Jira.
+function sendToJira(reportId) {
+    fetch('/JiraAPI/IsConnected')
+        .then(response => response.json())
+        .then(data => {
+            if (!data.connected) {
+                // If not connected, start OAuth authorization flow
+                window.location.href = `/JiraAuth/Authorize?reportId=${reportId}`;
+                return;
+            }
+
+            // If connected, fetch available Jira projects
+            fetch('/JiraAPI/GetProjects')
+                .then(response => response.json())
+                .then(projects => {
+                    // Show project selection modal
+                    showProjectDropdownModal(projects, reportId);
+                });
+        });
+}
+
+//Creates and displays a Bootstrap modal allowing the user to select a Jira project. 
+function showProjectDropdownModal(projects, reportId) {
+    // Check if modal already exists; if not, create it
+    let modal = document.getElementById('projectSelectModal');
+    if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'projectSelectModal';
+        modal.classList.add('modal', 'fade');
+        modal.tabIndex = -1;
+        modal.innerHTML = `
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Select Jira Project</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <select class="form-select" id="jiraProjectDropdown"></select>
+                    <div id="jiraExportStatus" class="mt-3 text-center text-muted small"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" id="confirmProjectButton">Export</button>
+                </div>
+            </div>
+        </div>`;
+        document.body.appendChild(modal);
+    }
+
+    // Populate dropdown with available projects
+    const select = modal.querySelector('#jiraProjectDropdown');
+    select.innerHTML = '';
+    projects.forEach(p => {
+        const option = document.createElement('option');
+        option.value = p.id;
+        option.textContent = `${p.key} - ${p.name}`;
+        select.appendChild(option);
+    });
+
+    // Set up button to trigger export with selected project
+    modal.querySelector('#confirmProjectButton').onclick = function() {
+        const selectedId = select.value;
+        exportReportToJira(reportId, selectedId);
+    };
+
+    // Show the modal
+    new bootstrap.Modal(modal).show();
+}
+
+// Sends a request to export a report to Jira under the selected project.
+function exportReportToJira(reportId, projectId) {
+    // Get references to modal elements
+    const modal = document.getElementById('projectSelectModal');
+    const exportButton = modal.querySelector('#confirmProjectButton');
+    const statusDiv = modal.querySelector('#jiraExportStatus');
+
+    // Show spinner and disable export button to prevent double submission
+    if (exportButton) {
+        exportButton.disabled = true;
+        exportButton.innerHTML = `
+            <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Sending...
+        `;
+    }
+
+    // Send POST request to the server to export the report
+    fetch(`/JiraAPI/ExportReportToJira?reportId=${reportId}&projectKey=${encodeURIComponent(projectId)}`, {
+        method: 'POST'
+    })
+    .then(response => {
+        if (response.ok) {
+            // Success: show success message in modal
+            statusDiv.textContent = "Report successfully exported to Jira.";
+
+            // Automatically close modal after a short delay (1 second)
+            setTimeout(() => {
+                bootstrap.Modal.getInstance(modal).hide(); // Close modal
+                statusDiv.textContent = ""; // Clear message for next time
+            }, 1000);
+        } else {
+            // Server responded with error: show error message in modal
+            response.text().then(text => {
+                statusDiv.textContent = `Failed to send report. (${response.status})`;
+            });
+        }
+    })
+    .catch(() => {
+        // Network or unexpected error: show error message in modal
+        statusDiv.textContent = "An error occurred while sending the report.";
+    })
+    .finally(() => {
+        // Re-enable button and reset text no matter what happened
+        if (exportButton) {
+            exportButton.disabled = false;
+            exportButton.textContent = "Export";
+        }
+    });
+}
+
 // Function to delete a report
 function deleteReport(reportId) {
 
@@ -55,7 +173,7 @@ function downloadReport(reportId) {
         .then(blob => {
             const link = document.createElement('a');
             link.href = URL.createObjectURL(blob);
-            link.download = `Report_${reportId}.pdf`;  
+            link.download = `UxCheckmate_Report_ID_${reportId}.pdf`;  
             link.click();  
         })
         .catch(error => console.error('Error downloading the report:', error));
@@ -189,6 +307,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                 <div class="col-sm">Report ID</div>
                                 <div class="col-sm">Date</div>
                                 <div class="col-sm">Actions</div>
+                                <div class="col-sm">Export</div>
                                 <div class="col-sm">Delete</div>
                             </div>
     
@@ -199,6 +318,9 @@ document.addEventListener('DOMContentLoaded', () => {
                                     <div class="col-sm">${formattedDate(r.date)}</div>
                                     <div class="col-sm">
                                         <button class="btn btn-secondary btn-sm" onclick="viewReportDetails(${r.id})">View Report</button>
+                                    </div>
+                                    <div class="col-sm">
+                                        <button class="btn btn-primary btn-sm exportJiraBtn" onclick="sendToJira(${r.id})">Export to Jira</button>    
                                     </div>
                                     <div class="col-sm">
                                         <button class="btn btn-danger btn-sm deleteReportbtn" onclick="deleteReport(${r.id})">Delete</button>
@@ -213,6 +335,14 @@ document.addEventListener('DOMContentLoaded', () => {
         `;
     
         container.appendChild(folderDiv);
+    }
+
+   // Automatically resume export if user was redirected back after Jira login 
+    const urlParams = new URLSearchParams(window.location.search);
+    const resumeReportId = urlParams.get("resumeReportId");
+    if (resumeReportId) {
+        sendToJira(parseInt(resumeReportId));
+        window.history.replaceState({}, document.title, window.location.pathname); // Clean URL
     }
 });
 

@@ -46,21 +46,26 @@ public class Program
                 .AddRoles<IdentityRole>()
                 .AddEntityFrameworkStores<AuthDbContext>();
 
+        builder.Services.AddSession(options =>
+        {
+            options.IdleTimeout = TimeSpan.FromMinutes(30);
+            options.Cookie.HttpOnly = true;
+            options.Cookie.IsEssential = true;
+        });
 
-
-            builder.Services.AddHttpClient<IOpenAiService, OpenAiService>((httpClient, services) =>
-            {
-                string openAiUrl = "https://api.openai.com/v1/chat/completions";
-                string openAiApiKey = builder.Configuration["OpenAiApiKey"];
-                httpClient.BaseAddress = new Uri(openAiUrl);          
-                httpClient.DefaultRequestHeaders.Add("Accept", "application/json");
-                httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", openAiApiKey);
-            
-                return new OpenAiService(
-                    httpClient,
-                    services.GetRequiredService<ILogger<OpenAiService>>()
-                );
-            });
+        builder.Services.AddHttpClient<IOpenAiService, OpenAiService>((httpClient, services) =>
+        {
+            string openAiUrl = "https://api.openai.com/v1/chat/completions";
+            string openAiApiKey = builder.Configuration["OpenAiApiKey"];
+            httpClient.BaseAddress = new Uri(openAiUrl);          
+            httpClient.DefaultRequestHeaders.Add("Accept", "application/json");
+            httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", openAiApiKey);
+        
+            return new OpenAiService(
+                httpClient,
+                services.GetRequiredService<ILogger<OpenAiService>>()
+            );
+        });
 
         // Add services to the container.
         builder.Services.AddControllersWithViews();
@@ -77,7 +82,7 @@ public class Program
         builder.Services.AddScoped<IPlaywrightService, PlaywrightService>();
         builder.Services.AddScoped<PlaywrightService>();
 
-        // Register Pa11yUrlBasedService and Pa11yService
+        // Register AxeCoreService
         builder.Services.AddScoped<IAxeCoreService, AxeCoreService>();
 
         // Register ScreenshotService
@@ -102,7 +107,10 @@ public class Program
         builder.Services.AddScoped<IFPatternService, FPatternService>();
         builder.Services.AddScoped<IZPatternService, ZPatternService>();
         builder.Services.AddScoped<ISymmetryService, SymmetryService>();
-
+        builder.Services.AddSingleton<IBackgroundTaskQueue, BackgroundTaskQueue>();
+        builder.Services.AddHostedService<QueueService>();
+        builder.Services.Configure<JiraSettings>(builder.Configuration.GetSection("Jira"));
+        builder.Services.AddHttpClient<IJiraService, JiraService>();
 
         var app = builder.Build();
 
@@ -127,6 +135,7 @@ public class Program
         app.UseStaticFiles();  // Ensure static files (CSS, JS, images) are served
 
         app.UseRouting();
+        app.UseSession();
         app.UseAuthentication();
         app.UseAuthorization();
         // Map default route

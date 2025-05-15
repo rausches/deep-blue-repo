@@ -3,6 +3,19 @@
 @{
     ViewData["Title"] = "Home Page";
 }
+@if (TempData["ScrapingError"] != null)
+{
+    <div class="alert alert-danger">
+        @TempData["ScrapingError"]
+    </div>
+}
+@if (TempData["UrlUnreachable"] != null)
+{
+    <div class="alert alert-danger">
+        @TempData["UrlUnreachable"]
+    </div>
+}
+
 <section class="main full-screen">
     <div class="container scanContainer">
         <div class="row" id="landingRowOne">
@@ -380,6 +393,9 @@
     </div>
 </section>
 
+<button onclick="scrollToTop()" id="scrollTopBtn" title="Go to top" class="btn btn-dark">
+    Scroll back to top
+</button>
 
 <script>
     var urlUnreachableMessage = '@TempData["UrlUnreachable"]';
@@ -387,6 +403,24 @@
     if (urlUnreachableMessage && urlUnreachableMessage.length > 0) {
         var customPopup = document.getElementById('customPopupMessage');
         customPopup.style.display = 'block';
+    }
+</script>
+
+<script>
+    const scrollTopBtn = document.getElementById("scrollTopBtn");
+
+    // Show button when user scrolls down 100px
+    window.onscroll = function () {
+        if (document.body.scrollTop > 100 || document.documentElement.scrollTop > 100) {
+            scrollTopBtn.style.display = "block";
+        } else {
+            scrollTopBtn.style.display = "none";
+        }
+    };
+
+    // Scroll to top smoothly
+    function scrollToTop() {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 </script>
 
