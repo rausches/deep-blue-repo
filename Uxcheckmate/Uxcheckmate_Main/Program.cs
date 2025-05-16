@@ -111,6 +111,8 @@ public class Program
         builder.Services.AddHostedService<QueueService>();
         builder.Services.Configure<JiraSettings>(builder.Configuration.GetSection("Jira"));
         builder.Services.AddHttpClient<IJiraService, JiraService>();
+        builder.Services.AddHttpClient<PlaywrightApiService>();
+
 
         var app = builder.Build();
 
