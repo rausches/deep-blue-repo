@@ -37,21 +37,6 @@
     <PackageReference Include="SkiaSharp.Views" Version="2.88.3" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="8.1.1" />
     <PackageReference Include="TimeZoneConverter" Version="7.0.0" />
-      <None Update="ms-playwright/chromium_headless_shell-1169/**">
-        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
-      </None>
-      <None Update="ms-playwright/winldd-1007/**">
-        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
-    </None>
-        <None Update="axe-core/axe.min.js">
-        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
-    </None>
-      <None Update="wwwroot\js\playwrightScraperHelper.js">
-        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
   </ItemGroup>
 
 </Project>
