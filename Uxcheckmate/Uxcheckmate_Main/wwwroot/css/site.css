@@ -6,7 +6,7 @@ Shared Layout
 
 html, body {
   background-color: rgba(255, 255, 255, 0);
-  height: 100%;
+  /* height: 100%;     */  /* Commented out because it prevents the nav bar from staying fixed at the top while scrolling. */
   display: flex;
   flex-direction: column;
   overflow: visible;
@@ -47,11 +47,11 @@ Navbar
 ==================================================
 */
 
+
+
 .transparent-navbar {
-  background: rgba(0, 0, 0, 0.313);
-  border: none; 
-  top: 0;
-  position: sticky !important;
+
+  backdrop-filter: blur(100px);
 }
 
 .navbar-nav {
@@ -59,6 +59,7 @@ Navbar
   display: flex;
   justify-content: center;
   font-family: "Lexend", sans-serif;
+
 }
 
 .navbar-brand {

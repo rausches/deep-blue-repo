@@ -24,7 +24,7 @@
 </head>
 
 <body class="d-flex flex-column min-vh-100"> <!-- Ensures full viewport height -->
-        <nav class="navbar navbar-expand-lg mb-3 transparent-navbar">
+        <nav class="navbar navbar-expand-lg mb-3 transparent-navbar sticky-top">
             <div class="container-fluid" >
                 <a class="navbar-brand me-auto" asp-area="" asp-controller="Home" asp-action="Index">UxCheckmate</a>
 
@@ -96,12 +96,14 @@
                 </div>
             </div>
         </nav>
+        
+
         <div class="container-fluid flex-grow-1"> <!-- Expands to push footer down -->
             <main role="main" class="pb-3">
                 @RenderBody()
             </main>
         </div>
-
+    
         <footer class="footer mt-auto"> <!-- Ensures footer stays at bottom -->
             <div class="footerContainer">
                 <div class="row footerRow">
@@ -114,10 +116,11 @@
                 </div>
             </div>
         </footer>
-
+    
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/themeSwitcher.js" asp-append-version="true"></script>
     @await RenderSectionAsync("Scripts", required: false)
+
 </body>
 </html>

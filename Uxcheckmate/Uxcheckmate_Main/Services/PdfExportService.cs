@@ -122,9 +122,9 @@ namespace Uxcheckmate_Main.Services
                                     .FontColor(Colors.Grey.Darken1);
                             });
 
-                            if (report.DesignIssues?.Count > 0)
+                            if (report.AccessibilityIssues?.Count > 0)
                             {
-                                foreach (var issue in report.DesignIssues)
+                                foreach (var issue in report.AccessibilityIssues)
                                 {
                                 section.Item().Container().Padding(10).Column(issueCol =>
                                 {
