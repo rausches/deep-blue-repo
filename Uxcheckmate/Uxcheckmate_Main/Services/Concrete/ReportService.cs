@@ -35,9 +35,11 @@ namespace Uxcheckmate_Main.Services
         private readonly ISymmetryService _symmetryService;
         private readonly IServiceScopeFactory _scopeFactory;
         private readonly IMemoryCache _cache;
+        private readonly PlaywrightApiService _playwrightApiService;
 
-        public ReportService(HttpClient httpClient, ILogger<ReportService> logger, UxCheckmateDbContext context, IOpenAiService openAiService, IBrokenLinksService brokenLinksService, IHeadingHierarchyService headingHierarchyService, IColorSchemeService colorSchemeService, IMobileResponsivenessService mobileResponsivenessService, IScreenshotService screenshotService, IPlaywrightScraperService playwrightScraperService, IPopUpsService popUpsService, IAnimationService animationService, IAudioService audioService, IScrollService scrollService, IFPatternService fPatternService, IZPatternService zPatternService, ISymmetryService symmetryService, IServiceScopeFactory scopeFactory, 
-    IMemoryCache cache)
+        public ReportService(HttpClient httpClient, ILogger<ReportService> logger, UxCheckmateDbContext context, IOpenAiService openAiService, IBrokenLinksService brokenLinksService, IHeadingHierarchyService headingHierarchyService, IColorSchemeService colorSchemeService, IMobileResponsivenessService mobileResponsivenessService, IScreenshotService screenshotService, IPlaywrightScraperService playwrightScraperService, IPopUpsService popUpsService, IAnimationService animationService, IAudioService audioService, IScrollService scrollService, IFPatternService fPatternService, IZPatternService zPatternService, ISymmetryService symmetryService, IServiceScopeFactory scopeFactory,
+    IMemoryCache cache,
+            PlaywrightApiService playwrightApiService)
         {
             _httpClient = httpClient;
             _dbContext = context;
@@ -48,7 +50,7 @@ namespace Uxcheckmate_Main.Services
             _colorSchemeService = colorSchemeService;
             _mobileResponsivenessService = mobileResponsivenessService;
             _screenshotService = screenshotService;
-          //  _scraperService = scraperService;
+            //  _scraperService = scraperService;
             _playwrightScraperService = playwrightScraperService;
             _popUpsService = popUpsService;
             _animationService = animationService;
@@ -59,6 +61,7 @@ namespace Uxcheckmate_Main.Services
             _symmetryService = symmetryService;
             _scopeFactory = scopeFactory;
             _cache = cache;
+            _playwrightApiService = playwrightApiService;
         }
 
 
@@ -89,7 +92,37 @@ namespace Uxcheckmate_Main.Services
                 if (!_cache.TryGetValue(cacheKey, out fullScraped))
                 {
                     _logger.LogInformation("No cached scrape found for {Url}. Scraping now.", url);
-                    fullScraped = await _playwrightScraperService.ScrapeEverythingAsync(url, cancellationToken);
+                    var result = await _playwrightApiService.AnalyzeWebsiteAsync(url);
+                    fullScraped = new ScrapedContent
+                    {
+                        Url = url,
+                        HtmlContent = result?.Html,
+                        TextContent = result?.TextContent,
+                        Headings = result?.AxeResults?.Violations?.Count ?? 0,
+                        Paragraphs = 0, // Optional: you could add this to your microservice later
+                        Fonts = result?.AxeResults?.Violations?
+                            .Where(v => v.Id == "font-usage") // Or however you track fonts
+                            .SelectMany(v => v.Nodes.Select(n => n.Html))
+                            .ToList() ?? new List<string>(),
+
+                        HasFavicon = result?.HasFavicon ?? false,
+                        FaviconUrl = result?.FaviconUrl,
+                        ExternalCssContents = result?.ExternalCssContents ?? new List<string>(),
+                        ExternalJsContents = result?.ExternalJsContents ?? new List<string>(),
+                        ScrollHeight = result?.ScrollHeight ?? 0,
+                        ScrollWidth = result?.ScrollWidth ?? 0,
+                        ViewportHeight = result?.ViewportHeight ?? 0,
+                        ViewportWidth = result?.ViewportWidth ?? 0,
+                        ViewportLabel = result?.ViewportLabel ?? "",
+                        InlineCssList = result?.InlineCssList ?? new List<string>(),
+                        InlineJsList = result?.InlineJsList ?? new List<string>(),
+                        ExternalCssLinks = result?.ExternalCssLinks ?? new List<string>(),
+                        ExternalJsLinks = result?.ExternalJsLinks ?? new List<string>(),
+                        InlineCss = string.Join("\n", result?.InlineCssList ?? new List<string>()),
+                        InlineJs = string.Join("\n", result?.InlineJsList ?? new List<string>()),
+                        Links = result?.Links ?? new List<string>()
+                    };
+
 
                     // Cache it for 1 hour
                     _cache.Set(cacheKey, fullScraped, TimeSpan.FromHours(1));
@@ -131,7 +164,7 @@ namespace Uxcheckmate_Main.Services
             // Run analysis for each category in parallel
             await Parallel.ForEachAsync(
                 designCategories,
-                new ParallelOptions { MaxDegreeOfParallelism = 4 },
+                new ParallelOptions { MaxDegreeOfParallelism = 8 },
                 async (category, cancellationToken) =>
                 {
                     _logger.LogInformation("Analyzing category: {CategoryName} using scan method: {ScanMethod}", category.Name, category.ScanMethod);
@@ -198,7 +231,7 @@ namespace Uxcheckmate_Main.Services
                 });
             /* SAVE TOKENS COMMENT OUT OPEN AI */
 
-            try
+          /*  try
             {
                 var summaryText = await _openAiService.GenerateReportSummaryAsync(scanResults.ToList(), fullScraped.HtmlContent, url, cancellationToken);
                 report.Summary = summaryText;
@@ -211,7 +244,7 @@ namespace Uxcheckmate_Main.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to generate summary.");
-            }
+            }*/
 
             try
             {
@@ -274,9 +307,9 @@ namespace Uxcheckmate_Main.Services
                 "Mobile Responsiveness" => await _mobileResponsivenessService.RunMobileAnalysisAsync(url, scrapedData),
                 "Favicon"               => await AnalyzeFaviconAsync(url, scrapedData),
                 "Font Legibility"       => await AnalyzeFontLegibilityAsync(url, scrapedData),
-                "Pop Ups"               => await _popUpsService.RunPopupAnalysisAsync(url, scrapedData),
-                "Animations"            => await _animationService.RunAnimationAnalysisAsync(url, scrapedData),
-                "Audio"                 => await _audioService.RunAudioAnalysisAsync(url, scrapedData),
+              //  "Pop Ups"               => await _popUpsService.RunPopupAnalysisAsync(url, scrapedData),
+              //  "Animations"            => await _animationService.RunAnimationAnalysisAsync(url, scrapedData),
+                //"Audio"                 => await _audioService.RunAudioAnalysisAsync(url, scrapedData),
                 "Number of scrolls"     => await _scrollService.RunScrollAnalysisAsync(url, scrapedData),
                 "F Pattern"             => await _fPatternService.AnalyzeFPatternAsync(fullScraped.ViewportWidth, fullScraped.ViewportHeight, fullScraped.LayoutElements),
                 "Z Pattern"             => await _zPatternService.AnalyzeZPatternAsync(fullScraped.ViewportWidth, fullScraped.ViewportHeight, fullScraped.LayoutElements),
@@ -287,7 +320,7 @@ namespace Uxcheckmate_Main.Services
             /* SAVE TOKENS COMMENT OUT OPEN AI */
 
             // Send to OpenAI to enhance message
-            if (!string.IsNullOrEmpty(message))
+           /* if (!string.IsNullOrEmpty(message))
             {
                 _logger.LogInformation("Improving message with OpenAI for category: {CategoryName}", categoryName);
                 message = await _openAiService.ImproveMessageAsync(message, categoryName);
@@ -295,7 +328,7 @@ namespace Uxcheckmate_Main.Services
             else
             {
                 _logger.LogInformation("No message to improve for category: {CategoryName}", categoryName);
-            }
+            }*/
 
             return message;
         }
