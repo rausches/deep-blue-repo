@@ -3,6 +3,7 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
+using Uxcheckmate_Main.Models;
 
 namespace Uxcheckmate_Main.Services
 {
@@ -43,31 +44,33 @@ namespace Uxcheckmate_Main.Services
         }
     }
 
-public class PlaywrightAnalysisResult
-{
-    public string? Url { get; set; }
-    public string? ScreenshotBase64 { get; set; }
-    public string? Html { get; set; }
-    public string? TextContent { get; set; }
+    public class PlaywrightAnalysisResult
+    {
+        public string? Url { get; set; }
+        public string? ScreenshotBase64 { get; set; }
+        public string? Html { get; set; }
+        public string? TextContent { get; set; }
 
-    public AxeResults? AxeResults { get; set; }
+        public AxeResults? AxeResults { get; set; }
 
-    public bool HasFavicon { get; set; }
-    public string? FaviconUrl { get; set; }
+        public bool HasFavicon { get; set; }
+        public string? FaviconUrl { get; set; }
 
-    public List<string> ExternalCssContents { get; set; } = new();
-    public List<string> ExternalJsContents { get; set; } = new();
-    public List<string> InlineCssList { get; set; } = new();
-    public List<string> InlineJsList { get; set; } = new();
-    public List<string> ExternalCssLinks { get; set; } = new();
-    public List<string> ExternalJsLinks { get; set; } = new();
-    public List<string> Links { get; set; } = new();
+        public List<string> ExternalCssContents { get; set; } = new();
+        public List<string> ExternalJsContents { get; set; } = new();
+        public List<string> InlineCssList { get; set; } = new();
+        public List<string> InlineJsList { get; set; } = new();
+        public List<string> ExternalCssLinks { get; set; } = new();
+        public List<string> ExternalJsLinks { get; set; } = new();
+        public List<string> Links { get; set; } = new();
 
-    public int ScrollHeight { get; set; }
-    public int ScrollWidth { get; set; }
-    public int ViewportHeight { get; set; }
-    public int ViewportWidth { get; set; }
-    public string? ViewportLabel { get; set; }
+        public int ScrollHeight { get; set; }
+        public int ScrollWidth { get; set; }
+        public int ViewportHeight { get; set; }
+        public int ViewportWidth { get; set; }
+        public string? ViewportLabel { get; set; }
+        public List<HtmlElement> LayoutElements { get; set; } = new();
+
 }
 
 

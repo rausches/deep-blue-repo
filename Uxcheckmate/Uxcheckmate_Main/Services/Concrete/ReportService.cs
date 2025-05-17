@@ -99,7 +99,7 @@ namespace Uxcheckmate_Main.Services
                         HtmlContent = result?.Html,
                         TextContent = result?.TextContent,
                         Headings = result?.AxeResults?.Violations?.Count ?? 0,
-                        Paragraphs = 0, // Optional: you could add this to your microservice later
+                        Paragraphs = 0, 
                         Fonts = result?.AxeResults?.Violations?
                             .Where(v => v.Id == "font-usage") // Or however you track fonts
                             .SelectMany(v => v.Nodes.Select(n => n.Html))
@@ -120,7 +120,8 @@ namespace Uxcheckmate_Main.Services
                         ExternalJsLinks = result?.ExternalJsLinks ?? new List<string>(),
                         InlineCss = string.Join("\n", result?.InlineCssList ?? new List<string>()),
                         InlineJs = string.Join("\n", result?.InlineJsList ?? new List<string>()),
-                        Links = result?.Links ?? new List<string>()
+                        Links = result?.Links ?? new List<string>(),
+                        LayoutElements = result?.LayoutElements ?? new List<HtmlElement>()
                     };
 
 
@@ -307,9 +308,9 @@ namespace Uxcheckmate_Main.Services
                 "Mobile Responsiveness" => await _mobileResponsivenessService.RunMobileAnalysisAsync(url, scrapedData),
                 "Favicon"               => await AnalyzeFaviconAsync(url, scrapedData),
                 "Font Legibility"       => await AnalyzeFontLegibilityAsync(url, scrapedData),
-              //  "Pop Ups"               => await _popUpsService.RunPopupAnalysisAsync(url, scrapedData),
-              //  "Animations"            => await _animationService.RunAnimationAnalysisAsync(url, scrapedData),
-                //"Audio"                 => await _audioService.RunAudioAnalysisAsync(url, scrapedData),
+                "Pop Ups"               => await _popUpsService.RunPopupAnalysisAsync(url, scrapedData),
+                "Animations"            => await _animationService.RunAnimationAnalysisAsync(url, scrapedData),
+                "Audio"                 => await _audioService.RunAudioAnalysisAsync(url, scrapedData),
                 "Number of scrolls"     => await _scrollService.RunScrollAnalysisAsync(url, scrapedData),
                 "F Pattern"             => await _fPatternService.AnalyzeFPatternAsync(fullScraped.ViewportWidth, fullScraped.ViewportHeight, fullScraped.LayoutElements),
                 "Z Pattern"             => await _zPatternService.AnalyzeZPatternAsync(fullScraped.ViewportWidth, fullScraped.ViewportHeight, fullScraped.LayoutElements),

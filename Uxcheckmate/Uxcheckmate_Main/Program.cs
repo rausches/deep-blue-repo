@@ -107,8 +107,12 @@ public class Program
         builder.Services.AddScoped<IFPatternService, FPatternService>();
         builder.Services.AddScoped<IZPatternService, ZPatternService>();
         builder.Services.AddScoped<ISymmetryService, SymmetryService>();
+
+        //Register Background Services
         builder.Services.AddSingleton<IBackgroundTaskQueue, BackgroundTaskQueue>();
         builder.Services.AddHostedService<QueueService>();
+        builder.Services.AddHostedService<ReportCleanupService>();
+        
         builder.Services.Configure<JiraSettings>(builder.Configuration.GetSection("Jira"));
         builder.Services.AddHttpClient<IJiraService, JiraService>();
         builder.Services.AddHttpClient<PlaywrightApiService>();
