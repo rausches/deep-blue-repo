@@ -25,10 +25,9 @@ beforeEach(() => {
     });
 
     document.body.innerHTML = `
-        <select id="theme-selector">
-            <option value="light">Light Mode</option>
-            <option value="dark">Dark Mode</option>
-        </select>
+        <select id="theme-selector"></select>
+        <select id="theme-selector-lg"></select>
+
     `;
 });
 
@@ -64,4 +63,43 @@ test("Priya navigates across pages, and the theme persists", () => {
 
     // Verify the theme is restored
     expect(document.documentElement.classList.contains("dark-theme")).toBe(true);
+});
+
+test("David selects royal mode", () => {
+    setTheme("royal");
+    expect(document.documentElement.classList.contains("light-theme")).toBe(false);
+    expect(document.documentElement.classList.contains("royal-theme")).toBe(true);
+    expect(localStorage.setItem).toHaveBeenCalledWith("theme", "royal");
+});
+
+test("Priya selects neon theme", () => {
+    setTheme("neon");
+    // removes royal-theme
+    expect(document.documentElement.classList.contains("royal-theme")).toBe(false);
+    expect(document.documentElement.classList.contains("neon-theme")).toBe(true);
+    expect(localStorage.setItem).toHaveBeenCalledWith("theme", "neon");
+});
+
+test("Sarah selects pastel theme", () => {
+    setTheme("pastel");
+    expect(document.documentElement.classList.contains("neon-theme")).toBe(false);
+    expect(document.documentElement.classList.contains("pastel-theme")).toBe(true);
+    expect(localStorage.setItem).toHaveBeenCalledWith("theme", "pastel");
+});
+
+test("Priya selects high contrast theme", () => {
+    setTheme("contrast");
+    expect(document.documentElement.classList.contains("pastel-theme")).toBe(false);
+    expect(document.documentElement.classList.contains("contrast-theme")).toBe(true);
+    expect(localStorage.setItem).toHaveBeenCalledWith("theme", "contrast");
+});
+
+test("Priya navigates across pages, and the theme contrast persists", () => {
+    jest.spyOn(Storage.prototype, "getItem").mockReturnValue("contrast");
+
+    // Call loadTheme to simulate page reload
+    loadTheme();
+
+    // Verify the theme is restored
+    expect(document.documentElement.classList.contains("contrast-theme")).toBe(true);
 });

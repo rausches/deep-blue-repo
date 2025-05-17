@@ -46,11 +46,7 @@ main {
 Navbar 
 ==================================================
 */
-
-
-
 .transparent-navbar {
-
   backdrop-filter: blur(100px);
 }
 
@@ -69,12 +65,47 @@ Navbar
   color: var(--nav-text);
 }
 
-.navbar-toggler-icon {
-  filter: var(--menu-color);
+.custom-toggler {
+  border: none;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 24px;
+  width: 30px;
+  padding: 0;
+}
+
+.custom-toggler .bar {
+  display: block;
+  height: 3px;
+  width: 100%;
+  background-color: var(--nav-text);
+  transition: all 0.3s ease;
+}
+
+.navbar-toggler {
+  border: none;
+  background-color: transparent;
 }
 
 .nav-link{
   color: var(--nav-text);
+}
+
+.nav-link:hover, .navbar-brand:hover{
+  color: var(--nav-text-hover);
+  background-color: var(--nav-bg-hover);
+  text-decoration: none;
+  border-radius: 5px;
+  box-shadow: 0 0 5px var(--nav-bg-hover), 0 0 10px var(--nav-bg-hover);
+}
+.navbar-nav .nav-link {
+  padding: 0.5rem 1rem;
+  font-size: 1.2rem;
+}
+.navbar-nav .nav-link.active {
+  color: var(--nav-text);
+  font-weight: bold;
 }
 
 #jumpTo{
@@ -83,11 +114,10 @@ Navbar
 
 /*
 ==================================================
-Theme Switcher
+Theme Switcher: Chess Pieces
 ==================================================
 */
-
-.theme-switcher {
+.theme-switcher-desktop {
   max-width: 20%;
   display: block;
   float:center;
@@ -99,12 +129,26 @@ Theme Switcher
   font-weight: 100;
 }
 
+.theme-chess-piece{
+  filter: var(--filter-chess-piece-color);
+}
+
+.theme-chess-piece:hover{
+  filter: var(--filter-chess-piece-color-hover);
+}
+
 /* Light Mode (Default) */
 :root {
   --bg-color: linear-gradient(to bottom right, #D8EDFF, #186AA8);
   --text-color: #000000;
   --nav-bg: #f8f9fa;
   --nav-text: #000000;
+  --nav-text-hover: #000000;
+  /* btn */
+  --bg-btn-global: #0B2C48;
+  --color-text-btn-global: #ffffff;
+  /* -- */
+  --input-bg-btn: #0B2C48;
   --disclosure-bg: #f9f9f9a3;
   --faq-bg: #f9f9f9a3;
   --card-back-bg: #ffffff;
@@ -115,26 +159,264 @@ Theme Switcher
   --accordian-text: #000000;
   --accordian-item-bg: #ffffff;
   --accordian-item-text: #000000;
-
+  --scroll-top-bg: #0B2C48;
+  --scroll-top-text: #ffffff;
+  /* feedback */
+  --max-characters-used-text-color: #000000;
+  /* --- */
 }
+
 
 /* Dark Mode */
 .dark-theme {
-  --bg-color: #121212;
-  --text-color: #e0e0e0;
-  --nav-bg: #1e1e1e;
-  --nav-text: #ffffff;
-  --disclosure-bg: #001521;
-  --menu-color: invert(1);
-  --faq-bg: #001521;
-  --card-back-bg: #001521;
-  --card-back-text: #ffffff;
-  --report-bg: #001521;
-  --report-text: #ffffff;
-  --accordian-bg: #001521;
-  --accordian-text: #ffffff;
-  --accordian-item-bg: #0B2C48;;
-  --accordian-item-text: #ffffff;
+    --bg-color: #181c24;
+    --text-color: #e3e6eb;
+    --nav-bg: #232a34;
+    --nav-text: #e3e6eb;
+    --nav-bg-hover: #47597b;
+    --input-bg-btn: #172643;
+    --input-field-text-color: #172643;
+    /* btn */
+    --bg-btn-global: #4b566a;
+    /*  */
+    --disclosure-bg: #232a34;
+    --faq-bg: #232a34;
+    --card-back-bg: #232a34;
+    --card-back-text: #e3e6eb;
+    --card-front-bg: #232a34;
+    --card-front-text: #e3e6eb;
+    --report-bg: #232a34;
+    --report-text: #e3e6eb;
+    --accordian-bg: #232a34;
+    --accordian-text: #e3e6eb;
+    --accordian-item-bg: #1a1f29;
+    --accordian-item-text: #e3e6eb;
+    --primary: #4f8cff;
+    --secondary: #232a34;
+    --scroll-top-bg: #232a34;
+    --scroll-top-text: #e3e6eb;
+    /* Feedback */
+    --max-characters-used-text-color: #e3e6eb;
+    /* -- */
+    background: var(--bg-color);
+    color: var(--text-color);
+}
+
+.dark-theme .theme-chess-piece{
+    filter: invert(1) hue-rotate(180deg);
+}
+
+.dark-theme .footer {
+    background: linear-gradient(90deg, #232a34 0%, #181c24 100%) !important;
+    color: var(--nav-text) !important;
+    box-shadow: 0 -2px 12px #232a34;
+}
+
+/* Purple Theme Mode */
+.royal-theme {
+    --bg-color: linear-gradient(135deg, #2e003e 0%, #a4508b 100%);
+    --text-color: #e0c3fc;
+    --my-dashboard-text-color: #2e003e;
+    --nav-bg: #2e003e;
+    --nav-text: #e0c3fc;
+    --nav-text-hover: #3d0066;
+    --input-bg-btn: #3d0066;
+    --input-bg-btn: #3d0066;
+    --input-field-text-color: #3d0066;
+    /* btn */
+    --bg-btn-global: #3d0066;
+    /* -- */
+    --disclosure-bg: #3d0066;
+    --faq-bg: #3d0066;
+    --card-back-bg: #a4508b;
+    --card-back-text: #fff;
+    --card-front-bg: #3d0066; 
+    --card-front-text: #fff;
+    --report-bg: #2e003e;
+    --report-text: #e0c3fc;
+    --accordian-bg: #3d0066;
+    --accordian-text: #e0c3fc;
+    --accordian-item-bg: #a4508b;
+    --accordian-item-text: #fff;
+    --primary: #a4508b;
+    --secondary: #f9d423;
+    --scroll-top-bg: #3d0066;
+    --scroll-top-text: #fff;
+    background: var(--bg-color);
+    color: var(--text-color);
+}
+
+.royal-theme .theme-chess-piece {
+    filter: invert(1) hue-rotate(180deg);
+}
+
+.royal-theme .footer {
+    background: linear-gradient(90deg, #a4508b 0%, #2e003e 100%) !important;
+    color: var(--nav-text) !important;
+}
+
+/* Neon Theme Mode */
+.neon-theme {
+    --bg-color: #0f2027;
+    --text-color: #39ff14;
+    --my-dashboard-text-color: #39ff14;
+    --nav-bg: #232526;
+    --nav-text: #39ff14;
+    /* btn */
+    --bg-btn-global: #232526;
+    --color-text-btn-global: #39ff14;
+    /* --- */
+    --input-field-text-color: #232526;
+    --disclosure-bg: #232526;
+    --faq-bg: #232526;
+    --card-back-bg: #232526;
+    --card-back-text: #39ff14;
+    --card-front-bg: #232526;
+    --card-front-text: #39ff14;
+    --report-bg: #232526;
+    --report-text: #39ff14;
+    --accordian-bg: #232526;
+    --accordian-text: #39ff14;
+    --accordian-item-bg: #1a1a2e;
+    --accordian-item-text: #39ff14;
+    --primary: #39ff14;
+    --secondary: #00d2ff;
+    --scroll-top-bg: #232526;
+    --scroll-top-text: #39ff14;
+    background: var(--bg-color);
+    color: var(--text-color);
+}
+.neon-theme .navbar {
+    background: linear-gradient(90deg, #232526 0%, #0f2027 100%) !important;
+    color: var(--nav-text) !important;
+    box-shadow: 0 0 20px #39ff14, 0 0 40px #00d2ff;
+}
+
+.neon-theme .btn-outline-info,
+.neon-theme .btn-outline-info:focus {
+    border-color: #39ff14;
+    color: #39ff14;
+}
+.neon-theme .btn-outline-info:hover {
+    background: #39ff14;
+    color: #232526;
+    box-shadow: 0 0 10px #39ff14;
+}
+.neon-theme .footer {
+    background: linear-gradient(90deg, #232526 0%, #0f2027 100%) !important;
+    color: var(--nav-text) !important;
+    box-shadow: 0 0 20px #39ff14, 0 0 40px #00d2ff;
+}
+
+.neon-theme .theme-chess-piece {
+    filter: invert(1) hue-rotate(180deg);
+}
+
+/* Pastel Theme Mode */
+.pastel-theme {
+    --bg-color: #fdf6f0;
+    --text-color: #5d5d5d;
+    --nav-bg: #ffe0ec;
+    --nav-text: #7b6f72;
+    --bg-btn-global: #5d5d5d;
+    --disclosure-bg: #f9e7fd;
+    --faq-bg: #e0f7fa;
+    --card-back-bg: #fce4ec;
+    --card-back-text: #070103;
+    --card-front-bg: #fce4ec;
+    --card-front-text: #7b6f72;
+    --report-bg: #e3fcec;
+    --report-text: #7b6f72;
+    --accordian-bg: #f9e7fd;
+    --accordian-text: #7b6f72;
+    --accordian-item-bg: #e0f7fa;
+    --accordian-item-text: #7b6f72;
+    --primary: #f8bbd0;
+    --secondary: #b2ebf2;
+    --scroll-top-bg: #ffe0ec;
+    --scroll-top-text: #7b6f72;
+    background: var(--bg-color);
+    color: var(--text-color);
+}
+
+.pastel-theme .navbar {
+    background: linear-gradient(90deg, #ffe0ec 0%, #e0f7fa 100%) !important;
+    color: var(--nav-text) !important;
+    box-shadow: 0 2px 12px #f8bbd0;
+}
+
+.pastel-theme .btn-outline-secondary,
+.pastel-theme .btn-outline-secondary:focus {
+    border-color: #f8bbd0;
+    color: #f8bbd0;
+}
+.pastel-theme .btn-outline-secondary:hover {
+    background: #f8bbd0;
+    color: #fff;
+}
+.pastel-theme .footer {
+    background: linear-gradient(90deg, #ffe0ec 0%, #e0f7fa 100%) !important;
+    color: var(--nav-text) !important;
+    box-shadow: 0 2px 12px #f8bbd0;
+}
+.pastel-theme .theme-chess-piece {
+    filter: invert(0.5) hue-rotate(180deg);
+}
+
+/* Contrast Theme Mode */
+.contrast-theme {
+    --bg-color: #000000;
+    --text-color: #ffff00;
+    --nav-bg: #000000;
+    --nav-text: #ffff00;
+    /* btn */
+    --bg-btn-global: #000000;
+    --color-text-btn-global: #ffff00;
+    /* --- */
+    --input-field-text-color: #000000;
+    --disclosure-bg: #222222;
+    --faq-bg: #222222;
+    --card-back-bg: #000000;
+    --card-back-text: #ffff00;
+    --card-front-bg: #000000;
+    --card-front-text: #ffff00;
+    --report-bg: #000000;
+    --report-text: #ffff00;
+    --accordian-bg: #222222;
+    --accordian-text: #ffff00;
+    --accordian-item-bg: #000000;
+    --accordian-item-text: #ffff00;
+    --primary: #ffff00;
+    --secondary: #ffffff;
+    --scroll-top-bg: #000000;
+    --scroll-top-text: #ffff00;
+    background: var(--bg-color);
+    color: var(--text-color);
+}
+
+.contrast-theme .navbar {
+    background: #000 !important;
+    color: var(--nav-text) !important;
+    border-bottom: 4px solid #ffff00;
+}
+
+.contrast-theme .btn-outline-warning,
+.contrast-theme .btn-outline-warning:focus {
+    border-color: #ffff00;
+    color: #ffff00;
+}
+.contrast-theme .btn-outline-warning:hover {
+    background: #ffff00;
+    color: #000;
+}
+
+.contrast-theme .footer {
+    background: #000 !important;
+    color: var(--nav-text) !important;
+    border-top: 4px solid #ffff00;
+}
+.contrast-theme .theme-chess-piece {
+    filter: invert(1) sepia(1) saturate(100%) hue-rotate(60deg);
 }
 
 /* 
@@ -156,11 +438,16 @@ Mobile Menu
   .navbar-brand {
     padding-left: 5%;
   }
-  .theme-switcher {
+  .theme-switcher-mobile {
       width: 100%;
       text-align: center;
       margin-top: 10px;
   }
+  .navbar-toggler:focus {
+      outline: none;
+      box-shadow: none !important;
+  }
+  
 }
 
 /* Middle section */
@@ -279,18 +566,18 @@ Report scanning wrapper style
 
 
 
-.scan-status h1, .scan-status p, #skeleton-text {
+.scan-status h1, .scan-status p, .skeleton-header-text {
   font-family:"DM Serif Text", serif;
   margin: 15px;
   padding: 10px 0;
-  color: #001521;
+  color: var(--text-color);
   font-weight: bold;
 }
 
-#skeleton-text {
-  color: #ffffff;
+.skeleton-text-color {
+  color: white;
+  font-family:"DM Serif Text", serif;
 }
-
 
 .loading-screenshot {
   width: 600px; 
@@ -328,21 +615,6 @@ Report scanning wrapper style
   100% {
     background-position: 200% 0;
   }
-}
-
-
-.spinner {
-  border: 4px solid rgba(255, 255, 255, 0.3);
-  border-top: 4px solid #3498db;
-  border-radius: 50%;
-  width: 40px;
-  height: 40px;
-  animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
 }
 
 /* 
@@ -419,7 +691,8 @@ Landing Page Styling
 .input-container {
   display: flex;
   align-items: center;
-  border: 2px solid #0B2C48; 
+  /* border: 2px solid #0B2C48;  */
+  border: var(--input-bg-btn);
   border-radius: 20px; 
   overflow: hidden; 
   width: 100%;
@@ -437,7 +710,8 @@ Landing Page Styling
 }
 
 .input-container button {
-  background: #0B2C48; 
+  /* background: #0B2C48;  */
+  background: var(--input-bg-btn);
   color: white;
   border: none;
   padding: 12px 20px;
@@ -597,6 +871,7 @@ FAQ Section Styling
   background-color: var(--faq-bg);
   padding: 5%;
   border-radius: 15px;
+  border: 1px solid #ddd;
   box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
 }
 
@@ -627,6 +902,9 @@ FAQ Section Styling
   text-align: center;
   transform-style: preserve-3d;
   transition: transform 0.6s;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+
 }
 
 /* Flip effect on hover */
@@ -651,10 +929,12 @@ FAQ Section Styling
 
 /* Front face - Title only */
 .flip-front {
-  background-color: #0B2C48; /* Dark theme color */
-  color: white;
+  background: var(--card-front-bg, #0B2C48); /* Uses theme variable, falls back to original */
+  color: var(--card-front-text, white);
   font-size: 18px;
   font-weight: bold;
+  transition: background 0.3s, color 0.3s;
+
 }
 
 /* Back face - Content */
@@ -700,7 +980,14 @@ Report Page Styling
   padding: 5%;
   border-radius: 15px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  border: 1px solid #ddd;
+
 }
+
+#screenshotImage{
+  border: 2px solid #ddd;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);}
 
 .designRow, .accessiblityRow {
   font-family:"Lexend", sans-serif;
@@ -748,8 +1035,12 @@ User Dashboard Styling
   font-size: 30px;
 }
 
+.my-dashboard-text {
+  color: var(--my-dashboard-text-color);
+}
+
 .userDashbtn{
-  background: #0B2C48; 
+  background: var(--bg-btn-global);
   color: white;
   border: rounded;
   padding: 12px 20px;
@@ -808,4 +1099,65 @@ User Dashboard Styling
 
 #designIssuesOverlay.hidden {
     display: none;
+}
+
+
+/*
+==================================================
+Scroll back to top Styling
+==================================================
+*/
+
+#scrollTopBtn {
+  background-color: var(--scroll-top-bg);
+  color: var(--scroll-top-text);
+  border: 1px solid #ddd;
+  color: var(--scroll-top-text);
+}
+
+/*
+==================================================
+Login Page Styling
+==================================================
+*/
+
+.input-field-text{
+  color: var(--input-field-text-color);
+}
+
+/*
+==================================================
+Feedback Page Styling
+==================================================
+*/
+
+.characters-used-text{
+  color: var(--max-characters-used-text-color);
+}
+
+/*
+==================================================
+Global styling
+==================================================
+*/
+
+.btn-global {
+  background-color: var(--bg-btn-global);
+  border: 1px solid #ddd;
+  color: var(--color-text-btn-global);
+}
+
+/*
+==================================================
+Save Report in Results Page Styling
+==================================================
+*/
+
+.save-report-content{
+  background-color: var(--report-bg);
+  color: var(--report-text);
+  padding: 5%;
+  border-radius: 15px;
+  border: 1px solid #ddd;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }

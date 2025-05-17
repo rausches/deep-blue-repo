@@ -8,7 +8,7 @@
 <section class="main full-screen">
     <div class="container scanContainer d-flex justify-content-center align-items-center min-vh-100">
         <div class="col-md-5 text-center">
-            <img src="~/images/uxCheckmateLogo.png" alt="UxCheckmate Logo" class="img-fluid mb-4" style="max-height: 100px;" />
+            <img src="~/images/login_chess.png" alt="Checkmate move" class="img-fluid mb-4 theme-chess-piece" style="max-height: 100px;" />
 
             <h1 class="mb-3">Welcome Back</h1>
             <p class="mb-4">Log in to your UxCheckmate account.</p>
@@ -18,17 +18,17 @@
 
                 <div class="form-floating mb-3">
                     <input asp-for="Input.Email" class="form-control" autocomplete="username" placeholder="name@example.com" />
-                    <label asp-for="Input.Email">Email</label>
+                    <label asp-for="Input.Email" class="input-field-text">Email</label>
                     <span asp-validation-for="Input.Email" class="text-danger"></span>
                 </div>
 
                 <div class="form-floating mb-3">
                     <input asp-for="Input.Password" class="form-control" autocomplete="current-password" placeholder="password" />
-                    <label asp-for="Input.Password">Password</label>
+                    <label asp-for="Input.Password" class="input-field-text">Password</label>
                     <span asp-validation-for="Input.Password" class="text-danger"></span>
                 </div>
 
-                <button id="login-submit" type="submit" class="btn btn-dark">Log in</button>
+                <button id="login-submit" type="submit" class="btn btn-dark btn-global">Log in</button>
             </form>
         </div>
     </div>
