@@ -163,7 +163,7 @@
                         // Update the Design and Accessibility issues sections if data is received
                         if (data.designHtml || data.accessibilityHtml) {
                             document.getElementById('designIssuesContainer').innerHTML = data.designHtml;
-                            document.getElementById('accessibilityIssuesContainer').innerHTML = data.accessibilityHtml;
+                           // document.getElementById('accessibilityIssuesContainer').innerHTML = data.accessibilityHtml;
 
                             // Update the total issues counter
                             const totalIssues = document.querySelectorAll('.issue-card').length;
