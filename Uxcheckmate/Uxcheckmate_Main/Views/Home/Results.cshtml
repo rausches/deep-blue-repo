@@ -48,7 +48,7 @@
         <div class="col-md-8"></div>
         <div class="col-md-4 sortSelectCol">
             @* Dropdown for selecting sort order of the issues *@
-            <select id="sortSelect" class="form-select mb-4" data-report-id="@Model.Id">
+            <select id="sortSelect" class="form-select mb-4" data-report-id="@Model.Id" disabled>
                 <option value="category" selected="@(ViewBag.CurrentSort == "category")">Category</option>
                 <option value="severity-high-low" selected="@(ViewBag.CurrentSort == "severity-high-low")">Severity (High to Low)</option>
                 <option value="severity-low-high" selected="@(ViewBag.CurrentSort == "severity-low-high")">Severity (Low to High)</option>
@@ -202,7 +202,7 @@
                                 const modal = new bootstrap.Modal(modalElement);
                                 modal.show();
                             }
-
+                            document.getElementById("sortSelect").disabled = false;
                             // Stop polling since the report is done
                             clearInterval(pollingIntervalId);
                             console.log("Polling stopped — report analysis completed!");
