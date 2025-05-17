@@ -1,16 +1,12 @@
-document.addEventListener("DOMContentLoaded", function () {
-    const themeSelectors = document.querySelectorAll("#theme-selector, #theme-selector-lg"); // Select both dropdowns
-    const body = document.documentElement; // Use documentElement for immediate styling
+const themeSelectors = document.querySelectorAll('[data-theme]');
 
-    // Load the saved theme
-    loadTheme();
-
-    themeSelectors.forEach(selector => {
-        selector.value = localStorage.getItem("theme") || "light";
-
-        selector.addEventListener("change", function () {
-            setTheme(this.value);
-        });
+themeSelectors.forEach(btn => {
+    btn.addEventListener('click', () => {
+        const theme = btn.getAttribute('data-theme'); // Get the theme from the button's data attribute
+        // document.documentElement.className = ""; // Clear existing classes
+        // document.documentElement.classList.add(`theme-${theme}`); // Add the new theme class
+        setTheme(theme); // Call the setTheme function to apply the new theme
+        // localStorage.setItem("theme", theme); // Save the selected theme to localStorage
     });
 });
 
@@ -22,17 +18,23 @@ function setTheme(theme) {
     const body = document.documentElement; // Use documentElement for immediate styling
 
     // Remove existing theme classes
-    body.classList.remove("light-theme", "dark-theme");
+    body.classList.remove(
+        "light-theme",
+        "dark-theme",
+        "royal-theme",
+        "neon-theme",
+        "pastel-theme",
+        "contrast-theme");
 
     // Apply new theme
-    body.classList.add(theme + "-theme");
+    body.classList.add(`${theme}-theme`);
 
     // Save theme selection
     saveTheme(theme);
 
     // Sync desktop and mobile menus
     document.querySelectorAll("#theme-selector, #theme-selector-lg").forEach(selector => {
-        selector.value = theme;
+        if (selector) selector.value = theme;
     });
 }
 
