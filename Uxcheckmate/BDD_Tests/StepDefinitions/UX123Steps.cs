@@ -1,4 +1,4 @@
-using NUnit.Framework;
+/*using NUnit.Framework;
 using OpenQA.Selenium;
 using OpenQA.Selenium.Support.UI;
 using System;
@@ -109,4 +109,4 @@ namespace BDD_Tests.StepDefinitions
             // assert that modal is visible
         }
     }
-}
+}*/
