@@ -6,7 +6,7 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - Uxcheckmate_Main</title>
+    <title>@ViewData["Title"] - UxCheckmate</title>
 
     <script>
         (function () {
@@ -28,9 +28,11 @@
             <div class="container-fluid" >
                 <a class="navbar-brand me-auto" asp-area="" asp-controller="Home" asp-action="Index">UxCheckmate</a>
 
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+                <button class="navbar-toggler custom-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
                     aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
+                        <span class="bar"></span>
+                        <span class="bar"></span>
+                        <span class="bar"></span>
                 </button>
 
                 <div class="collapse navbar-collapse justify-content-center" id="navbarNav">
@@ -77,27 +79,83 @@
                         
                         <!-- Theme Switcher Inside Navbar Menu: Mobile -->
                         <li class="nav-item d-lg-none" id="themeSwitcherContainer">
-                            <div class="theme-switcher">
-                                <select id="theme-selector" class="form-select" title="Theme Selector">
-                                    <option value="light">Theme: Light Mode</option>
-                                    <option value="dark">Theme: Dark Mode</option>
-                                </select>
+                            <div class="theme-switcher-mobile">
+                                <img src="~/images/pawn_light_mode.PNG"
+                                    class="theme-chess-piece"
+                                    data-theme="light"
+                                    title="♙ Pawn – Light Mode"
+                                    style="cursor:pointer; width:25px; height:25px;" />
+                                <img src="~/images/king_dark_mode.PNG"
+                                    class="theme-chess-piece"
+                                    data-theme="dark"
+                                    title="♔ King – Dark Mode"
+                                    style="cursor:pointer; width:25px; height:25px;" />
+                                <img src="~/images/royal_queen_mode.PNG"
+                                    class="theme-chess-piece"
+                                    data-theme="royal"
+                                    title="♕ Queen – Royal Purple"
+                                    style="cursor:pointer; width:25px; height:25px;" />
+                                <img src="~/images/knight_neon_midnight.PNG"
+                                    class="theme-chess-piece"
+                                    data-theme="neon"
+                                    title="♘ Knight – Neon Midnight"
+                                    style="cursor:pointer; width:25px; height:25px;" />
+                                <img src="~/images/bishop_pastel.PNG"
+                                    class="theme-chess-piece"
+                                    data-theme="pastel"
+                                    title="♗ Bishop – Serene Pastels"
+                                    style="cursor:pointer; width:25px; height:25px;" />
+                                <img src="~/images/rook_high_contrast.PNG"
+                                    class="theme-chess-piece"
+                                    data-theme="contrast"
+                                    title="♖ Rook – High Contrast"
+                                    style="cursor:pointer; width:25px; height:25px;" />
                             </div>
                         </li>
                     </ul>
                 </div>
 
                 <!-- Theme Switcher: Desktop -->
-                <div class="theme-switcher ms-auto d-none d-lg-block">
-                    <select id="theme-selector-lg" class="form-select" title="Large Theme Selector">
-                        <option value="light">Theme: Light Mode</option>
-                        <option value="dark">Theme: Dark Mode</option>
-                    </select>
+                <div class="theme-switcher-desktop ms-auto d-none d-lg-flex gap-2" role="group" aria-label="Theme Selector">
+                    <img src="~/images/pawn_light_mode.PNG"
+                        class="theme-chess-piece"
+                        data-theme="light"
+                        title="♙ Pawn – Light Mode"
+                        style="cursor:pointer; width:32px; height:32px;" />
+
+                    <img src="~/images/king_dark_mode.PNG"
+                        class="theme-chess-piece"
+                        data-theme="dark"
+                        title="♔ King – Dark Mode"
+                        style="cursor:pointer; width:32px; height:32px;" />
+                    
+                    <img src="~/images/royal_queen_mode.PNG"
+                        class="theme-chess-piece"
+                        data-theme="royal"
+                        title="♕ Queen – Royal Purple"
+                        style="cursor:pointer; width:32px; height:32px;" />
+
+                    <img src="~/images/knight_neon_midnight.PNG"
+                        class="theme-chess-piece"
+                        data-theme="neon"
+                        title="♘ Knight – Neon Midnight"
+                        style="cursor:pointer; width:32px; height:32px;" />
+
+                    <img src="~/images/bishop_pastel.PNG"
+                        class="theme-chess-piece"
+                        data-theme="pastel"
+                        title="♗ Bishop – Serene Pastels"
+                        style="cursor:pointer; width:32px; height:32px;" />
+
+                    <img src="~/images/rook_high_contrast.PNG"
+                        class="theme-chess-piece"
+                        data-theme="contrast"
+                        title="♖ Rook – High Contrast"
+                        style="cursor:pointer; width:32px; height:32px;" />
                 </div>
             </div>
         </nav>
         
-
         <div class="container-fluid flex-grow-1"> <!-- Expands to push footer down -->
             <main role="main" class="pb-3">
                 @RenderBody()
