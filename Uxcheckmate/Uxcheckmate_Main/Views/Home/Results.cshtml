@@ -22,7 +22,7 @@
         <p class="mb-0"><strong>Tip:</strong> You can click any issue to expand and learn more.</p>
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-primary" data-bs-dismiss="modal" id="letsgo">Let’s Go</button>
+        <button type="button" class="btn btn-primary btn-global " data-bs-dismiss="modal" id="letsgo">Let’s Go</button>
       </div>
     </div>
   </div>
@@ -113,13 +113,13 @@
 
 @if (!userIsAuthenticated)
 {
-    <div class="alert alert-warning mt-4">
+    <div class="alert alert-warning mt-4 save-report-content">
         <p><strong>Want to save this report?</strong> Create an account or log in now — we'll automatically link this report to your profile.</p>
 
         <form method="post" asp-action="StoreReportIdBeforeAuth" asp-controller="Home">
             <input type="hidden" name="reportId" value="@Model.Id" />
-            <button type="submit" name="authType" value="register" class="btn btn-outline-primary me-2">Create Account</button>
-            <button type="submit" name="authType" value="login" class="btn btn-outline-secondary">Log In</button>
+            <button type="submit" name="authType" value="register" class="btn btn-outline-primary me-2 btn-global">Create Account</button>
+            <button type="submit" name="authType" value="login" class="btn btn-outline-secondary btn-global">Log In</button>
         </form>
     </div>
 }
@@ -131,7 +131,7 @@
 *@
 
 
-    <a asp-action="DownloadReport" asp-route-id="@Model.Id" class="btn btn-primary">
+    <a asp-action="DownloadReport" asp-route-id="@Model.Id" class="btn btn-primary btn-global ">
         Download PDF Report
     </a>
 

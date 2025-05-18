@@ -11,9 +11,9 @@
             <div class="form-group">
                 <label asp-for="Message"></label>
                 <textarea asp-for="Message" class="form-control" rows="4" maxlength="255" oninput="updateCharCount()" aria-describedby="charCount"></textarea>
-                <small id="charCount" class="form-text text-muted">0 / 255 characters used</small>
+                <small id="charCount" class="form-text text-muted characters-used-text ">0 / 255 characters used</small>
             </div>
-            <button type="submit" id="submitFeedback" class="btn btn-primary">Submit</button>
+            <button type="submit" id="submitFeedback" class="btn btn-primary btn-global">Submit</button>
         </form>
         @if (!ViewData.ModelState.IsValid){
             <div class="alert alert-danger">
