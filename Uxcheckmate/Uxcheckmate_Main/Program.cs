@@ -112,11 +112,10 @@ public class Program
         builder.Services.AddSingleton<IBackgroundTaskQueue, BackgroundTaskQueue>();
         builder.Services.AddHostedService<QueueService>();
         builder.Services.AddHostedService<ReportCleanupService>();
-        
+
         builder.Services.Configure<JiraSettings>(builder.Configuration.GetSection("Jira"));
         builder.Services.AddHttpClient<IJiraService, JiraService>();
-        builder.Services.AddHttpClient<PlaywrightApiService>();
-
+        builder.Services.AddHttpClient<IPlaywrightApiService, PlaywrightApiService>();
 
         var app = builder.Build();
 

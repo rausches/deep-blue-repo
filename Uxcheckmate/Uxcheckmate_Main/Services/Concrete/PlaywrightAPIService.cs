@@ -7,7 +7,7 @@ using Uxcheckmate_Main.Models;
 
 namespace Uxcheckmate_Main.Services
 {
-    public class PlaywrightApiService
+    public class PlaywrightApiService : IPlaywrightApiService
     {
         private readonly HttpClient _httpClient;
         private readonly string _playwrightServiceUrl;
@@ -51,6 +51,8 @@ namespace Uxcheckmate_Main.Services
         public string? Html { get; set; }
         public string? TextContent { get; set; }
 
+        public List<string> Fonts { get; set; } = new();
+
         public AxeResults? AxeResults { get; set; }
 
         public bool HasFavicon { get; set; }
@@ -83,6 +85,7 @@ namespace Uxcheckmate_Main.Services
     {
         public string? Id { get; set; }
         public string? Impact { get; set; }
+        public string? Help { get; set; }
         public string? Description { get; set; }
         public List<AxeNode>? Nodes { get; set; }
     }

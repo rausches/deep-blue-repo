@@ -19,7 +19,6 @@ namespace Service_Tests
     {
         private Mock<UxCheckmateDbContext> _mockDbContext; 
         private Mock<ILogger<AxeCoreService>> _mockLogger;  
-        private Mock<IPlaywrightService> _mockPlaywrightService;
         private AxeCoreService _service;
 
         [SetUp]
@@ -27,13 +26,9 @@ namespace Service_Tests
         {
             _mockDbContext = new Mock<UxCheckmateDbContext>();
             _mockLogger = new Mock<ILogger<AxeCoreService>>();
-            _mockPlaywrightService = new Mock<IPlaywrightService>();
+        IPlaywrightApiService _playwrightApiService = new MockPlaywrightApiService();
+_service = new AxeCoreService(_mockLogger.Object, _mockDbContext.Object, _playwrightApiService);
 
-            _service = new AxeCoreService(
-                _mockLogger.Object,
-                _mockDbContext.Object,
-                _mockPlaywrightService.Object
-            );
         }
 
         [Test]
@@ -47,11 +42,6 @@ namespace Service_Tests
             // These mocks ensure the test doesn't spin up a real browser.
             var mockContext = new Mock<IBrowserContext>();
             var mockPage = new Mock<IPage>();
-
-            // The IPlaywrightService's method GetBrowserContextAsync() should return our mockContext
-            _mockPlaywrightService
-                .Setup(s => s.GetBrowserContextAsync())
-                .ReturnsAsync(mockContext.Object);
 
             // Return our mockPage when NewPageAsync() is called
             mockContext
@@ -125,7 +115,7 @@ namespace Service_Tests
             _mockDbContext.Setup(db => db.AccessibilityIssues).Returns(mockIssuesDbSet.Object);
             
             // Define a violation object for "color-contrast" with an severity of "serious"
-            var violation = new AxeViolation
+            var violation = new Uxcheckmate_Main.Models.AxeViolation
             {
                 Id = "color-contrast",
                 Impact = "serious"
@@ -190,11 +180,6 @@ namespace Service_Tests
             // Mock IBrowserContext + IPage,
             var mockContext = new Mock<IBrowserContext>();
             var mockPage = new Mock<IPage>();
-
-            // IPlaywrightService => returns mockContext
-            _mockPlaywrightService
-                .Setup(s => s.GetBrowserContextAsync())
-                .ReturnsAsync(mockContext.Object);
 
             // The context => returns our mockPage
             mockContext

@@ -32,48 +32,20 @@ jobs:
       - name: Build
         run: dotnet build ./Uxcheckmate/Uxcheckmate.sln --configuration Release --no-restore
 
-      - name: Install missing Linux dependencies for Playwright
-        run: |
-          echo "🔧 Installing Playwright Linux dependencies..."
-          npx playwright install-deps
-        env:
-          DEBUG: pw:*
+      - name: Run Tests
+        run: dotnet test ./Uxcheckmate/Uxcheckmate_Tests/Uxcheckmate_Tests.csproj --configuration Release
 
-      - name: Install Playwright v1.50.0
-        run: |
-          echo "📦 Installing Playwright v1.50.0..."
-          npm install playwright@1.50.0
-          npx playwright install
-        env:
-          DEBUG: pw:*
+      - name: Clear previous publish output
+        run: rm -rf ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}
 
-      - name: Show browser location
-        run: |
-          echo "Playright browser location: "
-          find ~/.cache/ms-playwright -name "chrome*" | head -n 5
-          
-      - name: clear previous build causing loops
-        run: rm -rf ${{ env.AZURE_WEBAPP_PACKAGE_PATH }} 
-          
-      - name: Publish
+      - name: Publish App
         run: dotnet publish ./Uxcheckmate/Uxcheckmate_Main/Uxcheckmate_Main.csproj --configuration Release --output '${{ env.AZURE_WEBAPP_PACKAGE_PATH }}'
 
-      - name: Create test file
+      - name: Create deployment marker file
         run: |
-          echo "Deployment test file. Created at $(date)" > ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}/deployment-test.txt
+          echo "Deployment built on $(date)" > ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}/deployment-test.txt
 
-      - name: Copy Playwright Chromium Browsers to simpler path 
-        run: |
-          echo "📁 Copying Playwright Chromium browsers to simplified path..."
-          mkdir -p '${{ env.AZURE_WEBAPP_PACKAGE_PATH }}/playwright'
-          cp -r ~/.cache/ms-playwright/chromium-* '${{ env.AZURE_WEBAPP_PACKAGE_PATH }}/playwright/'
-
-      - name: Check  browser binaries
-        run: |
-          echo "🔍 Checking if Playwright browsers was copied.."
-          ls -la ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}/playwright/
-      
-      - name: Deployment
+      - name: Deploy to Azure Web App
         uses: azure/webapps-deploy@v2
         with:
           app-name: ${{ env.AZURE_WEBAPP_NAME }}

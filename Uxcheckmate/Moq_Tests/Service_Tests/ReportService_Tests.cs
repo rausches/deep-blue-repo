@@ -36,8 +36,8 @@ namespace Service_Tests
         private ScrapedContent _mockScrapedContent;
         private Mock<IServiceScopeFactory> _scopeFactoryMock;
         private Mock<IMemoryCache> _cacheMock;
+        private IPlaywrightApiService _mockPlaywrightApiService;
 
- // await _reportService.RunCustomAnalysisAsync("url", "Color Scheme", "description", new Dictionary<string, object>());
         [SetUp]
         public void Setup()
         {
@@ -83,9 +83,7 @@ namespace Service_Tests
             _symmetryServiceMock = new Mock<ISymmetryService>();
             _scopeFactoryMock = new Mock<IServiceScopeFactory>();
             _cacheMock = new Mock<IMemoryCache>();
-
-
-
+            _mockPlaywrightApiService = new MockPlaywrightApiService();
 
             // Setup default playwright scraper response
             _playwrightScraperServiceMock
@@ -137,7 +135,8 @@ namespace Service_Tests
                 _zPatternServiceMock.Object,
                 _symmetryServiceMock.Object,
                 _scopeFactoryMock.Object,
-                _cacheMock.Object
+                _cacheMock.Object,
+                _mockPlaywrightApiService
             );
         }
 
@@ -162,7 +161,7 @@ namespace Service_Tests
             Assert.That(result, Is.Empty);
         }
 
-     /*   [Test]
+        [Test]
         public async Task GenerateReportAsync_Returns_Issue_If_Issue_Found()
         {
             // Arrange
@@ -184,7 +183,7 @@ namespace Service_Tests
             Assert.That(result.Count, Is.EqualTo(1));
             Assert.That(result.First().Message, Is.EqualTo("Issue Found"));
         }
-*/
+
         [Test]
         public async Task GenerateReportAsync_Skips_Category_With_Empty_ScanMethod()
         {

@@ -10,12 +10,12 @@ namespace Uxcheckmate_Main.Services
     {
         private readonly ILogger<AxeCoreService> _logger;
         private readonly UxCheckmateDbContext _dbContext;
-        private readonly PlaywrightApiService _playwrightApiService;
+        private readonly IPlaywrightApiService _playwrightApiService;
 
         public AxeCoreService(
             ILogger<AxeCoreService> logger,
             UxCheckmateDbContext dbContext,
-            PlaywrightApiService playwrightApiService)
+            IPlaywrightApiService playwrightApiService)
         {
             _logger = logger;
             _dbContext = dbContext;

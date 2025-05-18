@@ -35,11 +35,11 @@ namespace Uxcheckmate_Main.Services
         private readonly ISymmetryService _symmetryService;
         private readonly IServiceScopeFactory _scopeFactory;
         private readonly IMemoryCache _cache;
-        private readonly PlaywrightApiService _playwrightApiService;
+        private readonly IPlaywrightApiService _playwrightApiService;
 
         public ReportService(HttpClient httpClient, ILogger<ReportService> logger, UxCheckmateDbContext context, IOpenAiService openAiService, IBrokenLinksService brokenLinksService, IHeadingHierarchyService headingHierarchyService, IColorSchemeService colorSchemeService, IMobileResponsivenessService mobileResponsivenessService, IScreenshotService screenshotService, IPlaywrightScraperService playwrightScraperService, IPopUpsService popUpsService, IAnimationService animationService, IAudioService audioService, IScrollService scrollService, IFPatternService fPatternService, IZPatternService zPatternService, ISymmetryService symmetryService, IServiceScopeFactory scopeFactory,
     IMemoryCache cache,
-            PlaywrightApiService playwrightApiService)
+            IPlaywrightApiService playwrightApiService)
         {
             _httpClient = httpClient;
             _dbContext = context;

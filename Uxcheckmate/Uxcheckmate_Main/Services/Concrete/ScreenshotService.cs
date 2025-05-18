@@ -12,14 +12,12 @@ namespace Uxcheckmate_Main.Services
         private readonly ILogger<ScreenshotService> _logger;
 
         // Calling the PlaywrightService to get the browser context
-        private readonly IPlaywrightService _playwrightService;
-        private readonly PlaywrightApiService _playwrightApiService;
+        private readonly IPlaywrightApiService _playwrightApiService;
 
-        public ScreenshotService(ILogger<ScreenshotService> logger, IPlaywrightService playwrightService,
-            PlaywrightApiService playwrightApiService)
+        public ScreenshotService(ILogger<ScreenshotService> logger,
+            IPlaywrightApiService playwrightApiService)
         {
             _logger = logger;
-            _playwrightService = playwrightService;
             _playwrightApiService = playwrightApiService;
         }
 
