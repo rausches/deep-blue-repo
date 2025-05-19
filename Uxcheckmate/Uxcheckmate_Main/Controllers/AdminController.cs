@@ -52,7 +52,8 @@ public class AdminController : Controller
     public async Task<IActionResult> DeleteFeedback(int id)
     {
         var feedback = await _appContext.UserFeedbacks.FindAsync(id);
-        if (feedback != null){
+        if (feedback != null)
+        {
             _appContext.UserFeedbacks.Remove(feedback);
             await _appContext.SaveChangesAsync();
         }
@@ -78,6 +79,34 @@ public class AdminController : Controller
             _appContext.Reports.Remove(report);
             await _appContext.SaveChangesAsync();
         }
+        return RedirectToAction(nameof(Index));
+    }
+    
+    [HttpPost]
+    [Authorize(Roles = "Admin")]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> DeleteUser(string id)
+    {
+        var user = await _authContext.Users.FindAsync(id);
+        if (user == null)
+        {
+            return NotFound();
+        }
+
+        // Delete associated reports
+        var userReports = _appContext.Reports.Where(r => r.UserID == id);
+        _appContext.Reports.RemoveRange(userReports);
+
+        // Delete associated feedback (if needed)
+        var userFeedbacks = _appContext.UserFeedbacks.Where(f => f.UserID == id);
+        _appContext.UserFeedbacks.RemoveRange(userFeedbacks);
+
+        await _appContext.SaveChangesAsync();
+
+        // Remove user from identity
+        _authContext.Users.Remove(user);
+        await _authContext.SaveChangesAsync();
+
         return RedirectToAction(nameof(Index));
     }
 }
