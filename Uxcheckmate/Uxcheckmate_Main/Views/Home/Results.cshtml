@@ -38,6 +38,7 @@
             <h1 id="reportHeader">@Model.Url</h1>
             @* Display the total number of issues found *@
             <p id="totalIssues">Total Issues Found: @(@Model.DesignIssues.Count() + @Model.AccessibilityIssues.Count()) </p>
+            <button class="btn btn-outline-info mb-3" id="viewSummaryBtn" hidden>View Summary</button>
         </div>
     </div>
 
@@ -48,7 +49,7 @@
         <div class="col-md-8"></div>
         <div class="col-md-4 sortSelectCol">
             @* Dropdown for selecting sort order of the issues *@
-            <select id="sortSelect" class="form-select mb-4" data-report-id="@Model.Id">
+            <select id="sortSelect" class="form-select mb-4" data-report-id="@Model.Id" disabled>
                 <option value="category" selected="@(ViewBag.CurrentSort == "category")">Category</option>
                 <option value="severity-high-low" selected="@(ViewBag.CurrentSort == "severity-high-low")">Severity (High to Low)</option>
                 <option value="severity-low-high" selected="@(ViewBag.CurrentSort == "severity-low-high")">Severity (Low to High)</option>
@@ -151,7 +152,8 @@
             let currentSortOrder = sortSelect.value; // Initial sort value
 
             let pollingIntervalId; // Will store the setInterval ID for later clearing
-
+            let hasShownModal = false;
+            
             // Function to poll the server for updated report issues
             async function fetchUpdatedIssues() {
                 try {
@@ -163,7 +165,7 @@
                         // Update the Design and Accessibility issues sections if data is received
                         if (data.designHtml || data.accessibilityHtml) {
                             document.getElementById('designIssuesContainer').innerHTML = data.designHtml;
-                            document.getElementById('accessibilityIssuesContainer').innerHTML = data.accessibilityHtml;
+                           // document.getElementById('accessibilityIssuesContainer').innerHTML = data.accessibilityHtml;
 
                             // Update the total issues counter
                             const totalIssues = document.querySelectorAll('.issue-card').length;
@@ -197,12 +199,21 @@
                             }
 
                             // Automatically pop open the summary modal once complete
-                            const modalElement = document.getElementById('onLoadModal');
-                            if (modalElement) {
-                                const modal = new bootstrap.Modal(modalElement);
-                                modal.show();
+                            if (!hasShownModal) {
+                                const modalElement = document.getElementById('onLoadModal');
+                                if (modalElement) {
+                                    const modal = new bootstrap.Modal(modalElement);
+                                    modal.show();
+                                    hasShownModal = true; // Set the flag so it doesn't show again
+                                }
                             }
+                            
+                            // enable sort
+                            document.getElementById("sortSelect").disabled = false;
 
+                            // show summary button
+                            document.getElementById("viewSummaryBtn").hidden = false;
+                            
                             // Stop polling since the report is done
                             clearInterval(pollingIntervalId);
                             console.log("Polling stopped — report analysis completed!");
@@ -223,6 +234,13 @@
             sortSelect.addEventListener('change', () => {
                 currentSortOrder = sortSelect.value;
                 fetchUpdatedIssues();
+            });
+            document.getElementById("viewSummaryBtn").addEventListener("click", function () {
+                const modalElement = document.getElementById('onLoadModal');
+                if (modalElement) {
+                    const modal = new bootstrap.Modal(modalElement);
+                    modal.show();
+                }
             });
         });
     </script>
