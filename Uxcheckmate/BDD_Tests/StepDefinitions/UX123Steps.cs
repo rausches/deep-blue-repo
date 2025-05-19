@@ -1,13 +1,14 @@
-/*using NUnit.Framework;
-using OpenQA.Selenium;
-using OpenQA.Selenium.Support.UI;
 using System;
 using System.Collections.Generic;
-using System.Net.Http;
 using System.Threading.Tasks;
-using Reqnroll;
 using Microsoft.Extensions.Logging;
+using NUnit.Framework;
+using OpenQA.Selenium;
+using OpenQA.Selenium.Support.UI;
+using Reqnroll;
+using Uxcheckmate_Main.Models;
 using Uxcheckmate_Main.Services;
+using SeleniumExtras.WaitHelpers;
 
 namespace BDD_Tests.StepDefinitions
 {
@@ -34,22 +35,36 @@ namespace BDD_Tests.StepDefinitions
             Assert.That(loadingOverlay.Displayed, Is.True, "Overlay should be visible");
         }
 
-        [Then("they should be able to open the accessibility issues")]
+        [Then("they should be able to view the accessibility issues")]
         public void ThenTheyShouldBeAbleToViewTheAccessibilityIssues()
         {
-            var wait = new WebDriverWait(_driver, TimeSpan.FromSeconds(300));
+            var wait = new WebDriverWait(_driver, TimeSpan.FromSeconds(100));
+            var js = (IJavaScriptExecutor)_driver;
 
-            // Find accessibility Issues
-            var accessibilityIssues = wait.Until(driver => driver.FindElement(By.Id("Modal")));
+            string targetId = "collapse-accessibility-other"; // or whatever ID you're testing
+            var toggleButton = _driver.FindElement(By.CssSelector($"button[data-bs-target='#{targetId}']"));
 
-            // Click accessibility issues
-            accessibilityIssues.Click();
+            // Scroll into view just in case
+            js.ExecuteScript("arguments[0].scrollIntoView({block: 'center'});", toggleButton);
 
-            // Find accessibility text
-            var accessibilityText = wait.Until(SeleniumExtras.WaitHelpers.ExpectedConditions.ElementIsVisible(By.Id("designIssuesOverlay")));
+            // Use Bootstrap collapse API via JavaScript to open it
+            js.ExecuteScript(@"
+                var target = document.getElementById(arguments[0]);
+                var bsCollapse = bootstrap.Collapse.getOrCreateInstance(target);
+                bsCollapse.show();
+            ", targetId);
 
-            // Assert that accessibility text is display
-            Assert.That(AccessibilityText.Displayed, Is.True, "Overlay should be visible");
+            // Wait for the panel to be open
+            var openPanel = wait.Until(driver =>
+            {
+                var panel = driver.FindElement(By.Id(targetId));
+                var classAttr = panel.GetAttribute("class");
+                return classAttr.Contains("show") ? panel : null;
+            });
+
+            // Confirm issueDetails inside the open panel
+            var issueDetail = openPanel.FindElement(By.ClassName("issueDetails"));
+            Assert.That(issueDetail.Displayed, Is.True, "Expected issue details to be visible inside the open accordion.");
         }
 
         [Then("they will not be able to sort")]
@@ -60,53 +75,40 @@ namespace BDD_Tests.StepDefinitions
             // Find sort element
             var sortSelect = wait.Until(driver => driver.FindElement(By.Id("sortSelect")));
 
-            // Assert that select is inactive
-            Assert.That(sortSelect);
-
+            Assert.That(sortSelect.Enabled, Is.False, "Select element should be disabled.");
         }
 
-        [Given("they sort by severity")]
-        public void GivenTheySortBySeverity()
+        [Then("they sort by severity")]
+        public void ThenTheySortBySeverity()
         {
             var wait = new WebDriverWait(_driver, TimeSpan.FromSeconds(300));
 
-            // Find sort element
-            var sortSelect = wait.Until(driver => driver.FindElement(By.Id("sortSelect")));
-
-            // Click sort element to open
-            sortSelect.Click();
-
-            // Find sort method 
-            var severitySort = wait.Until(driver => driver.FindElement(By.Id("sortSelect")));
-
-            // Click that method
-            severitySort.Click();
-        }
-
-        [Then("they will be able to sort")]
-        public void ThenTheyWillBeAbleToSort()
-        {
-            // wait
-            // find sort element
-            // assert that it is active
+            // Open dropdown options and select sort
+            var sortSelect = new SelectElement(_driver.FindElement(By.Id("sortSelect")));
+            sortSelect.SelectByText("Severity (High to Low)");
         }
 
         [Then("they should not see the modal pop up again")]
         public void GivenTheyShouldNotSeeTheModalPopUpAgain()
         {
-            // wait
+            var wait = new WebDriverWait(_driver, TimeSpan.FromSeconds(300));
             // find modal
+            var summary = wait.Until(driver => driver.FindElement(By.Id("onLoadModal")));
+
             // assert that modal is not visible
+            Assert.That(summary.Displayed, Is.False, "Select element should be disabled.");
         }
 
-        [Given("they click the summary button")]
-        public void GivenTheyClickTheSummaryButton()
+        [Then("the user clicks the summary button")]
+        public void ThenTheUserClicksTheSummaryButton()
         {
-            // wait 
+            var wait = new WebDriverWait(_driver, TimeSpan.FromSeconds(300));
+
             // find button
+            var summaryBtn = wait.Until(driver => driver.FindElement(By.Id("viewSummaryBtn")));
+            
             // click up button
-            // find modal
-            // assert that modal is visible
+            summaryBtn.Click();
         }
     }
-}*/
+}
