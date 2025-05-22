@@ -1,6 +1,6 @@
 using System.Text;
-using Microsoft.Playwright; 
-using Uxcheckmate_Main.Models; 
+using Microsoft.Playwright;
+using Uxcheckmate_Main.Models;
 
 namespace Uxcheckmate_Main.Services
 {
@@ -12,9 +12,8 @@ namespace Uxcheckmate_Main.Services
 
         public async Task<string> RunMobileAnalysisAsync(string url, Dictionary<string, object> mergedData)
         {
-            // StringBuilder for accumulating formatted results
+            // StringBuilder for accumulating issues only
             var sb = new StringBuilder();
-            sb.AppendLine("Mobile Responsiveness Report:\n");
 
             // Attempt to extract the relevant values from the merged data
             if (mergedData.TryGetValue("viewportLabel", out var labelObj) &&
@@ -28,30 +27,17 @@ namespace Uxcheckmate_Main.Services
                 if (double.TryParse(viewportWidthObj?.ToString(), out var viewportWidth) &&
                     double.TryParse(scrollWidthObj?.ToString(), out var scrollWidth))
                 {
-                    // Check if horizontal scrolling would occur
+                    // Only return a report if horizontal scroll is detected
                     if (scrollWidth > viewportWidth)
                     {
-                        sb.AppendLine($"{label}: Horizontal scroll detected at (ScrollWidth: {scrollWidth}, ViewportWidth: {viewportWidth})");
-                    }
-                    else
-                    {
-                        sb.AppendLine($"{label}: Layout fits screen (ViewportWidth: {viewportWidth})");
+                        sb.AppendLine("Mobile Responsiveness Report:\n");
+                        sb.AppendLine($"{label}: Horizontal scroll detected (ScrollWidth: {scrollWidth}, ViewportWidth: {viewportWidth})");
                     }
                 }
-                else
-                {
-                    // Handle case where numeric parsing failed
-                    sb.AppendLine("Could not parse scroll/viewport width values.");
-                }
-            }
-            else
-            {
-                // Handle missing required fields from mergedData
-                sb.AppendLine("Required data for responsiveness analysis not found.");
             }
 
-            // Return the report as a string
-            return await Task.FromResult(sb.ToString());
+            // Return the report string if there were issues, otherwise return an empty string
+            return await Task.FromResult(sb.Length > 0 ? sb.ToString() : string.Empty);
         }
     }
 }
