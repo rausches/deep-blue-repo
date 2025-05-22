@@ -140,7 +140,7 @@ else
             @* Accordion item per category *@
             <div class="accordion-item reportAccordion">
                 <h2 class="accordion-header">
-                    <button class="accordion-button collapsed" type="button"
+                    <button class="accordion-button collapsed @categoryGroup.Key.Replace(" ", "-").ToLower()" type="button"
                             data-bs-toggle="collapse" 
                             data-bs-target="#collapse-accessibility-@sanitizedId">
                         <strong>@categoryGroup.Key</strong>
@@ -155,7 +155,7 @@ else
                             @* Issue container with details and severity *@
                             <div class="issueContainer p-3 mb-3 border rounded issue-card">
                                 @* Main content row *@
-                                <div class="row">
+                                <div class="row issueDetails">
                                     <div class="col-md-11">
                                         <p>@issue.Details</p>
                                     </div>

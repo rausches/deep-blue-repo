@@ -27,44 +27,49 @@
                 </tr>
             </thead>
             <tbody>
-                @foreach (var user in Model.OrderBy(u => u.User.Email))
-                {
-                    var collapseId = $"collapseReports{reportIndex++}";
-                    <tr>
-                        <td>@user.User.Email</td>
-                        <td>
-                            @if (user.Reports.Any())
-                            {
-                                <button class="btn btn-link" type="button" data-bs-toggle="collapse" data-bs-target="#@collapseId" aria-expanded="false" aria-controls="@collapseId">
-                                    View Reports (@user.Reports.Count)
-                                </button>
+            @foreach (var user in Model.OrderBy(u => u.User.Email))
+            {
+                var collapseId = $"collapseReports{reportIndex++}";
+                <tr>
+                    <td>@user.User.Email</td>
+                    <td>
+                        @if (user.Reports.Any())
+                        {
+                            <button class="btn btn-link" type="button" data-bs-toggle="collapse" data-bs-target="#@collapseId" aria-expanded="false" aria-controls="@collapseId">
+                                View Reports (@user.Reports.Count)
+                            </button>
 
-                                <div class="collapse mt-2" id="@collapseId">
-                                    <ul class="list-unstyled">
-                                        @foreach (var report in user.Reports.OrderBy(r => r.Date))
-                                        {
-                                            <li class="mb-2 border-bottom pb-2">
-                                                <div class="d-flex justify-content-between align-items-center">
-                                                    <div>
-                                                        <strong>URL:</strong> @report.Url<br />
-                                                        <strong>Date:</strong> @report.Date.ToShortDateString()
-                                                    </div>
-                                                    <form method="post" asp-action="DeleteReport" asp-controller="Admin" asp-route-id="@report.Id" onsubmit="return confirm('Are you sure you want to delete this report?');">
-                                                        <button type="submit" class="btn btn-sm btn-danger ms-2">Delete</button>
-                                                    </form>
+                            <div class="collapse mt-2" id="@collapseId">
+                                <ul class="list-unstyled">
+                                    @foreach (var report in user.Reports.OrderBy(r => r.Date))
+                                    {
+                                        <li class="mb-2 border-bottom pb-2">
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <div>
+                                                    <strong>URL:</strong> @report.Url<br />
+                                                    <strong>Date:</strong> @report.Date.ToShortDateString()
                                                 </div>
-                                            </li>
-                                        }
-                                    </ul>
-                                </div>
-                            }
-                            else
-                            {
-                                <em>No reports submitted</em>
-                            }
-                        </td>
-                    </tr>
-                }
+                                                <form method="post" asp-action="DeleteReport" asp-controller="Admin" asp-route-id="@report.Id" onsubmit="return confirm('Are you sure you want to delete this report?');">
+                                                    <button type="submit" class="btn btn-sm btn-danger ms-2">Delete</button>
+                                                </form>
+                                            </div>
+                                        </li>
+                                    }
+                                </ul>
+                            </div>
+                        }
+                        else
+                        {
+                            <em>No reports submitted</em>
+                        }
+
+                        <form method="post" asp-action="DeleteUser" asp-controller="Admin" asp-route-id="@user.User.Id" onsubmit="return confirm('Are you sure you want to delete this user and all associated data?');" class="mt-2">
+                            <button type="submit" class="btn btn-sm btn-danger">Delete User</button>
+                        </form>
+                    </td>
+                </tr>
+            }
+
             </tbody>
         </table>
     }

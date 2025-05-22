@@ -22,7 +22,7 @@
         <p class="mb-0"><strong>Tip:</strong> You can click any issue to expand and learn more.</p>
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-primary" data-bs-dismiss="modal" id="letsgo">Let’s Go</button>
+        <button type="button" class="btn btn-primary btn-global " data-bs-dismiss="modal" id="letsgo">Let’s Go</button>
       </div>
     </div>
   </div>
@@ -38,6 +38,7 @@
             <h1 id="reportHeader">@Model.Url</h1>
             @* Display the total number of issues found *@
             <p id="totalIssues">Total Issues Found: @(@Model.DesignIssues.Count() + @Model.AccessibilityIssues.Count()) </p>
+            <button class="btn btn-outline-info mb-3" id="viewSummaryBtn" hidden>View Summary</button>
         </div>
     </div>
 
@@ -48,7 +49,7 @@
         <div class="col-md-8"></div>
         <div class="col-md-4 sortSelectCol">
             @* Dropdown for selecting sort order of the issues *@
-            <select id="sortSelect" class="form-select mb-4" data-report-id="@Model.Id">
+            <select id="sortSelect" class="form-select mb-4" data-report-id="@Model.Id" disabled>
                 <option value="category" selected="@(ViewBag.CurrentSort == "category")">Category</option>
                 <option value="severity-high-low" selected="@(ViewBag.CurrentSort == "severity-high-low")">Severity (High to Low)</option>
                 <option value="severity-low-high" selected="@(ViewBag.CurrentSort == "severity-low-high")">Severity (Low to High)</option>
@@ -112,13 +113,13 @@
 
 @if (!userIsAuthenticated)
 {
-    <div class="alert alert-warning mt-4">
+    <div class="alert alert-warning mt-4 save-report-content">
         <p><strong>Want to save this report?</strong> Create an account or log in now — we'll automatically link this report to your profile.</p>
 
         <form method="post" asp-action="StoreReportIdBeforeAuth" asp-controller="Home">
             <input type="hidden" name="reportId" value="@Model.Id" />
-            <button type="submit" name="authType" value="register" class="btn btn-outline-primary me-2">Create Account</button>
-            <button type="submit" name="authType" value="login" class="btn btn-outline-secondary">Log In</button>
+            <button type="submit" name="authType" value="register" class="btn btn-outline-primary me-2 btn-global">Create Account</button>
+            <button type="submit" name="authType" value="login" class="btn btn-outline-secondary btn-global">Log In</button>
         </form>
     </div>
 }
@@ -130,7 +131,7 @@
 *@
 
 
-    <a asp-action="DownloadReport" asp-route-id="@Model.Id" class="btn btn-primary">
+    <a asp-action="DownloadReport" asp-route-id="@Model.Id" class="btn btn-primary btn-global ">
         Download PDF Report
     </a>
 
@@ -151,7 +152,8 @@
             let currentSortOrder = sortSelect.value; // Initial sort value
 
             let pollingIntervalId; // Will store the setInterval ID for later clearing
-
+            let hasShownModal = false;
+            
             // Function to poll the server for updated report issues
             async function fetchUpdatedIssues() {
                 try {
@@ -163,7 +165,7 @@
                         // Update the Design and Accessibility issues sections if data is received
                         if (data.designHtml || data.accessibilityHtml) {
                             document.getElementById('designIssuesContainer').innerHTML = data.designHtml;
-                            document.getElementById('accessibilityIssuesContainer').innerHTML = data.accessibilityHtml;
+                           // document.getElementById('accessibilityIssuesContainer').innerHTML = data.accessibilityHtml;
 
                             // Update the total issues counter
                             const totalIssues = document.querySelectorAll('.issue-card').length;
@@ -197,12 +199,21 @@
                             }
 
                             // Automatically pop open the summary modal once complete
-                            const modalElement = document.getElementById('onLoadModal');
-                            if (modalElement) {
-                                const modal = new bootstrap.Modal(modalElement);
-                                modal.show();
+                            if (!hasShownModal) {
+                                const modalElement = document.getElementById('onLoadModal');
+                                if (modalElement) {
+                                    const modal = new bootstrap.Modal(modalElement);
+                                    modal.show();
+                                    hasShownModal = true; // Set the flag so it doesn't show again
+                                }
                             }
+                            
+                            // enable sort
+                            document.getElementById("sortSelect").disabled = false;
 
+                            // show summary button
+                            document.getElementById("viewSummaryBtn").hidden = false;
+                            
                             // Stop polling since the report is done
                             clearInterval(pollingIntervalId);
                             console.log("Polling stopped — report analysis completed!");
@@ -223,6 +234,13 @@
             sortSelect.addEventListener('change', () => {
                 currentSortOrder = sortSelect.value;
                 fetchUpdatedIssues();
+            });
+            document.getElementById("viewSummaryBtn").addEventListener("click", function () {
+                const modalElement = document.getElementById('onLoadModal');
+                if (modalElement) {
+                    const modal = new bootstrap.Modal(modalElement);
+                    modal.show();
+                }
             });
         });
     </script>
