@@ -230,8 +230,8 @@ namespace Uxcheckmate_Main.Services
         {
             // Group animations by parent container to detect localized density
             var containerGroups = animationElements
-                .GroupBy(a => GetParentContainer(a.ElementHtml)) // Assumes a method to group by container div or section
-                .Where(g => g.Count() > MaxRecommendedAnimationsPerContainer); // Only keep groups exceeding the threshold
+                .GroupBy(a => GetParentContainer(a.ElementHtml)) 
+                .Where(g => g.Count() > MaxRecommendedAnimationsPerContainer);
 
             foreach (var group in containerGroups)
             {

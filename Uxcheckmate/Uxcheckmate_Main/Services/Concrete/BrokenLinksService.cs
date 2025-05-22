@@ -47,7 +47,7 @@ namespace Uxcheckmate_Main.Services
 
             if (brokenLinks.Any())
             {
-                var message = $"The following broken links were found on this page: {string.Join(", ", brokenLinks)}";
+                var message = $"Found {brokenLinks.Count()} broken links. Links: {string.Join(", ", brokenLinks)}";
                 _logger.LogInformation("Broken link analysis completed. {BrokenLinkCount} broken links found.", brokenLinks.Count);
                 return message;
             }

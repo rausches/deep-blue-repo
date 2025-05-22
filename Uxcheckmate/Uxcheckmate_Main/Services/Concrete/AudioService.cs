@@ -96,7 +96,7 @@ namespace Uxcheckmate_Main.Services
 
             _logger.LogInformation("Audio autoplay behavior detected ({Score} instances).", audioScore);
 
-            return $"Detected {audioScore} audio-related behaviors.\n\n{string.Join("\n\n", findings)}. Consider disabling autoplay or prompting users before playing audio.";
+            return $"Found {audioScore} audio-related behaviors.\n\n{string.Join("\n\n", findings)}. Consider disabling autoplay or prompting users before playing audio.";
         }
     }
 }
