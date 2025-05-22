@@ -10,7 +10,7 @@
         <form asp-action="SubmitFeedback" method="post">
             <div class="form-group">
                 <label asp-for="Message"></label>
-                <textarea asp-for="Message" class="form-control" rows="4" maxlength="255" oninput="updateCharCount()" aria-describedby="charCount"></textarea>
+                <textarea asp-for="Message" class="form-control" rows="4" maxlength="255" oninput="updateCharCount()" aria-describedby="charCount" id="feedbackInput"></textarea>
                 <small id="charCount" class="form-text text-muted">0 / 255 characters used</small>
             </div>
             <button type="submit" id="submitFeedback" class="btn btn-primary">Submit</button>

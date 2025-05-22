@@ -4,19 +4,26 @@ using Microsoft.Extensions.Logging;
 using Microsoft.EntityFrameworkCore;
 using Moq;
 using System.Net.Http;
+using System.Security.Claims;
 using Uxcheckmate_Main.Controllers;
 using Uxcheckmate_Main.Models;
 using Uxcheckmate_Main.Services;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
+using Microsoft.Extensions.Options;
+
 
 namespace Moq_Tests;
+
 public static class TestBuilder
 {
     public static HomeController BuildHomeController(HttpContext httpContext, UxCheckmateDbContext context)
     {
+        var configMock = new Mock<IConfiguration>();
+        configMock.Setup(c => c["Captcha:SecretKey"]).Returns("test-secret");
         return new HomeController(
             new LoggerFactory().CreateLogger<HomeController>(),
             new HttpClient(),
@@ -50,7 +57,8 @@ public static class TestBuilder
             new Mock<IBackgroundTaskQueue>().Object,
             new Mock<IServiceScopeFactory>().Object,
             new Mock<IMemoryCache>().Object,
-            new Mock<UserManager<IdentityUser>>().Object
+            BuildUserManager(),
+            configMock.Object
         )
         {
             ControllerContext = new ControllerContext
@@ -59,6 +67,32 @@ public static class TestBuilder
             }
         };
     }
+    public static UserManager<IdentityUser> BuildUserManager()
+    {
+        var store = new Mock<IUserStore<IdentityUser>>();
+        var options = new Mock<IOptions<IdentityOptions>>();
+        var passwordHasher = new Mock<IPasswordHasher<IdentityUser>>();
+        var userValidators = new List<IUserValidator<IdentityUser>> { new Mock<IUserValidator<IdentityUser>>().Object };
+        var passwordValidators = new List<IPasswordValidator<IdentityUser>> { new Mock<IPasswordValidator<IdentityUser>>().Object };
+        var keyNormalizer = new Mock<ILookupNormalizer>();
+        var errors = new Mock<IdentityErrorDescriber>();
+        var serviceProvider = new Mock<IServiceProvider>();
+        var logger = new Mock<ILogger<UserManager<IdentityUser>>>();
+        var userManager = new UserManager<IdentityUser>(
+            store.Object,
+            options.Object,
+            passwordHasher.Object,
+            userValidators,
+            passwordValidators,
+            keyNormalizer.Object,
+            errors.Object,
+            serviceProvider.Object,
+            logger.Object
+        );
+        store.Setup(s => s.FindByNameAsync(It.IsAny<string>(), default)).ReturnsAsync(new IdentityUser("testUser"));
+        return userManager;
+    }
+
 }
 
 
