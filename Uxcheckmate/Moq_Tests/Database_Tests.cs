@@ -24,40 +24,52 @@ namespace Database_Tests
     {
         private UxCheckmateDbContext _context;
         private DbContextOptions<UxCheckmateDbContext> _options;
-    [SetUp]
-    public void Setup()
-    {
-        var connectionJson = Environment.GetEnvironmentVariable("DB_STRING_SECRET");
-
-        string dbConnectionString = null;
-        string authDbConnectionString = null;
-
-        if (!string.IsNullOrEmpty(connectionJson))
+        private IConfiguration _config;
+        private CaptchaService _captchaService;
+        [SetUp]
+        public void Setup()
         {
-            var dict = JsonSerializer.Deserialize<Dictionary<string, string>>(connectionJson);
-            dbConnectionString = dict.GetValueOrDefault("DBConnection");
-            authDbConnectionString = dict.GetValueOrDefault("AuthDBConnection");
-        }
-        else
-        {
-            var configuration = new ConfigurationBuilder()
-                .SetBasePath(TestContext.CurrentContext.WorkDirectory)
-                .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
-                .Build();
-            dbConnectionString = configuration.GetConnectionString("DBConnection");
-            authDbConnectionString = configuration.GetConnectionString("AuthDBConnection");
-        }
+            var connectionJson = Environment.GetEnvironmentVariable("DB_STRING_SECRET");
 
-        // Console.WriteLine($"DB: {dbConnectionString}");
-        // Console.WriteLine($"AuthDB: {authDbConnectionString}");
+            string dbConnectionString = null;
+            string authDbConnectionString = null;
 
-        if (string.IsNullOrEmpty(dbConnectionString))
-            throw new InvalidOperationException("DBConnection was not found!");
+            if (!string.IsNullOrEmpty(connectionJson))
+            {
+                var dict = JsonSerializer.Deserialize<Dictionary<string, string>>(connectionJson);
+                dbConnectionString = dict.GetValueOrDefault("DBConnection");
+                authDbConnectionString = dict.GetValueOrDefault("AuthDBConnection");
+            }
+            else
+            {
+                var configuration = new ConfigurationBuilder()
+                    .SetBasePath(TestContext.CurrentContext.WorkDirectory)
+                    .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+                    .Build();
+                dbConnectionString = configuration.GetConnectionString("DBConnection");
+                authDbConnectionString = configuration.GetConnectionString("AuthDBConnection");
+            }
 
-        _options = new DbContextOptionsBuilder<UxCheckmateDbContext>()
-            .UseSqlServer(dbConnectionString)
-            .Options;
-        _context = new UxCheckmateDbContext(_options);
+            // Console.WriteLine($"DB: {dbConnectionString}");
+            // Console.WriteLine($"AuthDB: {authDbConnectionString}");
+
+            if (string.IsNullOrEmpty(dbConnectionString))
+                throw new InvalidOperationException("DBConnection was not found!");
+
+            _options = new DbContextOptionsBuilder<UxCheckmateDbContext>()
+                .UseSqlServer(dbConnectionString)
+                .Options;
+            _context = new UxCheckmateDbContext(_options);
+            var mockFactory = new Mock<IHttpClientFactory>();
+            mockFactory.Setup(f => f.CreateClient(It.IsAny<string>())).Returns(new HttpClient());
+            var mockConfig = new ConfigurationBuilder()
+                .AddInMemoryCollection(new Dictionary<string, string?>
+                {
+                    { "Captcha:SecretKey", "test-secret" }
+                }).Build();
+
+            _config = mockConfig;
+            _captchaService = new CaptchaService(_config, mockFactory.Object);
     }
 
 
@@ -119,7 +131,7 @@ namespace Database_Tests
                 }, "TestAuth"))
             };
             var controller = TestBuilder.BuildHomeController(httpContext, _context);
-            await controller.Report(url);
+            await controller.Report(_captchaService, url, null, false, CancellationToken.None);
             var userReports = await _context.Reports.Where(r => r.Url == url && r.UserID == userId).ToListAsync();
             Assert.That(userReports.Count, Is.EqualTo(1), "Only one report should remain after replacement.");
         }
@@ -142,7 +154,7 @@ namespace Database_Tests
                 }, "TestAuth"))
             };
             var controller = TestBuilder.BuildHomeController(httpContext, _context);
-            await controller.Report(url);
+            await controller.Report(_captchaService, url, null, false, CancellationToken.None);
             var reports = await _context.Reports.Where(r => r.Url == url).ToListAsync();
             Assert.That(reports.Count, Is.EqualTo(2), "Each user should have one report.");
             Assert.That(reports.Any(r => r.UserID == user1), Is.True);

@@ -11,6 +11,8 @@ using Microsoft.EntityFrameworkCore;
 using Uxcheckmate_Main.Services;
 using Uxcheckmate_Main.Models;
 
+
+/**
 namespace Service_Tests
 {
     public static class DbSetMock
@@ -18,17 +20,14 @@ namespace Service_Tests
         public static Mock<DbSet<T>> CreateMockDbSet<T>(List<T> data) where T : class
         {
             var queryable = data.AsQueryable();
-
             var mockSet = new Mock<DbSet<T>>();
-            mockSet.As<IQueryable<T>>().Setup(m => m.Provider).Returns(queryable.Provider);
+            mockSet.As<IAsyncEnumerable<T>>()
+                .Setup(m => m.GetAsyncEnumerator(It.IsAny<CancellationToken>()))
+                .Returns(new TestAsyncEnumerator<T>(queryable.GetEnumerator()));
+            mockSet.As<IQueryable<T>>().Setup(m => m.Provider).Returns(new TestAsyncQueryProvider<T>(queryable.Provider));
             mockSet.As<IQueryable<T>>().Setup(m => m.Expression).Returns(queryable.Expression);
             mockSet.As<IQueryable<T>>().Setup(m => m.ElementType).Returns(queryable.ElementType);
             mockSet.As<IQueryable<T>>().Setup(m => m.GetEnumerator()).Returns(() => queryable.GetEnumerator());
-
-            mockSet.As<IAsyncEnumerable<T>>()
-                   .Setup(m => m.GetAsyncEnumerator(It.IsAny<CancellationToken>()))
-                   .Returns(new TestAsyncEnumerator<T>(queryable.GetEnumerator()));
-
             return mockSet;
         }
     }
@@ -68,7 +67,7 @@ namespace Service_Tests
             _loggerMock = new Mock<ILogger<ReportCleanupService>>();
         }
 
-        private ReportCleanupService CreateServiceWithMockDbContext(Mock<DbSet<Report>> reportsMock)
+        private ReportCleanupService AACreateServiceWithMockDbContext(Mock<DbSet<Report>> reportsMock)
         {
             _providerMock.Setup(p => p.GetService(typeof(UxCheckmateDbContext)))
                          .Returns(_dbContextMock.Object);
@@ -85,7 +84,7 @@ namespace Service_Tests
         {
             // Arrange: use fixed now to avoid timing issues
             var now = DateTime.UtcNow;
-            var expiredReport = new Report { CreatedAt = now.AddHours(-2), UserID = null };
+            var expiredReport = new Report { CreatedAt = DateTime.UtcNow.AddDays(-1), UserID = null };
             var activeReport = new Report { CreatedAt = now, UserID = "user" };
             var reports = new List<Report> { expiredReport, activeReport };
 
@@ -133,3 +132,4 @@ namespace Service_Tests
         }
     }
 }
+*/

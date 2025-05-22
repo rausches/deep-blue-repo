@@ -12,11 +12,14 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Moq;
+using Moq.Protected;
+using Moq_Tests;
 using NUnit.Framework;
 using Microsoft.Playwright;
 using Uxcheckmate_Main.Controllers;
 using Uxcheckmate_Main.Models;
 using Uxcheckmate_Main.Services;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.AspNetCore.Identity;
@@ -36,7 +39,6 @@ namespace Controller_Tests
         private Mock<PdfExportService> _pdfExportServiceMock;
         private Mock<IScreenshotService> _screenshotServiceMock;
         private HomeController _controller; 
-        
         private Mock<DbSet<Report>> _mockReportDbSet;
         private Mock<ICompositeViewEngine> _viewEngineMock;
         private Mock<ITempDataDictionary> _tempDataMock;
@@ -45,6 +47,7 @@ namespace Controller_Tests
         private Mock<IServiceScopeFactory> _serviceScopeFactoryMock;
         private Mock<IMemoryCache> _cacheMock;
         private Mock<UserManager<IdentityUser>> _userManagerMock;
+        private Mock<IConfiguration> _mockConfig;
 
         [SetUp]  
         public void Setup()
@@ -63,6 +66,10 @@ namespace Controller_Tests
             _serviceScopeFactoryMock = new Mock<IServiceScopeFactory>();
             _cacheMock = new Mock<IMemoryCache>();
             _userManagerMock = new Mock<UserManager<IdentityUser>>();
+            var userManager = TestBuilder.BuildUserManager();
+            _mockConfig = new Mock<IConfiguration>();
+            _mockConfig.Setup(c => c["Captcha:SecretKey"]).Returns("dummy-secret");
+
 
             // Configure in-memory database options
             var options = new DbContextOptionsBuilder<UxCheckmateDbContext>()
@@ -95,7 +102,8 @@ namespace Controller_Tests
                 _backgroundTaskQueueMock.Object,
                 _serviceScopeFactoryMock.Object,
                 _cacheMock.Object,
-                _userManagerMock.Object
+                userManager,
+                _mockConfig.Object
             );
 
             // Configure TempData for controller

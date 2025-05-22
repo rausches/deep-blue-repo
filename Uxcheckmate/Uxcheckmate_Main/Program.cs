@@ -23,6 +23,8 @@ public class Program
 
         var builder = WebApplication.CreateBuilder(args);
 
+        builder.Configuration.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true).AddEnvironmentVariables();
+
         string openAiApiKey = builder.Configuration["OpenAiApiKey"];
         string openAiUrl = "https://api.openai.com/v1/chat/completions";
 
@@ -88,6 +90,9 @@ public class Program
         // Register ScreenshotService
         builder.Services.AddScoped<IScreenshotService, ScreenshotService>();
         builder.Services.AddScoped<PdfExportService>();
+
+        // Register Captcha Service 
+        builder.Services.AddScoped<CaptchaService>();
 
         // Register Report Services
         builder.Services.AddScoped<IReportService, ReportService>();
