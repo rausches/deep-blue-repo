@@ -3,4 +3,6 @@ function updateCharCount() {
     const count = textarea.value.length;
     document.getElementById("charCount").textContent = `${count} / 255 characters used`;
 }
-updateCharCount();
+document.addEventListener("DOMContentLoaded", function () {
+    updateCharCount();
+});

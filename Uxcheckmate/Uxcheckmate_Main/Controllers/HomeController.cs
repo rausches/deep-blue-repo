@@ -37,12 +37,14 @@ public class HomeController : Controller
     private readonly IBackgroundTaskQueue _backgroundTaskQueue;
     private readonly IServiceScopeFactory _scopeFactory;
     private readonly IMemoryCache _cache;
+    private readonly IConfiguration _configuration;
+    private readonly bool _captchaEnabled;
 
 
-    public HomeController(ILogger<HomeController> logger, HttpClient httpClient, UxCheckmateDbContext dbContext, 
-        IOpenAiService openAiService, IAxeCoreService axeCoreService, IReportService reportService, 
-        PdfExportService pdfExportService, IScreenshotService screenshotService, IViewRenderService viewRenderService,IBackgroundTaskQueue backgroundTaskQueue, IServiceScopeFactory scopeFactory, IMemoryCache cache, UserManager<IdentityUser> userManager)
-        
+    public HomeController(ILogger<HomeController> logger, HttpClient httpClient, UxCheckmateDbContext dbContext,
+        IOpenAiService openAiService, IAxeCoreService axeCoreService, IReportService reportService,
+        PdfExportService pdfExportService, IScreenshotService screenshotService, IViewRenderService viewRenderService, IBackgroundTaskQueue backgroundTaskQueue, IServiceScopeFactory scopeFactory, IMemoryCache cache, UserManager<IdentityUser> userManager, IConfiguration configuration)
+
     {
         _logger = logger;
         _httpClient = httpClient;
@@ -56,13 +58,24 @@ public class HomeController : Controller
         _backgroundTaskQueue = backgroundTaskQueue;
         _scopeFactory = scopeFactory;
         _cache = cache;
+        _configuration = configuration;
+        bool.TryParse(configuration["Captcha:Enabled"], out _captchaEnabled);
     }
 
 
     // ============================================================================================================
     // Static Pages
     // ============================================================================================================
-    public IActionResult Index() => View();
+    public IActionResult Index()
+    {
+        bool showCaptcha = _captchaEnabled && !User.Identity.IsAuthenticated;
+        if (HttpContext.Session.GetString("CaptchaVerified") == "true"){
+            showCaptcha = false;
+        }
+        ViewData["CaptchaEnabled"] = showCaptcha;
+        ViewData["CaptchaSiteKey"] = _configuration["Captcha:SiteKey"];
+        return View();
+    }
 
     public IActionResult Privacy() => View();
 
@@ -77,10 +90,23 @@ public class HomeController : Controller
     // Report Logic
     // ============================================================================================================
     [HttpPost]
-    public async Task<IActionResult> Report(string url, string sortOrder = "category", bool isAjax = false, CancellationToken cancellationToken = default)
+    public async Task<IActionResult> Report([FromServices] CaptchaService captchaService, string url, string sortOrder = "category", bool isAjax = false, CancellationToken cancellationToken = default)
     {
         try
         {
+            if (_captchaEnabled && !User.Identity.IsAuthenticated){
+                var captchaToken = Request.Form["CaptchaToken"];
+                if (string.IsNullOrEmpty(captchaToken)){
+                    ModelState.AddModelError("", "CAPTCHA token is missing.");
+                    return View("Index");
+                }
+                bool captchaValid = await captchaService.VerifyTokenAsync(captchaToken);
+                if (!captchaValid){
+                    ModelState.AddModelError("", "CAPTCHA validation failed. Please try again.");
+                    return View("Index");
+                }
+                HttpContext.Session.SetString("CaptchaVerified", "true");
+            }
             if (string.IsNullOrEmpty(url))
             {
                 ModelState.AddModelError("url", "URL cannot be empty.");
@@ -123,7 +149,7 @@ public class HomeController : Controller
             // Attach results, and set Processing status
             report.AccessibilityIssues = accessibilityIssues.ToList();
             report.Status = "Processing"; 
-            await _context.SaveChangesAsync(cancellationToken);
+            // await _context.SaveChangesAsync(cancellationToken);
 
             // Queue background design work
             await _backgroundTaskQueue.QueueBackgroundWorkItemAsync(async token =>
@@ -462,24 +488,28 @@ public class HomeController : Controller
     }
 
     private async Task<bool> IsUrlReachable(string url)
-    {
-        try
         {
-            using var httpClient = new HttpClient();
-            var request = new HttpRequestMessage(HttpMethod.Get, url);
-            _logger.LogInformation("Request Headers: {Headers}", request.Headers);
+            if (HttpContext?.Items.TryGetValue("BypassReachability", out var bypass) == true && bypass is bool b && b){
+                return true;
+            }
+            try
+            {
+                using var httpClient = new HttpClient();
+                var request = new HttpRequestMessage(HttpMethod.Get, url);
+                _logger.LogInformation("Request Headers: {Headers}", request.Headers);
 
-            var response = await httpClient.SendAsync(request);
-            _logger.LogInformation("Response Headers: {Headers}", response.Headers);
+                var response = await httpClient.SendAsync(request);
+                _logger.LogInformation("Response Headers: {Headers}", response.Headers);
 
-            return response.IsSuccessStatusCode;
+                return response.IsSuccessStatusCode;
+            }
+            catch (HttpRequestException ex)
+            {
+                _logger.LogError(ex, "The URL is unreachable: {Url}", url);
+                return false;
+            }
         }
-        catch (HttpRequestException ex)
-        {
-            _logger.LogError(ex, "The URL is unreachable: {Url}", url);
-            return false;
-        }
-    }
+
 
     private async Task<string?> CaptureScreenshot(string url)
     {
@@ -570,16 +600,16 @@ public class HomeController : Controller
     {
         report.DesignIssues = sortOrder switch
         {
-            "severity-high-low" => report.DesignIssues.OrderByDescending(i => i.Severity).ThenBy(i => i.Category.Name).ToList(),
-            "severity-low-high" => report.DesignIssues.OrderBy(i => i.Severity).ThenBy(i => i.Category.Name).ToList(),
-            _ => report.DesignIssues.OrderBy(i => i.Category.Name).ThenByDescending(i => i.Severity).ToList()
+            "severity-high-low" => report.DesignIssues.OrderByDescending(i => i.Severity).ThenBy(i => i.Category?.Name ?? "Uncategorized").ToList(),
+            "severity-low-high" => report.DesignIssues.OrderBy(i => i.Severity).ThenBy(i => i.Category?.Name ?? "Uncategorized").ToList(),
+            _ => report.DesignIssues.OrderBy(i => i.Category?.Name ?? "Uncategorized").ThenByDescending(i => i.Severity).ToList()
         };
 
         report.AccessibilityIssues = sortOrder switch
         {
-            "severity-high-low" => report.AccessibilityIssues.OrderByDescending(i => i.Severity).ThenBy(i => i.Category.Name).ToList(),
-            "severity-low-high" => report.AccessibilityIssues.OrderBy(i => i.Severity).ThenBy(i => i.Category.Name).ToList(),
-            _ => report.AccessibilityIssues.OrderBy(i => i.Category.Name).ThenByDescending(i => i.Severity).ToList()
+            "severity-high-low" => report.AccessibilityIssues.OrderByDescending(i => i.Severity).ThenBy(i => i.Category?.Name ?? "Uncategorized").ToList(),
+            "severity-low-high" => report.AccessibilityIssues.OrderBy(i => i.Severity).ThenBy(i => i.Category?.Name ?? "Uncategorized").ToList(),
+            _ => report.AccessibilityIssues.OrderBy(i => i.Category?.Name ?? "Uncategorized").ThenByDescending(i => i.Severity).ToList()
         };
     }
     
