@@ -58,5 +58,23 @@ namespace Uxcheckmate_Main.Services
                 await Task.Delay(TimeSpan.FromMinutes(10), stoppingToken);
             }
         }
+
+        // test method
+        public async Task CleanupExpiredReportsAsync(CancellationToken stoppingToken)
+        {
+            using var scope = _scopeFactory.CreateScope();
+            var dbContext = scope.ServiceProvider.GetRequiredService<UxCheckmateDbContext>();
+            var cutoff = DateTime.UtcNow.AddMinutes(-30);
+            var expired = await dbContext.Reports
+                .Where(r => r.UserID == null && r.CreatedAt < cutoff)
+                .ToListAsync(stoppingToken);
+
+            if (expired.Any())
+            {
+                dbContext.Reports.RemoveRange(expired);
+                await dbContext.SaveChangesAsync(stoppingToken);
+                _logger.LogInformation("Deleted {Count} expired anonymous reports.", expired.Count);
+            }
+        }
     }
 }
