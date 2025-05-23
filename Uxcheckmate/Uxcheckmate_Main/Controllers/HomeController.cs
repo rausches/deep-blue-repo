@@ -149,7 +149,7 @@ public class HomeController : Controller
             // Attach results, and set Processing status
             report.AccessibilityIssues = accessibilityIssues.ToList();
             report.Status = "Processing"; 
-            // await _context.SaveChangesAsync(cancellationToken);
+            await _context.SaveChangesAsync();
 
             // Queue background design work
             await _backgroundTaskQueue.QueueBackgroundWorkItemAsync(async token =>
