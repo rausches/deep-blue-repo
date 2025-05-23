@@ -175,43 +175,7 @@ namespace Uxcheckmate_Main.Services
                         _logger.LogError(ex, "Error analyzing category {CategoryName}: {ErrorMessage}", category.Name, ex.Message);
                         message = "";
                     }
-
-                    // Connect service response to dbset attributes
-                   /* if (!string.IsNullOrEmpty(message))
-                    {
-                        var designIssue = new DesignIssue
-                        {
-                            CategoryId = category.Id,
-                            ReportId = report.Id,
-                            Message = message,
-                            Severity = DetermineSeverity(message)
-                        };
-
-                        // Add to results collection
-                        scanResults.Add(designIssue);
-                        _logger.LogInformation("Design issue added for category {CategoryName} with severity {Severity}.", category.Name, designIssue.Severity);
-                    }
-                    else
-                    {
-                        _logger.LogInformation("No issues found for category: {CategoryName}", category.Name);
-                    }*/
                 });
-            /* SAVE TOKENS COMMENT OUT OPEN AI */
-
-            try
-            {
-                var summaryText = await _openAiService.GenerateReportSummaryAsync(scanResults.ToList(), fullScraped.HtmlContent, url, cancellationToken);
-                report.Summary = summaryText;
-                _logger.LogInformation("Generated summary for report.");
-            }
-            catch (OperationCanceledException)
-            {
-                _logger.LogWarning("Summary generation cancelled.");
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Failed to generate summary.");
-            }
 
             try
             {
@@ -284,35 +248,8 @@ namespace Uxcheckmate_Main.Services
                 _ => ""
             };
 
-            /* SAVE TOKENS COMMENT OUT OPEN AI */
-
-            // Send to OpenAI to enhance message
-            if (!string.IsNullOrEmpty(message))
-            {
-                _logger.LogInformation("Improving message with OpenAI for category: {CategoryName}", categoryName);
-                message = await _openAiService.ImproveMessageAsync(message, categoryName);
-            }
-            else
-            {
-                _logger.LogInformation("No message to improve for category: {CategoryName}", categoryName);
-            }
-
             return message;
         }
-
-     /*   private async Task<string> AnalyzeDynamicSizingAsync(string url, Dictionary<string, object> scrapedData)
-        {
-            bool hasDynamicSizing = _MobileResponsivenessIMobileResponsivenessService.HasDynamicSizing(scrapedData["htmlContent"].ToString());
-
-            if (!hasDynamicSizing)
-            {
-                string prompt = $"The website at {url} is missing dynamic sizing elements (e.g., media queries, viewport meta tag, flexbox/grid layout). Please provide a recommendation on how to implement dynamic sizing.";
-                return await _openAiService.AnalyzeWithOpenAI(url, "Dynamic Sizing", prompt, scrapedData);
-            }
-
-            _logger.LogDebug("Dynamic sizing elements are present. No recommendations needed.");
-            return string.Empty;
-        }*/
 
         private async Task<string> AnalyzeFaviconAsync(string url, Dictionary<string, object> scrapedData)
         {
@@ -384,33 +321,5 @@ namespace Uxcheckmate_Main.Services
             return aiText.Contains("critical", StringComparison.OrdinalIgnoreCase) ? 3 :
                    aiText.Contains("should", StringComparison.OrdinalIgnoreCase) ? 2 : 1;
         }
-    /*    private Dictionary<string, object> MergeScrapedData(Dictionary<string, object> baseData, ScrapedContent assets)
-        {
-            baseData["url"] = assets.Url;
-            baseData["html"] = assets.Html;
-
-            baseData["inlineCss"] = assets.InlineCss;
-            baseData["inlineJs"] = assets.InlineJs;
-
-            baseData["inlineCssList"] = assets.InlineCssList;
-            baseData["inlineJsList"] = assets.InlineJsList;
-
-            baseData["externalCssLinks"] = assets.ExternalCssLinks;
-            baseData["externalJsLinks"] = assets.ExternalJsLinks;
-
-            baseData["externalCssContents"] = assets.ExternalCssContents;
-            baseData["externalJsContents"] = assets.ExternalJsContents;
-
-            baseData["scrollHeight"] = assets.ScrollHeight;
-            baseData["viewportHeight"] = assets.ViewportHeight;
-
-            baseData["scrollWidth"] = assets.ScrollWidth;
-            baseData["viewportWidth"] = assets.ViewportWidth;
-            baseData["viewportLabel"] = assets.ViewportLabel;
-
-            return baseData;
-        }*/
-
-
     }
 }
