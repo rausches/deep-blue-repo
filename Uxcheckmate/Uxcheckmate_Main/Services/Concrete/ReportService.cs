@@ -83,16 +83,16 @@ namespace Uxcheckmate_Main.Services
 
             try
             {
-                string cacheKey = $"scrapedcontent_{url.ToLowerInvariant()}";
+                string ssCacheKey = $"scrapedcontent_{url.ToLowerInvariant()}";
                 
                 // Try to get from cache
-                if (!_cache.TryGetValue(cacheKey, out fullScraped))
+                if (!_cache.TryGetValue(ssCacheKey, out fullScraped))
                 {
                     _logger.LogInformation("No cached scrape found for {Url}. Scraping now.", url);
                     fullScraped = await _playwrightScraperService.ScrapeEverythingAsync(url, cancellationToken);
 
                     // Cache it for 1 hour
-                    _cache.Set(cacheKey, fullScraped, TimeSpan.FromHours(1));
+                    _cache.Set(ssCacheKey, fullScraped, TimeSpan.FromHours(1));
                 }
                 else
                 {
@@ -113,6 +113,33 @@ namespace Uxcheckmate_Main.Services
                 return scanResults.ToList(); // Return what we have, even if empty
             }
 
+            string cacheKey = $"fullpage_screenshot_{url.ToLowerInvariant()}";
+            Task<byte[]> screenshotTask;
+
+            // Check cache for existing full page screenshot
+            if (_cache.TryGetValue(cacheKey, out byte[] cachedScreenshot))
+            {
+                _logger.LogInformation("Using cached full page screenshot for {Url}.", url);
+                screenshotTask = Task.FromResult(cachedScreenshot);
+            }
+            else
+            {
+                _logger.LogInformation("Capturing new full page screenshot for {Url}.", url);
+
+                // Capture screenshot and cache it after capture completes
+                screenshotTask = _screenshotService?.CaptureFullPageScreenshot(url) ?? Task.FromResult(new byte[0]);
+                screenshotTask = screenshotTask.ContinueWith(t =>
+                {
+                    var result = t.Result;
+                    if (result != null && result.Length > 0)
+                    {
+                        _cache.Set(cacheKey, result, TimeSpan.FromHours(1)); // Cache for 1 hour
+                        _logger.LogInformation("Full page screenshot cached for {Url}.", url);
+                    }
+                    return result;
+                });
+            }
+            
             // Get list of design categories
             List<DesignCategory> designCategories;
 
@@ -147,7 +174,7 @@ namespace Uxcheckmate_Main.Services
                         message = category.ScanMethod switch
                         {
                             "OpenAI" => await _openAiService.AnalyzeWithOpenAI(url, category.Name, category.Description, scrapedData),
-                            "Custom" => await RunCustomAnalysisAsync(url, category.Name, category.Description, scrapedData, fullScraped),
+                            "Custom" => await RunCustomAnalysisAsync(url, category.Name, category.Description, scrapedData, fullScraped, screenshotTask),
                             _ => ""
                         };
 
@@ -200,35 +227,9 @@ namespace Uxcheckmate_Main.Services
             return scanResults.ToList();
         }
 
-        public async Task<string> RunCustomAnalysisAsync(string url, string categoryName, string categoryDescription, Dictionary<string, object> scrapedData, ScrapedContent fullScraped)
+        public async Task<string> RunCustomAnalysisAsync(string url, string categoryName, string categoryDescription, Dictionary<string, object> scrapedData, ScrapedContent fullScraped, Task<byte[]> screenshotTask)
         {
             _logger.LogInformation("Running custom analysis for category: {CategoryName}", categoryName);
-            string cacheKey = $"fullpage_screenshot_{url.ToLowerInvariant()}";
-            Task<byte[]> screenshotTask;
-
-            // Check cache for existing full page screenshot
-            if (_cache.TryGetValue(cacheKey, out byte[] cachedScreenshot))
-            {
-                _logger.LogInformation("Using cached full page screenshot for {Url}.", url);
-                screenshotTask = Task.FromResult(cachedScreenshot);
-            }
-            else
-            {
-                _logger.LogInformation("Capturing new full page screenshot for {Url}.", url);
-
-                // Capture screenshot and cache it after capture completes
-                screenshotTask = _screenshotService?.CaptureFullPageScreenshot(url) ?? Task.FromResult(new byte[0]);
-                screenshotTask = screenshotTask.ContinueWith(t =>
-                {
-                    var result = t.Result;
-                    if (result != null && result.Length > 0)
-                    {
-                        _cache.Set(cacheKey, result, TimeSpan.FromHours(1)); // Cache for 1 hour
-                        _logger.LogInformation("Full page screenshot cached for {Url}.", url);
-                    }
-                    return result;
-                });
-            }
 
             string message = categoryName switch
             {
