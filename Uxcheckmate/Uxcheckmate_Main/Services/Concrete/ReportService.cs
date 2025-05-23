@@ -278,7 +278,7 @@ namespace Uxcheckmate_Main.Services
         private async Task RunCategoryAnalysesAsync(Report report, List<DesignCategory> categories, Dictionary<string, object> scrapedData, ScrapedContent fullScraped, Task<byte[]> screenshotTask, ConcurrentBag<DesignIssue> results, CancellationToken cancellationToken)
         {
             // Run parallel analysis for each design category using a limited number of concurrent threads
-            await Parallel.ForEachAsync(categories, new ParallelOptions { MaxDegreeOfParallelism = 4 }, async (category, token) =>
+            await Parallel.ForEachAsync(categories, new ParallelOptions { MaxDegreeOfParallelism = 8 }, async (category, token) =>
             {
                 _logger.LogInformation("Analyzing category: {CategoryName} using scan method: {ScanMethod}", category.Name, category.ScanMethod);
 
