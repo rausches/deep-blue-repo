@@ -1294,6 +1294,30 @@ Feedback Page Styling
   color: var(--max-characters-used-text-color);
 }
 
+
+.feedbackContainer{
+  background-color: rgba(255, 255, 255, 0.75);
+  padding: 5%;
+  border-radius: 10px;
+  width: 60%;
+}
+
+#feedbackLeft{
+  border-right: 1px solid black;
+}
+
+#feedbackRight{
+padding-left: 2%;
+}
+
+.feedbackCol{
+
+}
+
+#submitFeedback{
+  display: block;
+  float: right;
+}
 /*
 ==================================================
 Global styling
