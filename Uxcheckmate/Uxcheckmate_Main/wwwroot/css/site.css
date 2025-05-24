@@ -92,6 +92,12 @@ Navbar
   color: var(--nav-text);
 }
 
+.logoutBtn{
+  background-color: #ffffff00;
+  border: none;
+  font-size: 1.2rem;
+  padding: 0.5rem;
+}
 .nav-link:hover, .navbar-brand:hover{
   color: var(--nav-text-hover);
   background-color: var(--nav-bg-hover);
@@ -1283,6 +1289,7 @@ Login Page Styling
 .input-field-text{
   color: var(--input-field-text-color);
 }
+
 
 /*
 ==================================================
