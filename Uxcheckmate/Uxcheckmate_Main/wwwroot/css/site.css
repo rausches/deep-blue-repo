@@ -155,8 +155,8 @@ Theme Switcher: Chess Pieces
   --card-back-text: #000000;
   --report-bg: #f9f9f9a3;
   --report-text: #000000;
-  --accordian-bg: #ffffff;
-  --accordian-text: #000000;
+  --accordian-bg: #0B2C48;
+  --accordian-text: #ffffff;
   --accordian-item-bg: #ffffff;
   --accordian-item-text: #000000;
   --scroll-top-bg: #0B2C48;
@@ -1107,6 +1107,39 @@ User Dashboard Styling
   cursor: not-allowed; 
   opacity: 1; 
 }
+
+/*
+==================================================
+Admin Dashboard Styling
+==================================================
+*/
+
+.myAdminDashHeader{
+  padding: 30px;
+  text-align: center;
+  font-family:"DM Serif Text", serif;
+  font-size: 60px;
+  background: #f9f9f9a3;
+  background-image: url("/images/admin_header_img.png");
+  background-repeat: no-repeat;
+  /* background-position: top bottom; */
+  background-size: 20%;
+  font-size: 30px;
+}
+
+.table-header th{
+    background-color: var(--accordian-bg);
+    color: var(--accordian-text);
+}
+
+.report-count-badge {
+  background-color: var(--accordian-bg);
+  color: var(--accordian-text);
+  padding: 5px 10px;
+  border-radius: 5px;
+  font-weight: bold;
+}
+
 
 /*
 ==================================================
