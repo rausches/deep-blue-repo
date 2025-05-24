@@ -308,7 +308,8 @@ public class HomeController : Controller
                 Severity = a.Severity,
                 WCAG = a.WCAG,
                 Category = a.Category?.Name
-            }).ToList()
+            }).ToList(),
+            Summary = r.Summary
         }).ToList();
         return View(reportDTOs);
     }
