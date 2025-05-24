@@ -1022,17 +1022,8 @@ User Dashboard Styling
 */
 
 .myUserDashHeader{
-  padding: 30px;
   text-align: center;
-  font-family:"DM Serif Text", serif;
-  font-size: 60px;
-  background: #f9f9f9a3;
-  background-image: url("/images/websiteAnalysisHeaderImg.png");
-  background-size: 50%;
-  background-repeat: no-repeat;
-  background-position: top right;
-  color: black;
-  font-size: 30px;
+  padding: 5%;
 }
 
 .my-dashboard-text {
@@ -1106,6 +1097,126 @@ User Dashboard Styling
   color: #888888; 
   cursor: not-allowed; 
   opacity: 1; 
+}
+#dashHr{
+  margin-bottom: 0px;
+}
+
+#allHeader{
+  text-align: center;
+  background-color: white;
+  padding-top: 5px;
+  border-radius: 0 0 5px 5px;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+}
+#allHeaderText{
+  font-size: 1em;
+}
+
+#recentHeader{
+  text-align: center;
+  background-color: white;
+  padding-top: 5px;
+  border-radius: 0 0 5px 5px;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+}
+
+#recentHeaderText{
+  font-size: 1em;
+}
+
+.recentReportContainer{
+  background-color: rgba(255, 255, 255, 0.75);
+  padding-left: 3%;
+  padding-right: 3%;
+  padding-bottom: 2%;
+  border-radius: 5px;
+}
+
+.recentButtons{
+  width: 70%;
+  border-radius: 5px;
+}
+
+.dashForm {
+  display: flex;
+  align-items: center;
+  /* border: 2px solid #0B2C48;  */
+  border: var(--input-bg-btn);
+  border-radius: 5px; 
+  overflow: hidden; 
+  width: 100%;
+  background: white;
+}
+
+.dashForm input {
+  flex: 1;
+  border: none;
+  padding: 12px 20px;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-size: 16px;
+  outline: none;
+  border-radius: 50px 0 0 50px; 
+}
+
+.dashForm button {
+  /* background: #0B2C48;  */
+  background: var(--input-bg-btn);
+  color: white;
+  border: none;
+  padding: 12px 20px;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.3s ease;
+}
+
+.dashRow{
+  padding-right: 0;
+  margin-left: 0;
+  margin-right: 0;
+  padding-left: 0;
+}
+
+.dashLeftCol{
+  background-color: rgba(255, 255, 255, 0.75);
+  border-radius: 1%;
+  padding-bottom: 5%;
+}
+.reportBtns{
+  background-color: #ffffff00;
+  border: none;
+  width: 50%;
+}
+
+.groupedReportHeader{
+  text-align: center;
+}
+.dashDomain{
+  width: 100%;
+}
+
+#reportListSameDomain{
+  padding-top: 4%;
+}
+
+.dashFeedback{
+  display:block;
+  margin: auto;
+}
+.btn-ellipsis {
+  background: transparent;
+  border: none;
+  font-size: 24px;
+  padding: 0 8px;
+  line-height: 1;
+}
+
+.btn-ellipsis:hover {
+  color: #007bff;
+  cursor: pointer;
+  background: transparent;
 }
 
 /*
