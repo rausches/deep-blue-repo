@@ -9,7 +9,7 @@ namespace Uxcheckmate_Main.Services
 {
     public interface IAnimationService
     {
-        Task<string> AnalyzeAnimationsAsync(List<string> inlineCss, List<string> externalCss, List<string> inlineJs, List<string> externalJs);
+        Task<string> AnalyzeAnimationsAsync(string htmlContent, List<string> inlineCss, List<string> externalCss, List<string> inlineJs, List<string> externalJs);
         Task<string> RunAnimationAnalysisAsync(string url, Dictionary<string, object> scrapedData);
     }
 }

@@ -23,60 +23,85 @@ namespace Service_Tests
         [Test]
         public async Task RunAnimationAnalysisAsync_ReturnsFinding_When_CssAnimationExists()
         {
-            // Arrange
+            var html = @"<div style='animation: fadeIn 2s;'></div>";
+            var css = new List<string> { "@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }" };
+
             var scrapedData = new Dictionary<string, object>
             {
-                { "inlineCss", new List<string> { ".box { animation: fadeIn 2s ease-in; }" } },
+                { "htmlContent", html },
+                { "inlineCssList", css },
                 { "externalCssContents", new List<string>() },
-                { "inlineJs", new List<string>() },
+                { "inlineJsList", new List<string>() },
                 { "externalJsContents", new List<string>() }
             };
 
-            // Act
             var result = await _animationService.RunAnimationAnalysisAsync("https://example.com", scrapedData);
 
-            // Assert
             Assert.That(result, Is.Not.Empty);
-            Assert.That(result, Does.Contain("animation-related"));
+            Assert.That(result, Does.Contain("CSS Animation"));
+            Assert.That(result, Does.Contain("fadeIn"));
         }
 
         [Test]
         public async Task RunAnimationAnalysisAsync_ReturnsFinding_When_JavascriptAnimationExists()
         {
-            // Arrange
+            var html = @"<div id='box'></div>";
+            var js = new List<string> { "requestAnimationFrame(document.getElementById('box'));" };
+
             var scrapedData = new Dictionary<string, object>
             {
-                { "inlineCss", new List<string>() },
+                { "htmlContent", html },
+                { "inlineCssList", new List<string>() },
                 { "externalCssContents", new List<string>() },
-                { "inlineJs", new List<string> { "requestAnimationFrame(() => {});" } },
+                { "inlineJsList", js },
                 { "externalJsContents", new List<string>() }
             };
 
-            // Act
             var result = await _animationService.RunAnimationAnalysisAsync("https://example.com", scrapedData);
 
-            // Assert
             Assert.That(result, Is.Not.Empty);
-            Assert.That(result, Does.Contain("animation-related"));
+            Assert.That(result, Does.Contain("requestAnimationFrame"));
+            Assert.That(result, Does.Contain("box"));
         }
 
         [Test]
         public async Task RunAnimationAnalysisAsync_ReturnsEmpty_When_NoAnimationFound()
         {
-            // Arrange
+            var html = "<div class='static'></div>";
+
             var scrapedData = new Dictionary<string, object>
             {
-                { "inlineCss", new List<string> { ".box { background-color: red; }" } },
+                { "htmlContent", html },
+                { "inlineCssList", new List<string> { ".box { background-color: red; }" } },
                 { "externalCssContents", new List<string>() },
-                { "inlineJs", new List<string> { "console.log('hello');" } },
+                { "inlineJsList", new List<string> { "console.log('hello');" } },
                 { "externalJsContents", new List<string>() }
             };
 
-            // Act
             var result = await _animationService.RunAnimationAnalysisAsync("https://example.com", scrapedData);
 
-            // Assert
             Assert.That(result, Is.Empty);
+        }
+
+        [Test]
+        public async Task RunAnimationAnalysisAsync_ReturnsWarning_When_TooManyAnimations()
+        {
+            var html = string.Join("\n", Enumerable.Range(1, 6).Select(i => $"<div style='animation: fadeIn 1s;' class='section'></div>"));
+            var css = new List<string> { "@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }" };
+
+            var scrapedData = new Dictionary<string, object>
+            {
+                { "htmlContent", html },
+                { "inlineCssList", css },
+                { "externalCssContents", new List<string>() },
+                { "inlineJsList", new List<string>() },
+                { "externalJsContents", new List<string>() }
+            };
+
+            var result = await _animationService.RunAnimationAnalysisAsync("https://example.com", scrapedData);
+
+            Assert.That(result, Does.Contain("Too many animations"));
+            Assert.That(result, Does.Contain("Multiple animations"));
         }
     }
 }

@@ -102,7 +102,6 @@ public class Program
         builder.Services.AddScoped<IColorSchemeService, ColorSchemeService>();
         builder.Services.AddScoped<IMobileResponsivenessService, MobileResponsivenessService>();
         builder.Services.AddScoped<IViewRenderService, ViewRenderService>();
-        builder.Services.AddHttpClient<IFaviconDetectionService, FaviconDetectionService>();
         builder.Services.AddScoped<IPlaywrightScraperService, PlaywrightScraperService>();
         builder.Services.AddScoped<IPopUpsService, PopUpsService>();
         builder.Services.AddScoped<IAnimationService, AnimationService>();
