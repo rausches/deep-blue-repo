@@ -9,7 +9,7 @@ html, body {
   /* height: 100%;     */  /* Commented out because it prevents the nav bar from staying fixed at the top while scrolling. */
   display: flex;
   flex-direction: column;
-  overflow: visible;
+  overflow-x: hidden;
 }
 
 .main-content {
@@ -1115,10 +1115,19 @@ Scroll back to top Styling
 */
 
 #scrollTopBtn {
-  background-color: var(--scroll-top-bg);
-  color: var(--scroll-top-text);
-  border: 1px solid #ddd;
-  color: var(--scroll-top-text);
+  position: fixed;
+  bottom: 100px;
+  left:-10px;
+  width: 5%;
+  z-index: 100;
+  background-color: #7c7c7cd3;
+  color: white;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+  transition: opacity 0.3s ease;
+  border-radius: 0 10px 10px 0;
 }
 
 /*
