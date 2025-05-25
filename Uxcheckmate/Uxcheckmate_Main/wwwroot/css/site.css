@@ -9,7 +9,6 @@ html, body {
   /* height: 100%;     */  /* Commented out because it prevents the nav bar from staying fixed at the top while scrolling. */
   display: flex;
   flex-direction: column;
-  overflow-x: hidden;
 }
 
 .main-content {
@@ -27,6 +26,7 @@ body {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
+  overflow-x: hidden;
 }
 
 .full-screen {
@@ -38,8 +38,6 @@ body {
 main {
   flex: 1; /* Allows main content to expand and push footer down */
 }
-
-
 
 /* 
 ==================================================
@@ -64,10 +62,7 @@ Navbar
   text-decoration: none;
   color: var(--nav-text);
 }
-.sticky-top{
-  position:fixed;
-  width: 100%;
-}
+
 .custom-toggler {
   border: none;
   display: flex;
@@ -738,7 +733,7 @@ Landing Page Styling
 #landingHeader{
   font-family:"DM Serif Text", serif;
   font-size: 60px;
-  padding-top: 15%;
+  padding-top: 5%;
 }
 
 #errorHeader{
@@ -756,19 +751,9 @@ Landing Page Styling
   font-weight: 300;
 }
 
-.main{
-  overflow-x:hidden;
-  padding-left: 5%;
-}
-
 .disclosure{
   padding: 5%;
 }
-
-/* .main.full-screen {
-    height: 100vh; 
-    overflow: hidden; 
-} */
 
 /* Slide-in animation */
 @keyframes slideInFromTop {
