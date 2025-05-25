@@ -1053,7 +1053,9 @@ Report Page Styling
 
 .downloadBtn{
   width: 20%;
+  font-family:"Lexend", sans-serif;
 }
+
 /*
 ==================================================
 User Dashboard Styling
@@ -1129,6 +1131,10 @@ User Dashboard Styling
 
 #designIssuesOverlay.hidden {
     display: none;
+}
+
+#sortSelect{
+  font-family:"Lexend", sans-serif;
 }
 
 #sortSelect:disabled{
@@ -1383,4 +1389,5 @@ Save Report in Results Page Styling
   border-radius: 15px;
   border: 1px solid #ddd;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  font-family:"Lexend", sans-serif;
 }
