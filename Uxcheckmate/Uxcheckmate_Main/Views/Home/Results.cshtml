@@ -33,12 +33,12 @@
         <div class="col-md-6">
             <img id="screenshotImage" src="@websiteScreenshot " alt="Website Screenshot" class="img-fluid" />
         </div>
-        <div class="col-md-6">
+        <div class="col-md-6 reportHeaderRight">
             @* Display the URL associated with the report *@
             <h1 id="reportHeader">@Model.Url</h1>
             @* Display the total number of issues found *@
             <p id="totalIssues">Total Issues Found: @(@Model.DesignIssues.Count() + @Model.AccessibilityIssues.Count()) </p>
-            <button class="btn btn-outline-info mb-3" id="viewSummaryBtn" hidden>View Summary</button>
+            <button class="btn btn-primary btn-global mb-3" id="viewSummaryBtn" hidden>View Summary</button>
         </div>
     </div>
 
