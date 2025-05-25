@@ -1,47 +1,50 @@
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Authentication;
-using System.Threading.Tasks;
 using System.Security.Claims;
+using System.Threading.Tasks;
 
-public class ExternalLoginModel : PageModel
+public class ExternalAuthController : Controller
 {
     private readonly SignInManager<IdentityUser> _signInManager;
     private readonly UserManager<IdentityUser> _userManager;
 
-    public ExternalLoginModel(SignInManager<IdentityUser> signInManager, UserManager<IdentityUser> userManager)
+    public ExternalAuthController(SignInManager<IdentityUser> signInManager, UserManager<IdentityUser> userManager)
     {
         _signInManager = signInManager;
         _userManager = userManager;
     }
 
-    public IActionResult OnPost(string provider, string returnUrl = null)
+    // Step 1: Kick off GitHub login
+    [HttpGet("auth/github")]
+    public IActionResult RedirectToProvider(string returnUrl = "/")
     {
-        returnUrl ??= Url.Content("~/");
-        var redirectUrl = Url.Page("./ExternalLogin", "Callback", new { returnUrl });
-        var properties = _signInManager.ConfigureExternalAuthenticationProperties(provider, redirectUrl);
-        return new ChallengeResult(provider, properties);
+        var redirectUrl = Url.Action("GitHubCallback", "ExternalAuth", new { returnUrl });
+        var properties = _signInManager.ConfigureExternalAuthenticationProperties("GitHub", redirectUrl);
+        return Challenge(properties, "GitHub");
     }
 
-    public async Task<IActionResult> OnGetCallbackAsync(string returnUrl = null, string remoteError = null)
+    // Step 2: Handle GitHub callback
+    [HttpGet("auth/github/callback")]
+    public async Task<IActionResult> GitHubCallback(string returnUrl = "/")
     {
-        returnUrl ??= Url.Content("~/");
-
-        if (remoteError != null)
-            return RedirectToPage("/Index");
-
         var info = await _signInManager.GetExternalLoginInfoAsync();
         if (info == null)
-            return RedirectToPage("/Index");
+        {
+            return View("LoginFailed");
+        }
 
         var result = await _signInManager.ExternalLoginSignInAsync(info.LoginProvider, info.ProviderKey, false);
         if (result.Succeeded)
-            return LocalRedirect(returnUrl);
+        {
+            return Redirect(returnUrl);
+        }
 
         var email = info.Principal.FindFirstValue(ClaimTypes.Email);
         if (email == null)
-            return RedirectToPage("/Index");
+        {
+            return View("LoginFailed");
+        }
 
         var user = await _userManager.FindByEmailAsync(email);
         if (user == null)
@@ -49,14 +52,14 @@ public class ExternalLoginModel : PageModel
             user = new IdentityUser { UserName = email, Email = email };
             var createResult = await _userManager.CreateAsync(user);
             if (!createResult.Succeeded)
-                return RedirectToPage("/Index");
+                return View("LoginFailed");
         }
 
         var addLoginResult = await _userManager.AddLoginAsync(user, info);
         if (!addLoginResult.Succeeded)
-            return RedirectToPage("/Index");
+            return View("LoginFailed");
 
         await _signInManager.SignInAsync(user, false);
-        return LocalRedirect(returnUrl);
+        return Redirect(returnUrl);
     }
 }
