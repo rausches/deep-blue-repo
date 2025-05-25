@@ -551,7 +551,7 @@ Report scanning wrapper style
   justify-content: center;
   box-sizing: border-box;
   z-index: 9999; 
-  overflow-y: auto; /* Enable vertical scrolling */
+  overflow-y: hidden; /* Disable vertical scrolling */
 }
 
 #scanningContainer {
@@ -581,6 +581,7 @@ Report scanning wrapper style
 .skeleton-text-color {
   color: white;
   font-family:"DM Serif Text", serif;
+  padding-left: 5%;
 }
 
 .loading-screenshot {
