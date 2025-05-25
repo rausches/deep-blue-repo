@@ -64,7 +64,10 @@ Navbar
   text-decoration: none;
   color: var(--nav-text);
 }
-
+.sticky-top{
+  position:fixed;
+  width: 100%;
+}
 .custom-toggler {
   border: none;
   display: flex;
@@ -728,13 +731,17 @@ Landing Page Styling
   transition: 0.3s ease;
 }
 
-
-
 .input-container button:hover {
   background: #153551; 
 }
 
-#landingHeader, #errorHeader{
+#landingHeader{
+  font-family:"DM Serif Text", serif;
+  font-size: 60px;
+  padding-top: 15%;
+}
+
+#errorHeader{
   font-family:"DM Serif Text", serif;
   font-size: 60px;
 }
