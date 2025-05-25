@@ -1051,6 +1051,9 @@ Report Page Styling
   border-radius: 1rem;
 }
 
+.downloadBtn{
+  width: 20%;
+}
 /*
 ==================================================
 User Dashboard Styling
