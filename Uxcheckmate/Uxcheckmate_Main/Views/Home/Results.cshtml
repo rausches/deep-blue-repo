@@ -110,10 +110,10 @@
     </div>
 </div>
 
-
+<br>
 @if (!userIsAuthenticated)
 {
-    <div class="alert alert-warning mt-4 save-report-content">
+    <div class="row save-report-content">
         <p><strong>Want to save this report?</strong> Create an account or log in now — we'll automatically link this report to your profile.</p>
 
         <form method="post" asp-action="StoreReportIdBeforeAuth" asp-controller="Home">
@@ -123,18 +123,18 @@
         </form>
     </div>
 }
-
+<br>
 @*
 ============================================================================================
                                 Print PDF
 ============================================================================================
 *@
 
-
-    <a asp-action="DownloadReport" asp-route-id="@Model.Id" class="btn btn-primary btn-global ">
+<div class="row">
+    <a asp-action="DownloadReport" asp-route-id="@Model.Id" class="btn btn-primary btn-global downloadBtn">
         Download PDF Report
     </a>
-
+</div>
 </div> @* End tag for #reportContainer *@
 </div> @*End tag for .container *@
 @section Scripts {
