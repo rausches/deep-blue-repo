@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.WebUtilities;
 
 public class ExternalLoginCallbackModel : PageModel
-{
+{/*
     private readonly SignInManager<IdentityUser> _signInManager;
     private readonly UserManager<IdentityUser> _userManager;
 
@@ -78,4 +78,4 @@ public class ExternalLoginCallbackModel : PageModel
         TempData["ErrorMessage"] = "Could not complete sign in with GitHub.";
         return RedirectToPage("./Login");
     }
-}
+*/}
