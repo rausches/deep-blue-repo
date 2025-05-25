@@ -7,17 +7,18 @@
 <div class="container feedbackContainer">
     <div class="row feedbackRow">
         <div class="col-md-6 feedbackCol" id="feedbackLeft">
-            <h2>We'd love to hear your thoughts!</h2>
-            <p>Tell us what worked, what didn't, if you're having issues, etc. We're happy to help.</p>
+            <h2 class="feedbackHeader">We'd love to hear your thoughts!</h2>
+            <br>
+            <p class="feedbackText">Tell us what worked, what didn't, if you're having issues, etc. We're happy to help.</p>
         </div>
         <div class="col-md-6 feedbackCol" id="feedbackRight">
             <form asp-action="SubmitFeedback" method="post">
             <div class="form-group">
-                <label asp-for="Message"></label>
+                <label asp-for="Message" class="feedbackText"></label>
                 <textarea asp-for="Message" class="form-control" rows="4" maxlength="255" oninput="updateCharCount()" aria-describedby="charCount" id="feedbackInput"></textarea>
-                <small id="charCount" class="form-text text-muted">0 / 255 characters used</small>
+                <small id="charCount" class="form-text text-muted feedbackText">0 / 255 characters used</small>
             </div>
-            <button type="submit" id="submitFeedback" class="btn btn-primary btn-global">Send &#10140;</button>
+            <button type="submit" id="submitFeedback" class="btn btn-primary btn-global feedbackText">Send &#10140;</button>
             </form>
             <br><br>
             @if (!ViewData.ModelState.IsValid){
