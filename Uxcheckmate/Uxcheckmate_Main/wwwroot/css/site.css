@@ -769,6 +769,8 @@ Landing Page Styling
 }
 .faqAccordionItem{
   background-color: #f9f9f966;
+  font-family: "Lexend", sans-serif;
+  font-size: 200;
 }
 
 #faqAccordion{
