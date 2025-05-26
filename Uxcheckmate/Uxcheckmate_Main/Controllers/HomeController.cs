@@ -79,6 +79,9 @@ public class HomeController : Controller
 
     public IActionResult Privacy() => View();
 
+    [HttpGet]
+    public IActionResult About() => View();
+
     public IActionResult ErrorPage() => View("ErrorPage");
 
     [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]

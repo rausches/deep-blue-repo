@@ -1504,3 +1504,53 @@ Save Report in Results Page Styling
   font-family:"Lexend", sans-serif;
   font-weight: 200;
 }
+
+/* About Us*/
+
+.aboutUsHeader{
+    font-family:"DM Serif Text", serif;
+    font-size: 4em;
+    text-align: center;
+}
+
+.aboutUsSubheader{
+    font-family:"DM Serif Text", serif;
+    font-size: 2em;
+}
+
+.aboutUsText{
+    font-family: "Lexend", sans-serif;
+    font-weight: 200;
+}
+
+.aboutUsTextPro{
+  text-align: center;
+}
+
+.about{
+  width: 75%;
+  display: block;
+  margin: auto;
+  background-color: rgba(255, 255, 255, 0.75);
+  padding: 5%;
+  border-radius: 15px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.aboutUsRow{
+  padding-bottom: 2%;
+}
+
+.visionLeft{
+  padding-right: 5%;
+}
+
+.visionRight{
+  padding-left: 5%;
+}
+
+.halfHr{
+  display: block;
+  margin: auto;
+  width: 25%;
+}
