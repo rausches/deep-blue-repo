@@ -1069,12 +1069,20 @@ User Dashboard Styling
 */
 
 .myUserDashHeader{
+  padding:5%;
+  background-color: rgba(255, 255, 255, 0.50);
   text-align: center;
-  padding: 5%;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.3);
 }
 
+.userdash-wrapper{
+  background-image: url("/images/websiteAnalysisHeaderImg.png");
+  background-repeat: no-repeat;
+}
 .my-dashboard-text {
   color: var(--my-dashboard-text-color);
+  font-family:"DM Serif Text", serif;
+  font-size: 4em;
 }
 
 .userDashbtn{
@@ -1089,6 +1097,9 @@ User Dashboard Styling
   transition: 0.3s ease;
 }
 
+#dashBtn{
+  font-family:"Lexend", sans-serif;
+}
 .userDashbtn:hover {
   background: #153551ac; 
 }
@@ -1162,9 +1173,6 @@ User Dashboard Styling
   border-radius: 0 0 5px 5px;
   box-shadow: 0 4px 6px rgba(0,0,0,0.3);
 }
-#allHeaderText{
-  font-size: 1em;
-}
 
 #recentHeader{
   text-align: center;
@@ -1174,8 +1182,10 @@ User Dashboard Styling
   box-shadow: 0 4px 6px rgba(0,0,0,0.3);
 }
 
-#recentHeaderText{
+#recentHeaderText, #allHeaderText, .noReports{
   font-size: 1em;
+  font-family: "Lexend", sans-serif;
+  font-weight: 300;
 }
 
 .recentReportContainer{
@@ -1184,6 +1194,7 @@ User Dashboard Styling
   padding-right: 3%;
   padding-bottom: 2%;
   border-radius: 5px;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.3);
 }
 
 .recentButtons{
@@ -1191,6 +1202,11 @@ User Dashboard Styling
   border-radius: 5px;
 }
 
+.lastReportText{
+  font-size: 1em;
+  font-family: "Lexend", sans-serif;
+  font-weight: 200;
+}
 .dashForm {
   display: flex;
   align-items: center;
@@ -1200,6 +1216,12 @@ User Dashboard Styling
   overflow: hidden; 
   width: 100%;
   background: white;
+  font-family:"Lexend", sans-serif;
+}
+
+#urlInput{
+  font-family:"Lexend", sans-serif;
+  font-weight: 200;
 }
 
 .dashForm input {
@@ -1236,6 +1258,7 @@ User Dashboard Styling
   background-color: rgba(255, 255, 255, 0.75);
   border-radius: 1%;
   padding-bottom: 5%;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.3);
 }
 .reportBtns{
   background-color: #ffffff00;
@@ -1252,12 +1275,18 @@ User Dashboard Styling
 
 #reportListSameDomain{
   padding-top: 4%;
+  font-family:"Lexend", sans-serif;
+  font-size: 200;
 }
 
 .dashFeedback{
   display:block;
   margin: auto;
+  font-family:"Lexend", sans-serif;
+  font-size: 200;
+  width: 80%;
 }
+
 .btn-ellipsis {
   background: transparent;
   border: none;
