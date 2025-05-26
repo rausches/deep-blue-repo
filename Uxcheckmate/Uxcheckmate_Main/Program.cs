@@ -101,7 +101,7 @@ public class Program
         builder.Services.AddScoped<PdfExportService>();
 
         // Register Captcha Service 
-        builder.Services.AddScoped<CaptchaService>();
+        builder.Services.AddScoped<ICaptchaService, CaptchaService>();
 
         // Register Report Services
         builder.Services.AddScoped<IReportService, ReportService>();

@@ -39,6 +39,7 @@ public class HomeController : Controller
     private readonly IMemoryCache _cache;
     private readonly IConfiguration _configuration;
     private readonly bool _captchaEnabled;
+    private const int ANON_REPORT_LIMIT = 3;
 
 
     public HomeController(ILogger<HomeController> logger, HttpClient httpClient, UxCheckmateDbContext dbContext,
@@ -90,7 +91,7 @@ public class HomeController : Controller
     // Captcha Validation
     // ============================================================================================================
     [HttpPost]
-    public async Task<IActionResult> ValidateCaptcha([FromServices] CaptchaService captchaService, [FromForm] string captchaToken)
+    public async Task<IActionResult> ValidateCaptcha([FromServices] ICaptchaService captchaService, [FromForm] string captchaToken)
     {
         if (!_captchaEnabled){
             HttpContext.Session.SetString("CaptchaVerified", "true");
@@ -115,7 +116,7 @@ public class HomeController : Controller
     // Report Logic
     // ============================================================================================================
     [HttpPost]
-    public async Task<IActionResult> Report([FromServices] CaptchaService captchaService, string url, string sortOrder = "category", bool isAjax = false, CancellationToken cancellationToken = default)
+    public async Task<IActionResult> Report([FromServices] ICaptchaService captchaService, string url, string sortOrder = "category", bool isAjax = false, CancellationToken cancellationToken = default)
     {
         try
         {
@@ -139,6 +140,13 @@ public class HomeController : Controller
             {
                 TempData["UrlUnreachable"] = "The URL you entered seems incorrect or no longer exists. Please try again.";
                 return RedirectToAction("Index");
+            }
+
+            if (!User.Identity.IsAuthenticated){
+                if (IsAnonymousUserLimitReached()){
+                    TempData["MaxedAnonSubmis"] = $"Anonymous users may only submit {ANON_REPORT_LIMIT} reports per session. Please register or log in for unlimited submissions.";
+                    return RedirectToAction("Index");
+                }
             }
 
             var websiteScreenshot = await CaptureScreenshot(url);
@@ -171,7 +179,7 @@ public class HomeController : Controller
 
             report.Status = "Processing"; 
             await _context.SaveChangesAsync();
-            
+
             // Queue background design work
             await _backgroundTaskQueue.QueueBackgroundWorkItemAsync(async token =>
             {
@@ -214,6 +222,7 @@ public class HomeController : Controller
                     _logger.LogError(ex, "Background design analysis failed.");
                 }
             });
+            
 
             // Fetch the full report inclunding related issues and categories
             /* if (string.IsNullOrEmpty(userId)){
@@ -266,6 +275,9 @@ public class HomeController : Controller
             }
 
             // Return the full results view
+            if (!User.Identity.IsAuthenticated){
+                IncrementAnonymousUserCount();
+            }
             return View("Results", fullReport);
         }
         catch (Exception ex)
@@ -643,6 +655,17 @@ public class HomeController : Controller
             return Redirect($"/Identity/Account/Register?reportId={reportId}");
         else
             return Redirect($"/Identity/Account/Login?reportId={reportId}");
+    }
+    private bool IsAnonymousUserLimitReached()
+    {
+        int anonCount = HttpContext.Session.GetInt32("AnonReportCount") ?? 0;
+        return anonCount >= ANON_REPORT_LIMIT;
+    }
+
+    private void IncrementAnonymousUserCount()
+    {
+        int anonCount = HttpContext.Session.GetInt32("AnonReportCount") ?? 0;
+        HttpContext.Session.SetInt32("AnonReportCount", anonCount + 1);
     }
 
     private void StoreReportInTempData(Report report)

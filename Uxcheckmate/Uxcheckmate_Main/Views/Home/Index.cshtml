@@ -21,6 +21,13 @@
         @TempData["CaptchaMessage"]
     </div>
 }
+@if (TempData["MaxedAnonSubmis"] != null)
+{
+    <div class="alert alert-warning">@TempData["MaxedAnonSubmis"]</div>
+    <a class="btn btn-dark btn-global" asp-area="Identity" asp-page="/Account/Login">Login</a>
+    <span> or </span>
+    <a class="btn btn-dark btn-global" asp-area="Identity" asp-page="/Account/Register">Register</a>
+}
 
 
 <section class="main full-screen">
