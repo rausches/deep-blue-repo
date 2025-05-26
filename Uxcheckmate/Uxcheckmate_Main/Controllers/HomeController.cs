@@ -142,7 +142,7 @@ public class HomeController : Controller
                 return RedirectToAction("Index");
             }
 
-            if (!User.Identity.IsAuthenticated){
+            if (!User.Identity.IsAuthenticated && IsAnonLimitGloballyEnabled()){
                 if (IsAnonymousUserLimitReached()){
                     TempData["MaxedAnonSubmis"] = $"Anonymous users may only submit {ANON_REPORT_LIMIT} reports per session. Please register or log in for unlimited submissions.";
                     return RedirectToAction("Index");
@@ -275,7 +275,7 @@ public class HomeController : Controller
             }
 
             // Return the full results view
-            if (!User.Identity.IsAuthenticated){
+            if (!User.Identity.IsAuthenticated && IsAnonLimitGloballyEnabled()){
                 IncrementAnonymousUserCount();
             }
             return View("Results", fullReport);
@@ -656,6 +656,11 @@ public class HomeController : Controller
         else
             return Redirect($"/Identity/Account/Login?reportId={reportId}");
     }
+    private bool IsAnonLimitGloballyEnabled()
+    {
+        return _configuration.GetValue("ReportLimit:AnonymousUserLimitEnabled", true);
+    }
+
     private bool IsAnonymousUserLimitReached()
     {
         int anonCount = HttpContext.Session.GetInt32("AnonReportCount") ?? 0;

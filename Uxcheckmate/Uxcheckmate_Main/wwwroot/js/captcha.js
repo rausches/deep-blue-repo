@@ -1,13 +1,18 @@
 function onCaptchaSuccess(token) {
     fetch('/Home/ValidateCaptcha', {
         method: 'POST',
-        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body: 'captchaToken=' + encodeURIComponent(token)
     })
     .then(res => res.json())
     .then(data => {
         if (data.success) {
-            document.getElementById('urlForm').submit();
+            const urlInput = document.getElementById('urlInput');
+            if (!urlInput || urlInput.value.trim() === "") {
+                location.reload();
+            } else {
+                document.getElementById('urlForm').submit();
+            }
         } else {
             showError(data.error || 'CAPTCHA failed.');
         }

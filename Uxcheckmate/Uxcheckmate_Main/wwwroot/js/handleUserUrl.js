@@ -79,6 +79,10 @@ document.addEventListener("DOMContentLoaded", function () {
             return false; 
         }
 
+        if (window.captchaEnabled === "true" && window.userIsAuthenticated !== "true"){
+            document.getElementById('analyzeBtn').disabled = true;
+        }
+
         const captchaContainer = document.getElementById("captchaContainer");
         if (captchaContainer && captchaContainer.offsetParent !== null) {
             const captchaValue = document.getElementById('g-recaptcha-response').value;
