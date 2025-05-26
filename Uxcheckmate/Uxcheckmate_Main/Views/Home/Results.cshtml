@@ -135,6 +135,30 @@
         Download PDF Report
     </a>
 </div>
+
+<br>
+<button onclick="scrollToTop()" id="scrollTopBtn" title="Go to top" class="btn btn-dark">
+    <img src="~/images/back_to_top_icon.png" alt="back to top icon" width="60%;"><br>
+</button>
+<br>
+
+<script>
+    const scrollTopBtn = document.getElementById("scrollTopBtn");
+
+    // Show button when user scrolls down 100px
+    window.onscroll = function () {
+        if (document.body.scrollTop > 100 || document.documentElement.scrollTop > 100) {
+            scrollTopBtn.style.display = "block";
+        } else {
+            scrollTopBtn.style.display = "none";
+        }
+    };
+
+    // Scroll to top smoothly
+    function scrollToTop() {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+</script>
 </div> @* End tag for #reportContainer *@
 </div> @*End tag for .container *@
 @section Scripts {
