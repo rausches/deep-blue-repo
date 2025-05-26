@@ -1344,13 +1344,36 @@ Login Page Styling
   box-shadow: 15px 10px 20px rgba(0, 0, 0, 0.433);
 }
 
+.registerContainer{
+  padding-top: 5%;
+}
+.registerRight{
+  background-color: white;
+  border-radius: 0 15px 15px 0;
+  padding: 5%;
+  box-shadow: 15px 10px 20px rgba(0, 0, 0, 0.433);
+}
+
+.registerLeft{
+  background-color: rgba(255, 255, 255, 0.347);
+  border-radius: 15px 0 0 15px;
+  padding: 5%;
+  box-shadow: 15px 10px 20px rgba(0, 0, 0, 0.433);
+}
+
+.registerHeader{
+  font-family:"DM Serif Text", serif;
+  font-size: 2.8em;
+  text-align: center;
+}
+
 .loginHeader{
   font-family:"DM Serif Text", serif;
   font-size: 4em;
   text-align: center;
 }
 
-.loginText{
+.loginText, .registerText{
   font-family:"Lexend", sans-serif;
   font-weight: 200;
   text-align: center;
@@ -1362,7 +1385,7 @@ Login Page Styling
   text-align: center;
 }
 
-.loginForm{
+.loginForm, #registerForm{
   font-family:"Lexend", sans-serif;
   font-weight: 200;
 }
@@ -1373,6 +1396,12 @@ Login Page Styling
   margin: auto;
   font-family:"Lexend", sans-serif;
   font-weight: 300;
+}
+
+.githubRegister{
+  font-family:"Lexend", sans-serif;
+  font-weight: 200;
+  font-size: 1em;
 }
 
 /*
