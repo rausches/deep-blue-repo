@@ -87,6 +87,31 @@ public class HomeController : Controller
         return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
     }
     // ============================================================================================================
+    // Captcha Validation
+    // ============================================================================================================
+    [HttpPost]
+    public async Task<IActionResult> ValidateCaptcha([FromServices] CaptchaService captchaService, [FromForm] string captchaToken)
+    {
+        if (!_captchaEnabled){
+            HttpContext.Session.SetString("CaptchaVerified", "true");
+            return Json(new { success = true });
+        }
+        if (User.Identity != null && User.Identity.IsAuthenticated){
+            HttpContext.Session.SetString("CaptchaVerified", "true");
+            return Json(new { success = true });
+        }
+        if (string.IsNullOrEmpty(captchaToken)){
+            return Json(new { success = false, error = "CAPTCHA token is missing." });
+        }
+        bool isValid = await captchaService.VerifyTokenAsync(captchaToken);
+        if (!isValid){
+            return Json(new { success = false, error = "CAPTCHA validation failed." });
+        }
+        HttpContext.Session.SetString("CaptchaVerified", "true");
+        return Json(new { success = true });
+    }
+
+    // ============================================================================================================
     // Report Logic
     // ============================================================================================================
     [HttpPost]
@@ -94,26 +119,21 @@ public class HomeController : Controller
     {
         try
         {
-            if (_captchaEnabled && !User.Identity.IsAuthenticated){
-                var captchaToken = Request.Form["CaptchaToken"];
-                if (string.IsNullOrEmpty(captchaToken)){
-                    ModelState.AddModelError("", "CAPTCHA token is missing.");
-                    return View("Index");
+            bool requireCaptcha = _captchaEnabled && !User.Identity.IsAuthenticated;
+            if (requireCaptcha){
+                var captchaStatus = HttpContext.Session.GetString("CaptchaVerified");
+                if (captchaStatus != "true"){
+                    TempData["CaptchaMessage"] = "CAPTCHA verification required. Please complete the CAPTCHA and try again.";
+                    return RedirectToAction("Index");
                 }
-                bool captchaValid = await captchaService.VerifyTokenAsync(captchaToken);
-                if (!captchaValid){
-                    ModelState.AddModelError("", "CAPTCHA validation failed. Please try again.");
-                    return View("Index");
-                }
-                HttpContext.Session.SetString("CaptchaVerified", "true");
             }
             if (string.IsNullOrEmpty(url))
             {
                 ModelState.AddModelError("url", "URL cannot be empty.");
                 return View("Index");
             }
-                // Normalize the URL *before* checking if it's reachable
-                url = NormalizeUrl(url);
+            // Normalize the URL *before* checking if it's reachable
+            url = NormalizeUrl(url);
 
             if (!await IsUrlReachable(url))
             {
@@ -122,7 +142,7 @@ public class HomeController : Controller
             }
 
             var websiteScreenshot = await CaptureScreenshot(url);
-            if (string.IsNullOrEmpty(websiteScreenshot ))
+            if (string.IsNullOrEmpty(websiteScreenshot))
             {
                 _logger.LogError("Failed to capture screenshot for URL: {Url}", url);
                 ModelState.AddModelError("", "An error occurred while capturing the screenshot.");
@@ -136,8 +156,8 @@ public class HomeController : Controller
             if (User.Identity.IsAuthenticated)
             {
                 userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-                    var roleClaims = User.FindAll(ClaimTypes.Role);
-                    isAdmin = roleClaims.Any(c => c.Value == "Admin");
+                var roleClaims = User.FindAll(ClaimTypes.Role);
+                isAdmin = roleClaims.Any(c => c.Value == "Admin");
             }
 
             // Create and save the report record.
@@ -148,9 +168,10 @@ public class HomeController : Controller
 
             // Attach results, and set Processing status
             report.AccessibilityIssues = accessibilityIssues.ToList();
+
             report.Status = "Processing"; 
             await _context.SaveChangesAsync();
-
+            
             // Queue background design work
             await _backgroundTaskQueue.QueueBackgroundWorkItemAsync(async token =>
             {
@@ -160,7 +181,7 @@ public class HomeController : Controller
 
                     // Retrieve a scoped instance of the database context
                     var scopedDbContext = scope.ServiceProvider.GetRequiredService<UxCheckmateDbContext>();
-                    
+
                     // Retrieve a scoped instance of the report service
                     var scopedReportService = scope.ServiceProvider.GetRequiredService<IReportService>();
 
@@ -195,27 +216,27 @@ public class HomeController : Controller
             });
 
             // Fetch the full report inclunding related issues and categories
-        /* if (string.IsNullOrEmpty(userId)){
-                report.AccessibilityIssues = accessibilityIssues.ToList();
-                report.DesignIssues = designIssues.ToList();
-                foreach (var issue in report.AccessibilityIssues){
-                    issue.Category = await _context.AccessibilityCategories.FindAsync(issue.CategoryId);
+            /* if (string.IsNullOrEmpty(userId)){
+                    report.AccessibilityIssues = accessibilityIssues.ToList();
+                    report.DesignIssues = designIssues.ToList();
+                    foreach (var issue in report.AccessibilityIssues){
+                        issue.Category = await _context.AccessibilityCategories.FindAsync(issue.CategoryId);
+                    }
+                    foreach (var issue in report.DesignIssues){
+                        issue.Category = await _context.DesignCategories.FindAsync(issue.CategoryId);
+                    }
                 }
-                foreach (var issue in report.DesignIssues){
-                    issue.Category = await _context.DesignCategories.FindAsync(issue.CategoryId);
-                }
-            }
-            // Fetch the report from the database to include related issues and categories
-            Report fullReport;
-            if (!string.IsNullOrEmpty(userId)){
-            // Fetch the full report including related issues and categories
-            fullReport = await _context.Reports
-                .Include(r => r.AccessibilityIssues).ThenInclude(a => a.Category)
-                .Include(r => r.DesignIssues).ThenInclude(d => d.Category)
-                .FirstOrDefaultAsync(r => r.Id == report.Id);
-            }else{
-                fullReport = report;
-            }*/
+                // Fetch the report from the database to include related issues and categories
+                Report fullReport;
+                if (!string.IsNullOrEmpty(userId)){
+                // Fetch the full report including related issues and categories
+                fullReport = await _context.Reports
+                    .Include(r => r.AccessibilityIssues).ThenInclude(a => a.Category)
+                    .Include(r => r.DesignIssues).ThenInclude(d => d.Category)
+                    .FirstOrDefaultAsync(r => r.Id == report.Id);
+                }else{
+                    fullReport = report;
+                }*/
 
             // Load fresh report for view
             var fullReport = await _context.Reports
@@ -646,4 +667,4 @@ public class HomeController : Controller
         };
         TempData["Report"] = JsonSerializer.Serialize(tempReport);
     }
-}
+} 

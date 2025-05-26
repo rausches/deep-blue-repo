@@ -15,6 +15,13 @@
         @TempData["UrlUnreachable"]
     </div>
 }
+@if (TempData["CaptchaMessage"] != null)
+{
+    <div class="alert alert-warning">
+        @TempData["CaptchaMessage"]
+    </div>
+}
+
 
 <section class="main full-screen">
     <div class="container scanContainer">
@@ -24,7 +31,7 @@
                 <h2 id="landingSubheader">AI-Powered Insights for a Better, More Accessible Web.</h2>
                 <br><br>
                 <h3 id="landingCallToAction">Try it now!</h3>
-                <form method="post" asp-action="Report" id="urlForm" onsubmit="return handleUserUrl(event);">
+                <form method="post" asp-action="Report" id="urlForm">
                     <div class="form-group">
                         <input type="hidden" id="g-recaptcha-response" name="CaptchaToken" />
                         @if (ViewData["CaptchaEnabled"] is bool captchaEnabled && captchaEnabled){
@@ -429,6 +436,10 @@
 </script>
 
 @section Scripts {
+    <script>
+        window.userIsAuthenticated = @(User.Identity.IsAuthenticated ? "true" : "false");
+        window.captchaEnabled = @((ViewData["CaptchaEnabled"] is bool ce && ce) ? "true" : "false");
+    </script>
     <script src="~/js/loader.js"></script>
     <script src="~/js/handleUserUrl.js"></script>
     <script src="~/js/captcha.js"></script>
