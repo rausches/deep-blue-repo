@@ -24,8 +24,8 @@ namespace Uxcheckmate_Tests
             // Mocked Json
             string json = @"
             [
-                { ""tag"": ""H1"", ""x"": 100, ""y"": 50, ""width"": 500, ""height"": 80, ""text"": ""Header"" },
-                { ""tag"": ""P"", ""x"": 100, ""y"": 150, ""width"": 800, ""height"": 100, ""text"": ""Paragraph"" }
+                { ""tag"": ""H1"", ""x"": 100, ""y"": 50, ""width"": 500, ""height"": 80, ""text"": ""Header"", ""isVisible"": true },
+                { ""tag"": ""P"", ""x"": 100, ""y"": 150, ""width"": 800, ""height"": 100, ""text"": ""Paragraph"", ""isVisible"": true }
             ]";
             var doc = JsonDocument.Parse(json);
             var jsResult = doc.RootElement;

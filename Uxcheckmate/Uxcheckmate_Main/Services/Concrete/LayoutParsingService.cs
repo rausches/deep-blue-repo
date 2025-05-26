@@ -22,13 +22,20 @@ namespace Uxcheckmate_Main.Services
                     () => {
                         return Array.from(document.querySelectorAll('h1, h2, h3, p, img, nav, a, button')).map(el => {
                             const rect = el.getBoundingClientRect();
+                            const style = window.getComputedStyle(el);
+                            const isVisible =
+                                el.offsetParent !== null &&
+                                rect.width > 0 && rect.height > 0 &&
+                                style.visibility !== 'hidden' &&
+                                style.opacity !== '0';
                             return {
                                 tag: el.tagName,
                                 x: rect.left,
                                 y: rect.top,
                                 width: rect.width,
                                 height: rect.height,
-                                text: el.innerText
+                                text: el.innerText,
+                                isVisible: isVisible
                             };
                         });
                     }
@@ -42,7 +49,8 @@ namespace Uxcheckmate_Main.Services
                         Y = element.GetProperty("y").GetDouble(),
                         Width = element.GetProperty("width").GetDouble(),
                         Height = element.GetProperty("height").GetDouble(),
-                        Text = element.GetProperty("text").GetString()
+                        Text = element.GetProperty("text").GetString(),
+                        IsVisible = element.GetProperty("isVisible").GetBoolean()
                     });
                 }
                 return elements;
