@@ -9,7 +9,6 @@ html, body {
   /* height: 100%;     */  /* Commented out because it prevents the nav bar from staying fixed at the top while scrolling. */
   display: flex;
   flex-direction: column;
-  overflow: visible;
 }
 
 .main-content {
@@ -27,6 +26,7 @@ body {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
+  overflow-x: hidden;
 }
 
 .full-screen {
@@ -35,11 +35,9 @@ body {
   overflow: hidden; 
 }
 
-main {
+.main {
   flex: 1; /* Allows main content to expand and push footer down */
 }
-
-
 
 /* 
 ==================================================
@@ -92,6 +90,12 @@ Navbar
   color: var(--nav-text);
 }
 
+.logoutBtn{
+  background-color: #ffffff00;
+  border: none;
+  font-size: 1.2rem;
+  padding: 0.5rem;
+}
 .nav-link:hover, .navbar-brand:hover{
   color: var(--nav-text-hover);
   background-color: var(--nav-bg-hover);
@@ -547,7 +551,7 @@ Report scanning wrapper style
   justify-content: center;
   box-sizing: border-box;
   z-index: 9999; 
-  overflow-y: auto; /* Enable vertical scrolling */
+  overflow-y: hidden; /* Disable vertical scrolling */
 }
 
 #scanningContainer {
@@ -577,6 +581,7 @@ Report scanning wrapper style
 .skeleton-text-color {
   color: white;
   font-family:"DM Serif Text", serif;
+  padding-left: 5%;
 }
 
 .loading-screenshot {
@@ -722,13 +727,17 @@ Landing Page Styling
   transition: 0.3s ease;
 }
 
-
-
 .input-container button:hover {
   background: #153551; 
 }
 
-#landingHeader, #errorHeader{
+#landingHeader{
+  font-family:"DM Serif Text", serif;
+  font-size: 60px;
+  padding-top: 5%;
+}
+
+#errorHeader{
   font-family:"DM Serif Text", serif;
   font-size: 60px;
 }
@@ -743,19 +752,28 @@ Landing Page Styling
   font-weight: 300;
 }
 
-.main{
-  overflow-x:hidden;
-  padding-left: 5%;
-}
-
 .disclosure{
   padding: 5%;
 }
 
-/* .main.full-screen {
-    height: 100vh; 
-    overflow: hidden; 
-} */
+/* Slide-in animation */
+@keyframes slideInFromTop {
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.slide-in {
+    animation: slideInFromTop 1s ease-out forwards;
+}
+.faqAccordionItem{
+  background-color: #f9f9f966;
+}
+
+#faqAccordion{
+  box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+}
 
 /*
 ==================================================
@@ -822,6 +840,8 @@ Disclosure Section Styling
   background-color: var(--disclosure-bg);
   box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
   flex-grow: 1; /* Ensures all boxes take full height */
+  opacity: 0;
+  transform: translateY(-50px);
 }
 
 /* Ensures images remain consistent */
@@ -838,6 +858,22 @@ Disclosure Section Styling
   font-family:"Lexend", sans-serif;
   font-weight: 200;
   font-size: 18px;
+  position: relative;
+}
+.disclosure-badge {
+    position: absolute;
+    top: 58%;
+    left: 80%;
+    transform: translate(-50%, -50%); /* center horizontally + vertically */
+    background-color: #000;
+    color: #fff;
+    padding: 0.25rem 0.75rem;
+    border-radius: 5px;
+    font-size: 0.75rem;
+    font-weight: bold;
+    z-index: 5;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+    pointer-events: none;
 }
 
 #logoImg, #axelogoImg, #ailogoImg{
@@ -863,8 +899,8 @@ FAQ Section Styling
 
 .faqSubheader{
   font-family:"Lexend", sans-serif;
-  font-weight: 600;
-  font-size: 30px;
+  font-weight: 400;
+  font-size: 18px;
 }
 
 .faqContent{
@@ -1015,6 +1051,17 @@ Report Page Styling
   border-radius: 1rem;
 }
 
+#viewSummaryBtn{
+  font-family:"Lexend", sans-serif;
+  font-weight: 200;
+  width: 25%;
+}
+
+.downloadBtn{
+  font-family:"Lexend", sans-serif;
+  font-weight: 200;
+  width: 25%;
+}
 /*
 ==================================================
 User Dashboard Styling
@@ -1022,21 +1069,20 @@ User Dashboard Styling
 */
 
 .myUserDashHeader{
-  padding: 30px;
+  padding:5%;
+  background-color: rgba(255, 255, 255, 0.50);
   text-align: center;
-  font-family:"DM Serif Text", serif;
-  font-size: 60px;
-  background: #f9f9f9a3;
-  background-image: url("/images/websiteAnalysisHeaderImg.png");
-  background-size: 50%;
-  background-repeat: no-repeat;
-  background-position: top right;
-  color: black;
-  font-size: 30px;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.3);
 }
 
+.userdash-wrapper{
+  background-image: url("/images/websiteAnalysisHeaderImg.png");
+  background-repeat: no-repeat;
+}
 .my-dashboard-text {
   color: var(--my-dashboard-text-color);
+  font-family:"DM Serif Text", serif;
+  font-size: 4em;
 }
 
 .userDashbtn{
@@ -1051,6 +1097,9 @@ User Dashboard Styling
   transition: 0.3s ease;
 }
 
+#dashBtn{
+  font-family:"Lexend", sans-serif;
+}
 .userDashbtn:hover {
   background: #153551ac; 
 }
@@ -1101,11 +1150,155 @@ User Dashboard Styling
     display: none;
 }
 
+#sortSelect{
+  font-family:"Lexend", sans-serif;
+  font-weight: 200;
+}
+
 #sortSelect:disabled{
   background-color: #e0e0e0;
   color: #888888; 
   cursor: not-allowed; 
   opacity: 1; 
+  font-weight: 200;
+}
+#dashHr{
+  margin-bottom: 0px;
+}
+
+#allHeader{
+  text-align: center;
+  background-color: white;
+  padding-top: 5px;
+  border-radius: 0 0 5px 5px;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+}
+
+#recentHeader{
+  text-align: center;
+  background-color: white;
+  padding-top: 5px;
+  border-radius: 0 0 5px 5px;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+}
+
+#recentHeaderText, #allHeaderText, .noReports{
+  font-size: 1em;
+  font-family: "Lexend", sans-serif;
+  font-weight: 300;
+}
+
+.recentReportContainer{
+  background-color: rgba(255, 255, 255, 0.75);
+  padding-left: 3%;
+  padding-right: 3%;
+  padding-bottom: 2%;
+  border-radius: 5px;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+}
+
+.recentButtons{
+  width: 70%;
+  border-radius: 5px;
+}
+
+.lastReportText{
+  font-size: 1em;
+  font-family: "Lexend", sans-serif;
+  font-weight: 200;
+}
+.dashForm {
+  display: flex;
+  align-items: center;
+  /* border: 2px solid #0B2C48;  */
+  border: var(--input-bg-btn);
+  border-radius: 5px; 
+  overflow: hidden; 
+  width: 100%;
+  background: white;
+  font-family:"Lexend", sans-serif;
+}
+
+#urlInput{
+  font-family:"Lexend", sans-serif;
+  font-weight: 200;
+}
+
+.dashForm input {
+  flex: 1;
+  border: none;
+  padding: 12px 20px;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-size: 16px;
+  outline: none;
+  border-radius: 50px 0 0 50px; 
+}
+
+.dashForm button {
+  /* background: #0B2C48;  */
+  background: var(--input-bg-btn);
+  color: white;
+  border: none;
+  padding: 12px 20px;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.3s ease;
+}
+
+.dashRow{
+  padding-right: 0;
+  margin-left: 0;
+  margin-right: 0;
+  padding-left: 0;
+}
+
+.dashLeftCol{
+  background-color: rgba(255, 255, 255, 0.75);
+  border-radius: 1%;
+  padding-bottom: 5%;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+}
+.reportBtns{
+  background-color: #ffffff00;
+  border: none;
+  width: 50%;
+}
+
+.groupedReportHeader{
+  text-align: center;
+}
+.dashDomain{
+  width: 100%;
+}
+
+#reportListSameDomain{
+  padding-top: 4%;
+  font-family:"Lexend", sans-serif;
+  font-size: 200;
+}
+
+.dashFeedback{
+  display:block;
+  margin: auto;
+  font-family:"Lexend", sans-serif;
+  font-size: 200;
+  width: 80%;
+}
+
+.btn-ellipsis {
+  background: transparent;
+  border: none;
+  font-size: 24px;
+  padding: 0 8px;
+  line-height: 1;
+}
+
+.btn-ellipsis:hover {
+  color: #007bff;
+  cursor: pointer;
+  background: transparent;
 }
 
 /*
@@ -1171,10 +1364,19 @@ Scroll back to top Styling
 */
 
 #scrollTopBtn {
-  background-color: var(--scroll-top-bg);
-  color: var(--scroll-top-text);
-  border: 1px solid #ddd;
-  color: var(--scroll-top-text);
+  position: fixed;
+  bottom: 100px;
+  left:-10px;
+  width: 5%;
+  z-index: 100;
+  background-color: #7c7c7cd3;
+  color: white;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+  transition: opacity 0.3s ease;
+  border-radius: 0 10px 10px 0;
 }
 
 /*
@@ -1187,6 +1389,82 @@ Login Page Styling
   color: var(--input-field-text-color);
 }
 
+.loginCol{
+  background-color: white;
+  border-radius: 15px;
+  padding: 5%;
+  box-shadow: 15px 10px 20px rgba(0, 0, 0, 0.433);
+}
+
+.oauthRow{
+  text-align: center;
+}
+
+.oauthCol{
+  width: 100%;
+}
+#registerImage{
+  display:block;
+  margin: auto;
+}
+
+.registerRight{
+  background-color: white;
+  border-radius: 0 15px 15px 0;
+  padding: 5%;
+  box-shadow: 15px 10px 20px rgba(0, 0, 0, 0.433);
+}
+
+.registerLeft{
+  background-color: rgba(255, 255, 255, 0.347);
+  border-radius: 15px 0 0 15px;
+  padding: 5%;
+  box-shadow: 15px 10px 20px rgba(0, 0, 0, 0.433);
+}
+
+.registerHeader{
+  font-family:"DM Serif Text", serif;
+  font-size: 2.8em;
+  text-align: center;
+}
+
+.loginHeader{
+  font-family:"DM Serif Text", serif;
+  font-size: 4em;
+  text-align: center;
+}
+
+.loginText, .registerText{
+  font-family:"Lexend", sans-serif;
+  font-weight: 200;
+  text-align: center;
+}
+
+.loginOr{
+  font-family:"Lexend", sans-serif;
+  font-weight: 300;
+  text-align: center;
+}
+
+.loginForm, #registerForm{
+  font-family:"Lexend", sans-serif;
+  font-weight: 200;
+}
+
+.loginBtn{
+  width: 50%;
+  display:block;
+  margin: auto;
+  font-family:"Lexend", sans-serif;
+  font-weight: 300;
+}
+
+.githubRegister{
+  font-family:"Lexend", sans-serif;
+  font-weight: 200;
+  font-size: 1em;
+}
+
 /*
 ==================================================
 Feedback Page Styling
@@ -1197,6 +1475,39 @@ Feedback Page Styling
   color: var(--max-characters-used-text-color);
 }
 
+
+.feedbackContainer{
+  background-color: rgba(255, 255, 255, 0.75);
+  padding: 5%;
+  border-radius: 10px;
+  width: 60%;
+  margin-top: 8%;
+}
+
+#feedbackLeft{
+  border-right: 1px solid black;
+}
+
+#feedbackRight{
+padding-left: 2%;
+}
+
+.feedbackHeader{
+  font-family:"DM Serif Text", serif;
+  font-size: 3em;
+  text-align: right;
+}
+
+.feedbackText{
+  font-family:"Lexend", sans-serif;
+  font-weight: 200;
+  text-align: right;
+}
+
+#submitFeedback{
+  display: block;
+  float: right;
+}
 /*
 ==================================================
 Global styling
@@ -1222,4 +1533,56 @@ Save Report in Results Page Styling
   border-radius: 15px;
   border: 1px solid #ddd;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  font-family:"Lexend", sans-serif;
+  font-weight: 200;
+}
+
+/* About Us*/
+
+.aboutUsHeader{
+    font-family:"DM Serif Text", serif;
+    font-size: 4em;
+    text-align: center;
+}
+
+.aboutUsSubheader{
+    font-family:"DM Serif Text", serif;
+    font-size: 2em;
+}
+
+.aboutUsText{
+    font-family: "Lexend", sans-serif;
+    font-weight: 200;
+}
+
+.aboutUsTextPro{
+  text-align: center;
+}
+
+.about{
+  width: 75%;
+  display: block;
+  margin: auto;
+  background-color: rgba(255, 255, 255, 0.75);
+  padding: 5%;
+  border-radius: 15px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.aboutUsRow{
+  padding-bottom: 2%;
+}
+
+.visionLeft{
+  padding-right: 5%;
+}
+
+.visionRight{
+  padding-left: 5%;
+}
+
+.halfHr{
+  display: block;
+  margin: auto;
+  width: 25%;
 }

@@ -80,6 +80,9 @@ public class HomeController : Controller
 
     public IActionResult Privacy() => View();
 
+    [HttpGet]
+    public IActionResult About() => View();
+
     public IActionResult ErrorPage() => View("ErrorPage");
 
     [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
@@ -341,7 +344,8 @@ public class HomeController : Controller
                 Severity = a.Severity,
                 WCAG = a.WCAG,
                 Category = a.Category?.Name
-            }).ToList()
+            }).ToList(),
+            Summary = r.Summary
         }).ToList();
         return View(reportDTOs);
     }
