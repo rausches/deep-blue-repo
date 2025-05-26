@@ -105,11 +105,42 @@ public class TestHtmlElement : HtmlElement
         Y = y;
         Width = width;
         Height = height;
-        if (Area > 0){
+        if (Area > 0)
+        {
             int textLength = (int)(desiredDensity * Area);
             Text = new string('A', Math.Max(textLength, 1)); // Fake character using different amount of As
-        }else{
+        }
+        else
+        {
             Text = "";
         }
+    }
+}
+
+public class MockHttpSession : ISession
+{
+    Dictionary<string, byte[]> _sessionStorage = new();
+    public IEnumerable<string> Keys => _sessionStorage.Keys;
+    public string Id { get; } = Guid.NewGuid().ToString();
+    public bool IsAvailable { get; } = true;
+    public void Clear() => _sessionStorage.Clear();
+    public Task CommitAsync(CancellationToken cancellationToken = default) => Task.CompletedTask;
+    public Task LoadAsync(CancellationToken cancellationToken = default) => Task.CompletedTask;
+    public void Remove(string key) => _sessionStorage.Remove(key);
+    public void Set(string key, byte[] value) => _sessionStorage[key] = value;
+    public bool TryGetValue(string key, out byte[] value) => _sessionStorage.TryGetValue(key, out value);
+    public void SetInt32(string key, int value) => Set(key, BitConverter.GetBytes(value));
+    public int? GetInt32(string key)
+    {
+        if (TryGetValue(key, out var data) && data?.Length == 4)
+            return BitConverter.ToInt32(data, 0);
+        return null;
+    }
+}
+public class FakeCaptchaService : ICaptchaService
+{
+    public Task<bool> VerifyTokenAsync(string token)
+    {
+        return Task.FromResult(true);
     }
 }

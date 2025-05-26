@@ -1333,6 +1333,29 @@ Admin Dashboard Styling
   font-weight: bold;
 }
 
+/*
+==================================================
+Admin feedback Styling
+==================================================
+*/
+.myAdminFeedbackHeader{
+  padding: 30px;
+  text-align: center;
+  font-family:"DM Serif Text", serif;
+  font-size: 60px;
+  background: #f9f9f9a3;
+  background-image: url("/images/admin_feedback_header.png");
+  background-repeat: no-repeat;
+  background-position: right top;
+  background-size: 20%;
+  font-size: 30px;
+}
+
+.carousel-control-prev-icon, .carousel-control-next-icon {
+  background-color: var(--accordian-bg);
+  border-radius: 50%;
+}
+
 
 /*
 ==================================================

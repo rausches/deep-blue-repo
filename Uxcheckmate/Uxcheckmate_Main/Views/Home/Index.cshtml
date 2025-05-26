@@ -15,8 +15,22 @@
         @TempData["UrlUnreachable"]
     </div>
 }
+@if (TempData["CaptchaMessage"] != null)
+{
+    <div class="alert alert-warning">
+        @TempData["CaptchaMessage"]
+    </div>
+}
+@if (TempData["MaxedAnonSubmis"] != null)
+{
+    <div class="alert alert-warning">@TempData["MaxedAnonSubmis"]</div>
+    <a class="btn btn-dark btn-global" asp-area="Identity" asp-page="/Account/Login">Login</a>
+    <span> or </span>
+    <a class="btn btn-dark btn-global" asp-area="Identity" asp-page="/Account/Register">Register</a>
+}
 
-<section class="main">
+
+<section class="main full-screen">
     <div class="container scanContainer">
         <div class="row" id="landingRowOne">
             <div class="col-md-6">
@@ -24,7 +38,7 @@
                 <h2 id="landingSubheader">AI-Powered Insights for a Better, More Accessible Web.</h2>
                 <br><br>
                 <h3 id="landingCallToAction">Try it now!</h3>
-                <form method="post" asp-action="Report" id="urlForm" onsubmit="return handleUserUrl(event);">
+                <form method="post" asp-action="Report" id="urlForm">
                     <div class="form-group">
                         <input type="hidden" id="g-recaptcha-response" name="CaptchaToken" />
                         @if (ViewData["CaptchaEnabled"] is bool captchaEnabled && captchaEnabled){
@@ -460,7 +474,10 @@
 </script>
 
 @section Scripts {
-    <script src="~/js/home.js"></script>
+    <script>
+        window.userIsAuthenticated = @(User.Identity.IsAuthenticated ? "true" : "false");
+        window.captchaEnabled = @((ViewData["CaptchaEnabled"] is bool ce && ce) ? "true" : "false");
+    </script>
     <script src="~/js/loader.js"></script>
     <script src="~/js/handleUserUrl.js"></script>
     <script src="~/js/captcha.js"></script>

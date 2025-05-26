@@ -54,7 +54,12 @@ public class Program
                 options.ClientId = builder.Configuration["Authentication:GitHub:ClientId"];
                 options.ClientSecret = builder.Configuration["Authentication:GitHub:ClientSecret"];
                 options.CallbackPath = "/signin-github";
-                options.Scope.Add("user:email"); // Ensures we get the user email
+                options.Scope.Add("user:email");
+            })
+            .AddGoogle(options =>
+            {
+                options.ClientId = builder.Configuration["Authentication:Google:ClientId"];
+                options.ClientSecret = builder.Configuration["Authentication:Google:ClientSecret"];
             });
 
         builder.Services.AddSession(options =>
@@ -101,7 +106,7 @@ public class Program
         builder.Services.AddScoped<PdfExportService>();
 
         // Register Captcha Service 
-        builder.Services.AddScoped<CaptchaService>();
+        builder.Services.AddScoped<ICaptchaService, CaptchaService>();
 
         // Register Report Services
         builder.Services.AddScoped<IReportService, ReportService>();

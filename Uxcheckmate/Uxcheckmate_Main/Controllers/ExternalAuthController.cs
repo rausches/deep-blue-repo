@@ -62,4 +62,44 @@ public class ExternalAuthController : Controller
         await _signInManager.SignInAsync(user, false);
         return Redirect(returnUrl);
     }
+
+    [HttpGet("auth/google")]
+    public IActionResult RedirectToGoogle(string returnUrl = "/")
+    {
+        var redirectUrl = Url.Action("GoogleCallback", "ExternalAuth", new { returnUrl });
+        var properties = _signInManager.ConfigureExternalAuthenticationProperties("Google", redirectUrl);
+        return Challenge(properties, "Google");
+    }
+
+    [HttpGet("auth/google/callback")]
+    public async Task<IActionResult> GoogleCallback(string returnUrl = "/")
+    {
+        var info = await _signInManager.GetExternalLoginInfoAsync();
+        if (info == null)
+            return View("LoginFailed");
+
+        var result = await _signInManager.ExternalLoginSignInAsync(info.LoginProvider, info.ProviderKey, false);
+        if (result.Succeeded)
+            return Redirect(returnUrl);
+
+        var email = info.Principal.FindFirstValue(ClaimTypes.Email);
+        if (email == null)
+            return View("LoginFailed");
+
+        var user = await _userManager.FindByEmailAsync(email);
+        if (user == null)
+        {
+            user = new IdentityUser { UserName = email, Email = email };
+            var createResult = await _userManager.CreateAsync(user);
+            if (!createResult.Succeeded)
+                return View("LoginFailed");
+        }
+
+        var addLoginResult = await _userManager.AddLoginAsync(user, info);
+        if (!addLoginResult.Succeeded)
+            return View("LoginFailed");
+
+        await _signInManager.SignInAsync(user, false);
+        return Redirect(returnUrl);
+    }
 }

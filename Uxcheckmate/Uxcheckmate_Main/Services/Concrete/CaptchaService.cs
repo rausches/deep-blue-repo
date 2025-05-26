@@ -1,5 +1,5 @@
 using System.Text.Json;
-public class CaptchaService
+public class CaptchaService : ICaptchaService
 {
     private readonly IConfiguration _config;
     private readonly IHttpClientFactory _httpClientFactory;
@@ -15,4 +15,6 @@ public class CaptchaService
         var result = JsonSerializer.Deserialize<Dictionary<string, object>>(await response.Content.ReadAsStringAsync());
         return result != null && result.TryGetValue("success", out var success) && success.ToString() == "True";
     }
-}
+} 
+
+
