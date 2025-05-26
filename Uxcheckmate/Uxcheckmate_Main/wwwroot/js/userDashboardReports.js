@@ -161,9 +161,12 @@ function deleteReport(reportId) {
 
 // Function to format date
 function formattedDate(dateString) {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', { 
-         year: 'numeric', month: 'short', day: 'numeric' });
+    const [year, month, day] = dateString.split('T')[0].split('-');
+    return new Date(year, month - 1, day).toLocaleDateString('en-US', { 
+        year: 'numeric', 
+        month: 'short', 
+        day: 'numeric' 
+    });
 }
 
 // Function to download a report as a PDF
