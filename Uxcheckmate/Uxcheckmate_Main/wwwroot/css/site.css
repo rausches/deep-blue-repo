@@ -1337,6 +1337,43 @@ Login Page Styling
   color: var(--input-field-text-color);
 }
 
+.loginCol{
+  background-color: white;
+  border-radius: 15px;
+  padding: 5%;
+  box-shadow: 15px 10px 20px rgba(0, 0, 0, 0.433);
+}
+
+.loginHeader{
+  font-family:"DM Serif Text", serif;
+  font-size: 4em;
+  text-align: center;
+}
+
+.loginText{
+  font-family:"Lexend", sans-serif;
+  font-weight: 200;
+  text-align: center;
+}
+
+.loginOr{
+  font-family:"Lexend", sans-serif;
+  font-weight: 300;
+  text-align: center;
+}
+
+.loginForm{
+  font-family:"Lexend", sans-serif;
+  font-weight: 200;
+}
+
+.loginBtn{
+  width: 50%;
+  display:block;
+  margin: auto;
+  font-family:"Lexend", sans-serif;
+  font-weight: 300;
+}
 
 /*
 ==================================================
