@@ -48,6 +48,15 @@ public class Program
                 .AddRoles<IdentityRole>()
                 .AddEntityFrameworkStores<AuthDbContext>();
 
+        builder.Services.AddAuthentication()
+            .AddGitHub(options =>
+            {
+                options.ClientId = builder.Configuration["Authentication:GitHub:ClientId"];
+                options.ClientSecret = builder.Configuration["Authentication:GitHub:ClientSecret"];
+                options.CallbackPath = "/signin-github";
+                options.Scope.Add("user:email"); // Ensures we get the user email
+            });
+
         builder.Services.AddSession(options =>
         {
             options.IdleTimeout = TimeSpan.FromMinutes(30);
