@@ -35,7 +35,7 @@ body {
   overflow: hidden; 
 }
 
-main {
+.main {
   flex: 1; /* Allows main content to expand and push footer down */
 }
 
@@ -1396,9 +1396,18 @@ Login Page Styling
   box-shadow: 15px 10px 20px rgba(0, 0, 0, 0.433);
 }
 
-.registerContainer{
-  padding-top: 5%;
+.oauthRow{
+  text-align: center;
 }
+
+.oauthCol{
+  width: 100%;
+}
+#registerImage{
+  display:block;
+  margin: auto;
+}
+
 .registerRight{
   background-color: white;
   border-radius: 0 15px 15px 0;

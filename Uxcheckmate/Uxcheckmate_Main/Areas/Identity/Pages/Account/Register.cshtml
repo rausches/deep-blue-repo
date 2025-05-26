@@ -8,13 +8,30 @@
 <section class="main">
     <div class="container registerContainer">
         <div class="row registerRow">
-            <div class="col-md-2"></div>
-            <div class="col-md-4 registerLeft">
+            <div class="col-md-1"></div>
+            <div class="col-md-5 registerLeft">
                 <h1 class="registerHeader">Create Account</h1>
                 <p class="registerText">Sign up and start improving your UX</p>
-                <img src="~/images/people-with-chess-pieces-concept-illustration.png" width="100%">
+                <br>
+                <img src="~/images/login_chess.png" id="registerImage" width="80%">
             </div>
-            <div class="col-md-4 registerRight">
+            <div class="col-md-5 registerRight">
+                <div class="row">
+                    <div class="col-md-6">
+                        <!-- Custom GitHub OAuth button using your ExternalAuthController -->
+                        <a href="/auth/github" class="btn btn-outline-dark  githubRegister">
+                            <img src="https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png" width="20" class="me-2" />
+                            Sign up with GitHub
+                        </a>
+                    </div>
+                    <div class="col-md-6">
+                        <a href="/auth/google" class="btn btn-outline-danger githubRegister"">
+                            <img src="https://developers.google.com/identity/images/g-logo.png" width="18" class="me-2" />
+                            Sign up with Google
+                        </a>
+                    </div>
+                </div>
+                <hr>
                 <p class="registerText">Already have an account? Sign in <a href="~/Identity/Account/Login">here</a>.</p>
                 <form id="registerForm" asp-route-returnUrl="@Model.ReturnUrl" method="post">
                     <input type="hidden" asp-for="ReportId" />
@@ -38,21 +55,12 @@
                         <span asp-validation-for="Input.ConfirmPassword" class="text-danger"></span>
                     </div>
                     <hr>
-                    <div class="row g-0">
-                        <div class="col-md-4">
-                            <button id="registerSubmit" type="submit" class="btn btn-dark log-in-btn btn-global">Register</button>
-                        </div>
-                        <div class="col-md-8">
-                            <!-- Custom GitHub OAuth button using your ExternalAuthController -->
-                            <a href="/auth/github" class="btn btn-outline-dark d-inline-block githubRegister">
-                                <img src="https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png" width="20" class="me-2" />
-                                Sign up with GitHub
-                            </a>
-                        </div>
+                    <div class="row">
+                        <button id="registerSubmit" type="submit" class="btn btn-dark log-in-btn btn-global">Register</button>
                     </div>
                 </form>
             </div>
-            <div class="col-md-2"></div>
+            <div class="col-md-1"></div>
         </div>
     </div>
 </section>

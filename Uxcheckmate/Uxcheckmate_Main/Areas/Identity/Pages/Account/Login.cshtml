@@ -11,12 +11,22 @@
             <div class="col-md-6 loginCol">
                 <h1 class="loginHeader">Welcome Back!</h2>
                 <p class="loginText">Sign into your UxCheckmate account</p>
+                <div class="row oauthRow">
+                    <div class="col-md-6">
+                        <!-- Custom GitHub OAuth button using your ExternalAuthController -->
+                        <a href="/auth/github" class="btn btn-outline-dark d-inline-block mt-2 oauthCol">
+                            <img src="https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png" width="20" class="me-2" />
+                            Sign in with GitHub
+                        </a>    
 
-                <!-- Custom GitHub OAuth button using your ExternalAuthController -->
-                <a href="/auth/github" class="btn btn-outline-dark d-inline-block mt-2">
-                    <img src="https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png" width="20" class="me-2" />
-                    Sign in with GitHub
-                </a>
+                    </div>
+                    <div class="col-md-6">
+                        <a href="/auth/google" class="btn btn-outline-danger d-inline-block mt-2 oauthCol">
+                            <img src="https://developers.google.com/identity/images/g-logo.png" width="18" class="me-2" />
+                            Sign in with Google
+                        </a>
+                    </div>
+                </div>         
                 <div class="row orRow">
                     <div class="col-md-5"><hr class="hrLeft"></div>
                     <div class="col-md-2 loginOr">OR</div>
