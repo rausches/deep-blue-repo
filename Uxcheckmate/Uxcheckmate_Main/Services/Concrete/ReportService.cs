@@ -91,7 +91,7 @@ namespace Uxcheckmate_Main.Services
             await RunCategoryAnalysesAsync(report, designCategories, scrapedData, fullScraped, screenshotTask, scanResults, cancellationToken);
 
             // Get Report Summary
-            await GenerateAndAssignSummaryAsync(report, fullScraped.HtmlContent, scanResults.ToList(), url, cancellationToken);
+            // await GenerateAndAssignSummaryAsync(report, fullScraped.HtmlContent, scanResults.ToList(), url, cancellationToken);
 
             // Mark report as complete
             await MarkReportAsCompletedAsync(report.Id, cancellationToken);

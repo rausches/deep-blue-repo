@@ -70,11 +70,16 @@ namespace BDD_Tests.StepDefinitions
             var loginButton = driver.FindElement(By.CssSelector("button[type='submit']"));
             loginButton.Click();
         }
-        
+
         [When(@"the user enters a URL to analyze(?: with ""(.*)"")?")]
         public void WhenTheUserEntersAUrlToAnalyze(string url = "https://example.com")
         {
             driver.FindElement(By.Id("urlInput")).SendKeys(url);
+        }
+        [When("the user goes back to the home page")]
+        public void GivenTheUserGoesBackToHomepage()
+        {
+            driver.Navigate().GoToUrl("http://localhost:5000/");
         }
         [When("the user starts the analysis")]
         public void WhenTheUserStartsTheAnalysis()
@@ -83,7 +88,8 @@ namespace BDD_Tests.StepDefinitions
             submitButton.Click();
         }
         [When("the report view has loaded")]
-        public void WHenReportViewHadLoaded(){
+        public void WHenReportViewHadLoaded()
+        {
             var wait = new WebDriverWait(driver, TimeSpan.FromSeconds(15));
             bool navigated = wait.Until(d => d.Url.Contains("/Home/Report"));
             Assert.That(navigated, Is.True, "Did not navigate to Report View.");
@@ -92,7 +98,7 @@ namespace BDD_Tests.StepDefinitions
         public void ThenTheUserShouldSeeTheResultView()
         {
             Assert.That(driver.Url, Does.Contain("/Home/Report"), "Did not navigate to Report View.");
-            Assert.That(driver.PageSource.Contains("Report"),Is.True, "Expected content not found on result view.");
+            Assert.That(driver.PageSource.Contains("Report"), Is.True, "Expected content not found on result view.");
         }
 
         [When("the user enters {string} to analyze")]
@@ -118,22 +124,35 @@ namespace BDD_Tests.StepDefinitions
 
             wait.Until(d => d.FindElement(By.Id("reportContainer"))); // Wait for report
         }
+        [Then(@"the user should see a message saying ""(.*)""")]
+        public void ThenTheUserShouldSeeAMessage(string expectedMessage)
+        {
+            var wait = new WebDriverWait(driver, TimeSpan.FromSeconds(10));
+            wait.Until(d => d.PageSource.Contains(expectedMessage));
+            Assert.That(driver.PageSource, Contains.Substring(expectedMessage));
+        }
         private async Task WaitUntilAvailable(string url, int timeoutSeconds = 15)
         {
             using var client = new HttpClient();
             var start = DateTime.Now;
-            while ((DateTime.Now - start).TotalSeconds < timeoutSeconds){
-                try{
+            while ((DateTime.Now - start).TotalSeconds < timeoutSeconds)
+            {
+                try
+                {
                     var response = await client.GetAsync(url);
-                    if (response.IsSuccessStatusCode){
+                    if (response.IsSuccessStatusCode)
+                    {
                         return;
                     }
-                }catch{
+                }
+                catch
+                {
                     // Server not up
                 }
                 await Task.Delay(500);
             }
             throw new Exception($"Timed out waiting for local HTML server at {url}");
         }
+        
     }
 }

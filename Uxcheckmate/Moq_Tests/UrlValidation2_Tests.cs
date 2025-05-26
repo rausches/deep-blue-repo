@@ -5,6 +5,7 @@ using Moq;
 using Moq.Protected;
 using System.Net.Http;
 using System.Threading.Tasks;
+using System.Security.Claims;
 using Uxcheckmate_Main.Controllers;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
@@ -93,7 +94,14 @@ namespace UrlValidation_Tests
                     {
                         { "CaptchaToken", "test-token" }
                     });
-                    _controller.ControllerContext.HttpContext.Request.Form = form;
+                    var claims = new List<Claim>
+                    {
+                        new Claim(ClaimTypes.Name, "testuser"),
+                        new Claim(ClaimTypes.NameIdentifier, "1")
+                    };
+                    var identity = new ClaimsIdentity(claims, "TestAuthType");
+                    var principal = new ClaimsPrincipal(identity);
+                    _controller.ControllerContext.HttpContext.User = principal;
 
                     // Act
                     var result = await _controller.Report(_captchaService, url, null, false, CancellationToken.None);

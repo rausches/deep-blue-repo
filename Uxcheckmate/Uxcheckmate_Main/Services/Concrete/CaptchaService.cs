@@ -1,5 +1,5 @@
 using System.Text.Json;
-public class CaptchaService
+public class CaptchaService : ICaptchaService
 {
     private readonly IConfiguration _config;
     private readonly IHttpClientFactory _httpClientFactory;
