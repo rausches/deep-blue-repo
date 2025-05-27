@@ -127,6 +127,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 return false;
             }
         }
+        showScanningTransition(); 
 
         try {
             // Make an AJAX call to the screenshot API endpoint
@@ -159,9 +160,6 @@ document.addEventListener("DOMContentLoaded", function () {
                 // Set CSS transition class
                 previewImage.classList.add('loaded');
             }
-
-            // Trigger transition to the loading overlay and auto-submit the form after a short delay
-            showScanningTransition(); 
 
         } catch (err) {
             // If the fetch call fails 

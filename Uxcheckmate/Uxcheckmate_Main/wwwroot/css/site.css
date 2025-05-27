@@ -769,6 +769,8 @@ Landing Page Styling
 }
 .faqAccordionItem{
   background-color: #f9f9f966;
+  font-family: "Lexend", sans-serif;
+  font-weight: 200;
 }
 
 #faqAccordion{
@@ -1413,7 +1415,7 @@ Login Page Styling
 }
 
 .loginCol{
-  background-color: white;
+  background-color: var(--nav-bg);
   border-radius: 15px;
   padding: 5%;
   box-shadow: 15px 10px 20px rgba(0, 0, 0, 0.433);
@@ -1432,7 +1434,7 @@ Login Page Styling
 }
 
 .registerRight{
-  background-color: white;
+  background-color: var(--nav-bg);
   border-radius: 0 15px 15px 0;
   padding: 5%;
   box-shadow: 15px 10px 20px rgba(0, 0, 0, 0.433);

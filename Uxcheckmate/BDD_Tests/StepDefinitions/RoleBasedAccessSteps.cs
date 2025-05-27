@@ -11,6 +11,7 @@ using Uxcheckmate_Main.Services;
 using Uxcheckmate_Main.Models;
 using NUnit.Framework;
 using OpenQA.Selenium;
+using OpenQA.Selenium.Support.UI;
 
 namespace BDD_Tests.StepDefinitions
 {

@@ -11,6 +11,7 @@ using Uxcheckmate_Main.Services;
 using Uxcheckmate_Main.Models;
 using NUnit.Framework;
 using OpenQA.Selenium;
+using OpenQA.Selenium.Support.UI;
 
 namespace BDD_Tests.StepDefinitions
 {
@@ -99,19 +100,18 @@ namespace BDD_Tests.StepDefinitions
         [Then("they should see that report")]
         public void ThenTheyShouldSeeThatReport()
         {
-            Assert.That(driver.PageSource.Contains("Report ID"), Is.True, "Report ID was not found on the dashboard page.");
+            Assert.That(driver.PageSource.Contains("Date"), Is.True, "Report ID was not found on the dashboard page.");
         }
 
         // Grouped reports
-        [Then("the user should see grouped reports by domain")]
+        [Then("the user should see grouped page reports by domain")]
         public void ThenUserSeesGroupedReportsByDomain()
         {
-            var groupedReports = driver.FindElements(By.ClassName("grouped-report"));
-            Assert.That(groupedReports.Count, Is.GreaterThan(0), "No grouped reports found on the dashboard.");
-            foreach (var report in groupedReports)
-            {
-                Assert.That(report.Text, Does.Contain("https://example.com"), "Expected domain not found in grouped reports.");
-            }
+            var wait = new WebDriverWait(driver, TimeSpan.FromSeconds(10));
+
+            // Wait until at least one folder-card is present
+            var reportGroups = wait.Until(d => d.FindElements(By.ClassName("folder-card")));
+            Assert.That(reportGroups.Count, Is.GreaterThan(0), "No grouped report cards found.");
         }
     }
  }

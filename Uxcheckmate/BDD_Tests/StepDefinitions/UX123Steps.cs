@@ -96,7 +96,7 @@ namespace BDD_Tests.StepDefinitions
             var summary = wait.Until(driver => driver.FindElement(By.Id("onLoadModal")));
 
             // assert that modal is not visible
-            Assert.That(summary.Displayed, Is.False, "Select element should be disabled.");
+            Assert.That(summary.Displayed, Is.False, "Modal should not be visible");
         }
 
         [Then("the user clicks the summary button")]
