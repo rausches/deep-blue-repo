@@ -37,11 +37,10 @@
                     var formattedName = char.ToUpper(userName[0]) + userName.Substring(1).ToLower();
 
                     <div class="d-flex align-items-center gap-2">
-                        
                         <div class="rounded-circle d-flex profile-user-icon text-center align-items-center justify-content-center user-initial">
                             @userInitial
                         </div>                                
-                        <span class="navbar-text gap-3 user-authenticated ">Welcome, @formattedName!</span>
+                        <span class="navbar-text gap-3 user-authenticated">Welcome, @formattedName!</span>
                     </div>
                 }
                 else{
@@ -74,8 +73,13 @@
                                     <li class="nav-item">
                                         <a class="nav-link" asp-area="" asp-controller="Admin" asp-action="Index" id="jumpTo">Admin Dashboard</a>
                                     </li>
-                                    <li class="nav-item">
+                                    @* <li class="nav-item">
                                         <a class="nav-link" asp-area="" asp-controller="Admin" asp-action="AdminFeedback" id="jumpTo">Feedback</a>
+                                    </li> *@
+                                    <li>
+                                        <form method="post" asp-area="Identity" asp-page="/Account/Logout">
+                                            <button type="submit" class="logoutBtn" id="jumpTo">Logout</button>
+                                        </form>
                                     </li>
                                 }
                                 else
