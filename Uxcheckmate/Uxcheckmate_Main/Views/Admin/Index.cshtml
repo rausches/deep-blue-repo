@@ -5,16 +5,18 @@
     var reportIndex = 0;
 }
 
-<div class="container admindash-wrapper">
+<div class="container-fluid userdash-wrapper g-0">
 
-
-    <header class="myAdminDashHeader">
-        <h1 class="display-4 my-dashboard-text">Admin Dashboard</h1>
+    <div class="row myAdminDashHeader">
+        <h1 class="display-4 my-dashboard-text">Admin Dashboard</h1> <br>
         <form method="post" asp-area="Identity" asp-page="/Account/Logout">
             <button type="submit" class="btn btn-dark btn-global">Logout</button>
         </form>
+    </div>
+</div>
 
-    </header>
+
+
 
     <div class="container mt-4">
         @if (Model.Count == 0)

@@ -33,12 +33,12 @@
         <div class="col-md-6">
             <img id="screenshotImage" src="@websiteScreenshot " alt="Website Screenshot" class="img-fluid" />
         </div>
-        <div class="col-md-6">
+        <div class="col-md-6 reportHeaderRight">
             @* Display the URL associated with the report *@
             <h1 id="reportHeader">@Model.Url</h1>
             @* Display the total number of issues found *@
             <p id="totalIssues">Total Issues Found: @(@Model.DesignIssues.Count() + @Model.AccessibilityIssues.Count()) </p>
-            <button class="btn btn-outline-info mb-3" id="viewSummaryBtn" hidden>View Summary</button>
+            <button class="btn btn-primary btn-global mb-3" id="viewSummaryBtn" hidden>View Summary</button>
         </div>
     </div>
 
@@ -110,10 +110,10 @@
     </div>
 </div>
 
-
+<br>
 @if (!userIsAuthenticated)
 {
-    <div class="alert alert-warning mt-4 save-report-content">
+    <div class="row save-report-content">
         <p><strong>Want to save this report?</strong> Create an account or log in now — we'll automatically link this report to your profile.</p>
 
         <form method="post" asp-action="StoreReportIdBeforeAuth" asp-controller="Home">
@@ -123,18 +123,42 @@
         </form>
     </div>
 }
-
+<br>
 @*
 ============================================================================================
                                 Print PDF
 ============================================================================================
 *@
 
-
-    <a asp-action="DownloadReport" asp-route-id="@Model.Id" class="btn btn-primary btn-global ">
+<div class="row">
+    <a asp-action="DownloadReport" asp-route-id="@Model.Id" class="btn btn-primary btn-global downloadBtn">
         Download PDF Report
     </a>
+</div>
 
+<br>
+<button onclick="scrollToTop()" id="scrollTopBtn" title="Go to top" class="btn btn-dark">
+    <img src="~/images/back_to_top_icon.png" alt="back to top icon" width="60%;"><br>
+</button>
+<br>
+
+<script>
+    const scrollTopBtn = document.getElementById("scrollTopBtn");
+
+    // Show button when user scrolls down 100px
+    window.onscroll = function () {
+        if (document.body.scrollTop > 100 || document.documentElement.scrollTop > 100) {
+            scrollTopBtn.style.display = "block";
+        } else {
+            scrollTopBtn.style.display = "none";
+        }
+    };
+
+    // Scroll to top smoothly
+    function scrollToTop() {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+</script>
 </div> @* End tag for #reportContainer *@
 </div> @*End tag for .container *@
 @section Scripts {
