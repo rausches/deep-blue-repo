@@ -11,6 +11,7 @@
     <header class="myAdminDashHeader">
         <h1 class="display-4 my-dashboard-text">Admin Dashboard</h1>
         <form method="post" asp-area="Identity" asp-page="/Account/Logout">
+            @Html.AntiForgeryToken()
             <button type="submit" class="btn btn-dark btn-global">Logout</button>
         </form>
 
@@ -37,7 +38,7 @@
                     <tr>
                         <td style="width: 35%;">
                             <form method="post" asp-action="DeleteUser" asp-controller="Admin" asp-route-id="@user.User.Id" onsubmit="return confirm('Are you sure you want to delete this user and all associated data?');" class="mt-2">
-
+                                @Html.AntiForgeryToken()
                                 <button type="submit" class="btn btn-sm btn-danger" style="margin-right: 5%;">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash" viewBox="0 0 16 16">
                                     <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0z"/>
@@ -67,6 +68,7 @@
                                             <!-- Left: Delete Button -->
                                             <div class="me-3">
                                             <form method="post" asp-action="DeleteReport" asp-controller="Admin" asp-route-id="@report.Id" onsubmit="return confirm('Are you sure you want to delete this report?');">
+                                                @Html.AntiForgeryToken()
                                                 <button type="submit" class="btn btn-sm btn-danger bi-trash"> Delete Report
                                                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
                                                     class="bi bi-trash" viewBox="0 0 16 16">

@@ -14,6 +14,8 @@
             <p class="mb-4">Log in to your UxCheckmate account.</p>
 
             <form id="account" method="post">
+                @Html.AntiForgeryToken()
+                
                 <div asp-validation-summary="ModelOnly" class="text-danger" role="alert"></div>
 
                 <div class="form-floating mb-3">
