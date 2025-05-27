@@ -8,6 +8,9 @@ namespace Uxcheckmate_Main.Models
         public double Width { get; set; }
         public double Height { get; set; }
         public string? Text { get; set; }
+        public bool IsVisible { get; set; }
+        public string? Class { get; set; }
+        public string? Id { get; set; }
         public double Area => Width * Height;
         public double Density => string.IsNullOrWhiteSpace(Text) || Area == 0 ? 0 : Text.Length / Area;
     }

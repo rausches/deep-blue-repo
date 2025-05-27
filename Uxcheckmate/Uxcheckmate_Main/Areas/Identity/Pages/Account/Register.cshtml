@@ -55,6 +55,12 @@
                         <span asp-validation-for="Input.ConfirmPassword" class="text-danger"></span>
                     </div>
                     <hr>
+                    <div class="g-recaptcha" 
+                        data-sitekey="@ViewData["CaptchaSiteKey"]" 
+                        data-callback="onCaptchaCompleted">
+                    </div>
+                    <input type="hidden" asp-for="CaptchaToken" id="CaptchaToken" />
+                    <span asp-validation-for="CaptchaToken" class="text-danger"></span>
                     <div class="row">
                         <button id="registerSubmit" type="submit" class="btn btn-dark log-in-btn btn-global">Register</button>
                     </div>
@@ -104,4 +110,6 @@
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+    <script src="~/js/loginCaptcha.js"></script>
 }
