@@ -54,17 +54,22 @@
                         {
                                 @if (User.IsInRole("Admin"))
                                 {
-                                    <li class="nav-item">
-                                        <a class="nav-link" asp-area="" asp-controller="Admin" asp-action="Index" id="jumpTo">Admin Dashboard</a>
+                                    <li class="nav-item dashboardLink">
+                                        <a class="nav-link dashboardLink" asp-area="" asp-controller="Admin" asp-action="Index" id="jumpTo">Admin Dashboard</a>
                                     </li>
                                     <li class="nav-item">
                                         <a class="nav-link" asp-area="" asp-controller="Admin" asp-action="AdminFeedback" id="jumpTo">Feedback</a>
                                     </li>
+                                    <li>
+                                        <form method="post" asp-area="Identity" asp-page="/Account/Logout">
+                                            <button type="submit" class="logoutBtn" id="jumpTo">Logout</button>
+                                        </form>
+                                    </li>
                                 }
                                 else
                                 {
-                                    <li class="nav-item">
-                                        <a class="nav-link" asp-area="" asp-controller="Home" asp-action="UserDash" id="jumpTo" >Dashboard</a>
+                                    <li class="nav-item dashboardLink">
+                                        <a class="nav-link userDashNav dashboardLink" asp-area="" asp-controller="Home" asp-action="UserDash" id="jumpTo" >Dashboard</a>
                                     </li>
                                     <li>
                                         <form method="post" asp-area="Identity" asp-page="/Account/Logout">
@@ -174,7 +179,7 @@
                     <div class="col-md-2"><a href="~/Home/About">&copy;</a> Deep Blue 2025</div>
                     <div class="col-md-8">
                         <a asp-area="" asp-controller="Home" asp-action="Privacy" class="footerLinks">Privacy</a> | 
-                        <a asp-area="" asp-controller="Home" asp-action="Feedback" class="footerLinks">Feedback</a>
+                        <a asp-area="" asp-controller="Home" asp-action="Feedback" class="footerLinks feedbackLink">Feedback</a>
                     </div>
                     <div class="col-md-2"></div>
                 </div>
