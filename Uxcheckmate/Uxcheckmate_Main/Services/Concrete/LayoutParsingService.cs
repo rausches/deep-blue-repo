@@ -35,7 +35,9 @@ namespace Uxcheckmate_Main.Services
                                 width: rect.width,
                                 height: rect.height,
                                 text: el.innerText,
-                                isVisible: isVisible
+                                isVisible: isVisible,
+                                class: el.className,
+                                id: el.id
                             };
                         });
                     }
@@ -50,7 +52,9 @@ namespace Uxcheckmate_Main.Services
                         Width = element.GetProperty("width").GetDouble(),
                         Height = element.GetProperty("height").GetDouble(),
                         Text = element.GetProperty("text").GetString(),
-                        IsVisible = element.GetProperty("isVisible").GetBoolean()
+                        IsVisible = element.GetProperty("isVisible").GetBoolean(),
+                        Class = element.TryGetProperty("class", out var classProp) ? classProp.GetString() : null,
+                        Id = element.TryGetProperty("id", out var idProp) ? idProp.GetString() : null
                     });
                 }
                 return elements;
