@@ -59,6 +59,7 @@
                         data-sitekey="@ViewData["CaptchaSiteKey"]" 
                         data-callback="onCaptchaCompleted">
                     </div>
+                    <br>
                     <input type="hidden" asp-for="CaptchaToken" id="CaptchaToken" />
                     <span asp-validation-for="CaptchaToken" class="text-danger"></span>
                     <div class="row">
@@ -111,5 +112,5 @@
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
     <script src="https://www.google.com/recaptcha/api.js" async defer></script>
-    <script src="~/js/loginCaptcha.js"></script>
+    <script src="~/js/captcha.js"></script>
 }

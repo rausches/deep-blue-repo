@@ -40,14 +40,15 @@
                 <h3 id="landingCallToAction">Try it now!</h3>
                 <form method="post" asp-action="Report" id="urlForm" onsubmit="return handleUserUrl(event);">
                     <div class="form-group">
-                        <input type="hidden" id="g-recaptcha-response" name="CaptchaToken" />
-                        @if (ViewData["CaptchaEnabled"] is bool captchaEnabled && captchaEnabled){
-                            <div class="g-recaptcha" id="captchaContainer" data-sitekey="@ViewData["CaptchaSiteKey"]"></div>
-                        }
                         <div class="input-container">
                             <input type="text" id="urlInput" name="Url" asp-for="Url" placeholder="https://uxcheckmate.com">
                             <button type="submit" id="analyzeBtn">GET AUDIT →</button>
                         </div>
+                        <br>
+                        <input type="hidden" id="g-recaptcha-response" name="CaptchaToken" />
+                            @if (ViewData["CaptchaEnabled"] is bool captchaEnabled && captchaEnabled){
+                                <div class="g-recaptcha" id="captchaContainer" data-sitekey="@ViewData["CaptchaSiteKey"]"></div>
+                            }
                         <span asp-validation-for="Url" class="text-danger"></span>
                     </div>
                 </form>
