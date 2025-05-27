@@ -14,14 +14,6 @@ document.addEventListener("DOMContentLoaded", function () {
     async function handleUserUrl(event) {
         event.preventDefault(); // Prevents the form from submitting normally (page reload)
         console.log("handleUserUrl triggered");
-        const analyzeBtn = document.getElementById("analyzeBtn");
-        const btnText = analyzeBtn.querySelector(".btn-text");
-        const spinner = analyzeBtn.querySelector(".spinner-border");
-
-        // Show spinner and disable button
-        btnText.classList.add("d-none");
-        spinner.classList.remove("d-none");
-        analyzeBtn.disabled = true;
 
         // Get the raw input and strip leading/trailing spaces
         let urlInput = urlInputField.value.trim();
@@ -86,10 +78,20 @@ document.addEventListener("DOMContentLoaded", function () {
             </div>`;
             return false; 
         }
-
+        if (!urlInput || urlInput === "") return false;
+        
         if (window.captchaEnabled === "true" && window.userIsAuthenticated !== "true"){
             document.getElementById('analyzeBtn').disabled = true;
         }
+
+        const analyzeBtn = document.getElementById("analyzeBtn");
+        const btnText = analyzeBtn.querySelector(".btn-text");
+        const spinner = analyzeBtn.querySelector(".spinner-border");
+
+        // Show spinner and disable button
+        btnText.classList.add("d-none");
+        spinner.classList.remove("d-none");
+        analyzeBtn.disabled = true;
 
         const captchaContainer = document.getElementById("captchaContainer");
         if (captchaContainer && captchaContainer.offsetParent !== null) {
