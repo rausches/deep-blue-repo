@@ -12,6 +12,7 @@ using QuestPDF.Infrastructure;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Uxcheckmate_Main.Areas.Identity.Data;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Uxcheckmate_Main;
 
@@ -81,6 +82,11 @@ public class Program
                 httpClient,
                 services.GetRequiredService<ILogger<OpenAiService>>()
             );
+        });
+
+        builder.Services.AddControllersWithViews(options =>
+        {
+            options.Filters.Add(new AutoValidateAntiforgeryTokenAttribute());
         });
 
         // Add services to the container.
