@@ -5,10 +5,77 @@
     ViewData["Title"] = "Register";
 }
 
+<section class="main">
+    <div class="container registerContainer">
+        <div class="row registerRow">
+            <div class="col-md-1"></div>
+            <div class="col-md-5 registerLeft">
+                <h1 class="registerHeader">Create Account</h1>
+                <p class="registerText">Sign up and start improving your UX</p>
+                <br>
+                <img src="~/images/login_chess.png" id="registerImage" width="80%">
+            </div>
+            <div class="col-md-5 registerRight">
+                <div class="row">
+                    <div class="col-md-6">
+                        <!-- Custom GitHub OAuth button using your ExternalAuthController -->
+                        <a href="/auth/github" class="btn btn-outline-dark  githubRegister">
+                            <img src="https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png" width="20" class="me-2" />
+                            Sign up with GitHub
+                        </a>
+                    </div>
+                    <div class="col-md-6">
+                        <a href="/auth/google" class="btn btn-outline-danger githubRegister"">
+                            <img src="https://developers.google.com/identity/images/g-logo.png" width="18" class="me-2" />
+                            Sign up with Google
+                        </a>
+                    </div>
+                </div>
+                <hr>
+                <p class="registerText">Already have an account? Sign in <a href="~/Identity/Account/Login">here</a>.</p>
+                <form id="registerForm" asp-route-returnUrl="@Model.ReturnUrl" method="post">
+                    <input type="hidden" asp-for="ReportId" />
+                    <div asp-validation-summary="ModelOnly" class="text-danger" role="alert"></div>
+
+                    <div class="form-floating mb-3">
+                        <input asp-for="Input.Email" class="form-control" autocomplete="username" placeholder="name@example.com" />
+                        <label asp-for="Input.Email" class="input-field-text">Email</label>
+                        <span asp-validation-for="Input.Email" class="text-danger"></span>
+                    </div>
+
+                    <div class="form-floating mb-3">
+                        <input asp-for="Input.Password" class="form-control" autocomplete="new-password" placeholder="password" />
+                        <label asp-for="Input.Password" class="input-field-text">Password</label>
+                        <span asp-validation-for="Input.Password" class="text-danger"></span>
+                    </div>
+
+                    <div class="form-floating mb-3">
+                        <input asp-for="Input.ConfirmPassword" class="form-control" autocomplete="new-password" placeholder="password" />
+                        <label asp-for="Input.ConfirmPassword" class="input-field-text">Confirm Password</label>
+                        <span asp-validation-for="Input.ConfirmPassword" class="text-danger"></span>
+                    </div>
+                    <hr>
+                    <div class="g-recaptcha" 
+                        data-sitekey="@ViewData["CaptchaSiteKey"]" 
+                        data-callback="onCaptchaCompleted">
+                    </div>
+                    <br>
+                    <input type="hidden" asp-for="CaptchaToken" id="CaptchaToken" />
+                    <span asp-validation-for="CaptchaToken" class="text-danger"></span>
+                    <div class="row">
+                        <button id="registerSubmit" type="submit" class="btn btn-dark log-in-btn btn-global">Register</button>
+                    </div>
+                </form>
+            </div>
+            <div class="col-md-1"></div>
+        </div>
+    </div>
+</section>
+@*
 <section class="main full-screen">
     <div class="container scanContainer d-flex justify-content-center align-items-center min-vh-100">
         <div class="col-md-5 text-center">
-            <img src="~/images/uxCheckmateLogo.png" alt="UxCheckmate Logo" class="img-fluid mb-4" style="max-height: 100px;" />
+            <img src="~/images/login_chess.png" alt="Checkmate move" class="img-fluid mb-4 theme-chess-piece" style="max-height: 100px;" />
 
             <h1 class="mb-3">Create Account</h1>
             <p class="mb-4">Sign up and start improving your UX.</p>
@@ -19,28 +86,31 @@
 
                 <div class="form-floating mb-3">
                     <input asp-for="Input.Email" class="form-control" autocomplete="username" placeholder="name@example.com" />
-                    <label asp-for="Input.Email">Email</label>
+                    <label asp-for="Input.Email" class="input-field-text">Email</label>
                     <span asp-validation-for="Input.Email" class="text-danger"></span>
                 </div>
 
                 <div class="form-floating mb-3">
                     <input asp-for="Input.Password" class="form-control" autocomplete="new-password" placeholder="password" />
-                    <label asp-for="Input.Password">Password</label>
+                    <label asp-for="Input.Password" class="input-field-text">Password</label>
                     <span asp-validation-for="Input.Password" class="text-danger"></span>
                 </div>
 
                 <div class="form-floating mb-3">
                     <input asp-for="Input.ConfirmPassword" class="form-control" autocomplete="new-password" placeholder="password" />
-                    <label asp-for="Input.ConfirmPassword">Confirm Password</label>
+                    <label asp-for="Input.ConfirmPassword" class="input-field-text">Confirm Password</label>
                     <span asp-validation-for="Input.ConfirmPassword" class="text-danger"></span>
                 </div>
 
-                <button id="registerSubmit" type="submit" class="btn btn-dark">Register</button>
+                <button id="registerSubmit" type="submit" class="btn btn-dark log-in-btn btn-global">Register</button>
             </form>
         </div>
     </div>
 </section>
+*@
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+    <script src="~/js/loginCaptcha.js"></script>
 }

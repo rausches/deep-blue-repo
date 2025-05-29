@@ -5,10 +5,71 @@
     ViewData["Title"] = "Log in";
 }
 
+<section class="main">
+    <div class="container loginContainer">
+        <div class="row loginRow">
+            <div class="col-md-3"></div>
+            <div class="col-md-6 loginCol">
+                <h1 class="loginHeader">Welcome Back!</h2>
+                <p class="loginText">Sign into your UxCheckmate account</p>
+                <div class="row oauthRow">
+                    <div class="col-md-6">
+                        <!-- Custom GitHub OAuth button using your ExternalAuthController -->
+                        <a href="/auth/github" class="btn btn-outline-dark d-inline-block mt-2 oauthCol">
+                            <img src="https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png" width="20" class="me-2" />
+                            Sign in with GitHub
+                        </a>    
+
+                    </div>
+                    <div class="col-md-6">
+                        <a href="/auth/google" class="btn btn-outline-danger d-inline-block mt-2 oauthCol">
+                            <img src="https://developers.google.com/identity/images/g-logo.png" width="18" class="me-2" />
+                            Sign in with Google
+                        </a>
+                    </div>
+                </div>         
+                <div class="row orRow">
+                    <div class="col-md-5"><hr class="hrLeft"></div>
+                    <div class="col-md-2 loginOr">OR</div>
+                    <div class="col-md-5"><hr class="hrRight"></div>
+                </div>
+                <form id="account" method="post" class="loginForm">
+                    <div asp-validation-summary="ModelOnly" class="text-danger" role="alert"></div>
+
+                    <div class="form-floating mb-3">
+                        <input asp-for="Input.Email" class="form-control" autocomplete="username" placeholder="name@example.com" />
+                        <label asp-for="Input.Email" class="input-field-text">Email</label>
+                        <span asp-validation-for="Input.Email" class="text-danger"></span>
+                    </div>
+
+                    <div class="form-floating mb-3">
+                        <input asp-for="Input.Password" class="form-control" autocomplete="current-password" placeholder="password" />
+                        <label asp-for="Input.Password" class="input-field-text">Password</label>
+                        <span asp-validation-for="Input.Password" class="text-danger"></span>
+                    </div>
+                    <div class="mb-3"></div>
+                    <div class="g-recaptcha" 
+                        data-sitekey="@ViewData["CaptchaSiteKey"]" 
+                        data-callback="onCaptchaCompleted">
+                    </div>
+                    <input type="hidden" asp-for="CaptchaToken" id="CaptchaToken" />
+                    <span asp-validation-for="CaptchaToken" class="text-danger"></span>
+                    <br>
+                    <button id="login-submit" type="submit" class="btn btn-dark btn-global loginBtn">Log in</button>
+                </form>
+                <hr/>
+                <p class="loginText">Don't have an account? Sign up <a href="~/Identity/Account/Register">here</a>.</p>
+            </div>
+            <div class="col-md-3"></div>
+        </div>
+    </div>
+</section>
+
+@*
 <section class="main full-screen">
-    <div class="container scanContainer d-flex justify-content-center align-items-center min-vh-100">
+    <div class="container identityContainer d-flex justify-content-center align-items-center min-vh-100">
         <div class="col-md-5 text-center">
-            <img src="~/images/uxCheckmateLogo.png" alt="UxCheckmate Logo" class="img-fluid mb-4" style="max-height: 100px;" />
+            <img src="~/images/login_chess.png" alt="Checkmate move" class="img-fluid mb-4 theme-chess-piece" style="max-height: 100px;" />
 
             <h1 class="mb-3">Welcome Back</h1>
             <p class="mb-4">Log in to your UxCheckmate account.</p>
@@ -18,22 +79,38 @@
 
                 <div class="form-floating mb-3">
                     <input asp-for="Input.Email" class="form-control" autocomplete="username" placeholder="name@example.com" />
-                    <label asp-for="Input.Email">Email</label>
+                    <label asp-for="Input.Email" class="input-field-text">Email</label>
                     <span asp-validation-for="Input.Email" class="text-danger"></span>
                 </div>
 
                 <div class="form-floating mb-3">
                     <input asp-for="Input.Password" class="form-control" autocomplete="current-password" placeholder="password" />
-                    <label asp-for="Input.Password">Password</label>
+                    <label asp-for="Input.Password" class="input-field-text">Password</label>
                     <span asp-validation-for="Input.Password" class="text-danger"></span>
                 </div>
 
-                <button id="login-submit" type="submit" class="btn btn-dark">Log in</button>
+                <button id="login-submit" type="submit" class="btn btn-dark btn-global">Log in</button>
             </form>
+
+            <hr class="my-4" />
+
+            <!-- Custom GitHub OAuth button using your ExternalAuthController -->
+            <a href="/auth/github" class="btn btn-outline-dark d-inline-block mt-2">
+                <img src="https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png" width="20" class="me-2" />
+                Sign in with GitHub
+            </a>
+            
+            <a href="/auth/google" class="btn btn-outline-danger d-inline-block mt-2">
+                <img src="https://developers.google.com/identity/images/g-logo.png" width="18" class="me-2" />
+                Sign in with Google
+            </a>
         </div>
     </div>
 </section>
+*@
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+    <script src="~/js/loginCaptcha.js"></script>
 }

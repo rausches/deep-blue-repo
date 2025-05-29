@@ -22,7 +22,7 @@
         <p class="mb-0"><strong>Tip:</strong> You can click any issue to expand and learn more.</p>
       </div>
       <div class="modal-footer">
-        <button type="button" class="btn btn-primary" data-bs-dismiss="modal" id="letsgo">Let’s Go</button>
+        <button type="button" class="btn btn-primary btn-global " data-bs-dismiss="modal" id="letsgo">Let’s Go</button>
       </div>
     </div>
   </div>
@@ -33,11 +33,12 @@
         <div class="col-md-6">
             <img id="screenshotImage" src="@websiteScreenshot " alt="Website Screenshot" class="img-fluid" />
         </div>
-        <div class="col-md-6">
+        <div class="col-md-6 reportHeaderRight">
             @* Display the URL associated with the report *@
             <h1 id="reportHeader">@Model.Url</h1>
             @* Display the total number of issues found *@
             <p id="totalIssues">Total Issues Found: @(@Model.DesignIssues.Count() + @Model.AccessibilityIssues.Count()) </p>
+            <button class="btn btn-primary btn-global mb-3" id="viewSummaryBtn" hidden>View Summary</button>
         </div>
     </div>
 
@@ -48,7 +49,7 @@
         <div class="col-md-8"></div>
         <div class="col-md-4 sortSelectCol">
             @* Dropdown for selecting sort order of the issues *@
-            <select id="sortSelect" class="form-select mb-4" data-report-id="@Model.Id">
+            <select id="sortSelect" class="form-select mb-4" data-report-id="@Model.Id" disabled>
                 <option value="category" selected="@(ViewBag.CurrentSort == "category")">Category</option>
                 <option value="severity-high-low" selected="@(ViewBag.CurrentSort == "severity-high-low")">Severity (High to Low)</option>
                 <option value="severity-low-high" selected="@(ViewBag.CurrentSort == "severity-low-high")">Severity (Low to High)</option>
@@ -109,121 +110,57 @@
     </div>
 </div>
 
-
+<br>
 @if (!userIsAuthenticated)
 {
-    <div class="alert alert-warning mt-4">
+    <div class="row save-report-content">
         <p><strong>Want to save this report?</strong> Create an account or log in now — we'll automatically link this report to your profile.</p>
 
         <form method="post" asp-action="StoreReportIdBeforeAuth" asp-controller="Home">
             <input type="hidden" name="reportId" value="@Model.Id" />
-            <button type="submit" name="authType" value="register" class="btn btn-outline-primary me-2">Create Account</button>
-            <button type="submit" name="authType" value="login" class="btn btn-outline-secondary">Log In</button>
+            <button type="submit" name="authType" value="register" class="btn btn-outline-primary me-2 btn-global">Create Account</button>
+            <button type="submit" name="authType" value="login" class="btn btn-outline-secondary btn-global">Log In</button>
         </form>
     </div>
 }
-
+<br>
 @*
 ============================================================================================
                                 Print PDF
 ============================================================================================
 *@
 
-
-    <a asp-action="DownloadReport" asp-route-id="@Model.Id" class="btn btn-primary">
+<div class="row">
+    <a asp-action="DownloadReport" asp-route-id="@Model.Id" class="btn btn-primary btn-global downloadBtn">
         Download PDF Report
     </a>
+</div>
 
+<br>
+<button onclick="scrollToTop()" id="scrollTopBtn" title="Go to top" class="btn btn-dark">
+    <img src="~/images/back_to_top_icon.png" alt="back to top icon" width="60%;"><br>
+</button>
+<br>
+
+<script>
+    const scrollTopBtn = document.getElementById("scrollTopBtn");
+
+    // Show button when user scrolls down 100px
+    window.onscroll = function () {
+        if (document.body.scrollTop > 100 || document.documentElement.scrollTop > 100) {
+            scrollTopBtn.style.display = "block";
+        } else {
+            scrollTopBtn.style.display = "none";
+        }
+    };
+
+    // Scroll to top smoothly
+    function scrollToTop() {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+</script>
 </div> @* End tag for #reportContainer *@
 </div> @*End tag for .container *@
 @section Scripts {
     <script src="~/js/reportResults.js"></script>
-
-
-    <script>
-        document.addEventListener("DOMContentLoaded", function () {
-
-            // Define the reportId dynamically from Razor model binding
-            const reportId = @Model.Id;
-
-            // Grab the sorting dropdown
-            const sortSelect = document.getElementById('sortSelect');
-            let currentSortOrder = sortSelect.value; // Initial sort value
-
-            let pollingIntervalId; // Will store the setInterval ID for later clearing
-
-            // Function to poll the server for updated report issues
-            async function fetchUpdatedIssues() {
-                try {
-                    // Fetch updated issues from the server using current sort order
-                    const response = await fetch(`${window.location.origin}/Home/GetSortedIssues?id=${reportId}&sortOrder=${currentSortOrder}&t=${Date.now()}`);
-                    if (response.ok) {
-                        const data = await response.json();
-
-                        // Update the Design and Accessibility issues sections if data is received
-                        if (data.designHtml || data.accessibilityHtml) {
-                            document.getElementById('designIssuesContainer').innerHTML = data.designHtml;
-                            document.getElementById('accessibilityIssuesContainer').innerHTML = data.accessibilityHtml;
-
-                            // Update the total issues counter
-                            const totalIssues = document.querySelectorAll('.issue-card').length;
-                            document.getElementById('totalIssues').innerHTML = `Total Issues Found: ${totalIssues}`;
-                        }
-
-                        // If the backend reports the analysis is completed
-                        if (data.status === "Completed") {
-
-                            // Update the Report Summary dynamically
-                            const summaryElement = document.getElementById('summary');
-                            if (summaryElement) {
-                                summaryElement.innerText = data.summary || "No summary available.";
-                                summaryElement.classList.add('visible');
-                            }
-
-                            // Hide the loading overlay once report is ready
-                            const overlay = document.getElementById('designIssuesOverlay');
-                            if (overlay) {
-                                overlay.classList.add('hidden');
-                            }
-
-                            // If no design issues found, show a success alert
-                            const designIssuesCount = document.querySelectorAll('#designIssuesContainer .issue-card').length;
-                            if (designIssuesCount === 0) {
-                                document.getElementById('designIssuesContainer').innerHTML = `
-                                    <div class="alert alert-success">
-                                        <strong>No UX issues found! Your site looks great.</strong>
-                                    </div>
-                                `;
-                            }
-
-                            // Automatically pop open the summary modal once complete
-                            const modalElement = document.getElementById('onLoadModal');
-                            if (modalElement) {
-                                const modal = new bootstrap.Modal(modalElement);
-                                modal.show();
-                            }
-
-                            // Stop polling since the report is done
-                            clearInterval(pollingIntervalId);
-                            console.log("Polling stopped — report analysis completed!");
-                        }
-                    }
-                } catch (error) {
-                    console.error("Failed to fetch updated issues:", error);
-                }
-            }
-
-            // Start polling for report updates every 1 second
-            pollingIntervalId = setInterval(fetchUpdatedIssues, 1000);
-
-            // Fetch immediately as well so the user sees something quickly
-            fetchUpdatedIssues();
-
-            // When the user changes the sort option, re-fetch immediately
-            sortSelect.addEventListener('change', () => {
-                currentSortOrder = sortSelect.value;
-                fetchUpdatedIssues();
-            });
-        });
-    </script>
 }

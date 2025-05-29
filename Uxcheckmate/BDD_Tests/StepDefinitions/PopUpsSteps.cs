@@ -138,12 +138,12 @@ namespace Uxcheckmate.BDD_Tests.StepDefinitions
             // Improved assertions with better error messages
             if (!string.IsNullOrWhiteSpace(expectedReport))
             {
-                Assert.That(actualReport, Does.Contain("popup").Or.Contain("pop-up").Or.Contain("pop-ups").Or.Contain("popups").Or.Contain("Pop Up").Or.Contain("modal").Or.Contain("dialog"),
+                Assert.That(actualReport, Does.Contain("pop ups"),
                     $"Expected popup warning but found: {actualReport}");
             }
             else
             {
-                Assert.That(actualReport, Does.Not.Contain("popup").And.Not.Contain("modal").And.Not.Contain("dialog"),
+                Assert.That(actualReport, Does.Not.Contain("pop ups").And.Not.Contain("modal").And.Not.Contain("dialog"),
                     $"Unexpected popup warning found: {actualReport}");
             }
         }

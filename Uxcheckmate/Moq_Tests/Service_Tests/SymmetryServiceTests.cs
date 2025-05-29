@@ -24,10 +24,10 @@ namespace Uxcheckmate_Tests
         {
             var elements = new List<HtmlElement>
             {
-                new TestHtmlElement(100, 100, 100, 20, 0.02), // Left side
-                new TestHtmlElement(700, 100, 100, 20, 0.02), // Right side
-                new TestHtmlElement(120, 400, 100, 20, 0.015),
-                new TestHtmlElement(680, 400, 100, 20, 0.015),
+                new TestHtmlElement(100, 100, 100, 20, 0.02) { Tag = "DIV", IsVisible = true },
+                new TestHtmlElement(700, 100, 100, 20, 0.02) { Tag = "DIV", IsVisible = true },
+                new TestHtmlElement(120, 400, 100, 20, 0.015) { Tag = "DIV", Text = "foo", IsVisible = true },
+                new TestHtmlElement(680, 400, 100, 20, 0.015) { Tag = "DIV", Text = "bar", IsVisible = true },
             };
             var result = await _service.AnalyzeSymmetryAsync(800, 800, elements);
             Assert.That(result, Is.Empty, "Expected no warnings for a symmetrical layout.");
@@ -37,8 +37,8 @@ namespace Uxcheckmate_Tests
         {
             var elements = new List<HtmlElement>
             {
-                new TestHtmlElement(100, 100, 100, 20, 0.03), // Only left side elements
-                new TestHtmlElement(120, 400, 100, 20, 0.03),
+                new TestHtmlElement(100, 100, 100, 20, 0.03) { IsVisible = true },
+                new TestHtmlElement(300, 100, 100, 20, 0.03) { Tag = "DIV", IsVisible = true },
             };
             var result = await _service.AnalyzeSymmetryAsync(800, 800, elements);
             Assert.That(result, Does.Contain("does not have good left-right symmetry"), "Expected warning for asymmetrical layout.");

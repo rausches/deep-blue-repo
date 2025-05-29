@@ -66,13 +66,21 @@
                                 @* Display each issue in the severity category *@
                                 foreach (var issue in issues)
                                 {
-                                    <div class="issueContainer p-3 mb-3 border rounded issue-card">
+                                    <div class="issueContainer p-3 mb-3 border rounded issue-card issueItem">
                                         <div class="col-md-12">
                                             @* Display category badge *@
                                             <span class="badge bg-secondary">@issue.Category.Name</span>
                                             <br><br>
                                             @* Display issue message *@
                                             <span id=@issue.Category.Name.Replace(" ", "-").ToLower()>@issue.Message</span>
+                                            <button class="btn btn-sm btn-outline-primary optimize-btn" 
+                                                data-message="@issue.Message" 
+                                                data-category="@issue.Category.Name">
+                                                ✨
+                                            </button>
+
+                                            <!-- Inline AI message container -->
+                                            <div class="ai-response alert alert-info mt-2 d-none"></div>
                                         </div>
                                     </div>
                                 }
@@ -125,7 +133,17 @@ else
                             <div class="issueContainer p-3 mb-3 border rounded issue-card" id="designIssueItem">
                                 <div class="row">
                                     @* Issue message and severity badge *@
-                                    <div class="col-md-11" id=@issue.Category.Name.Replace(" ", "-").ToLower()>@issue.Message</div>
+                                    <div class="col-md-11 issueItem" id=@issue.Category.Name.Replace(" ", "-").ToLower()>
+                                        <div>@issue.Message</div>
+                                        <button class="btn btn-sm btn-outline-primary optimize-btn" 
+                                            data-message="@issue.Message" 
+                                            data-category="@issue.Category.Name">
+                                            ✨
+                                        </button>
+
+                                        <!-- Inline AI message container -->
+                                        <div class="ai-response alert alert-info mt-2 d-none"></div>
+                                    </div>
                                     <div class="col-md-1">
                                         <p>
                                             @* Dynamic severity badge coloring *@

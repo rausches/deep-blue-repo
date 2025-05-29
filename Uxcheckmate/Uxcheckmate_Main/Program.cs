@@ -23,6 +23,8 @@ public class Program
 
         var builder = WebApplication.CreateBuilder(args);
 
+        builder.Configuration.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true).AddEnvironmentVariables();
+
         string openAiApiKey = builder.Configuration["OpenAiApiKey"];
         string openAiUrl = "https://api.openai.com/v1/chat/completions";
 
@@ -45,6 +47,20 @@ public class Program
                 options.SignIn.RequireConfirmedAccount = false)
                 .AddRoles<IdentityRole>()
                 .AddEntityFrameworkStores<AuthDbContext>();
+
+        builder.Services.AddAuthentication()
+            .AddGitHub(options =>
+            {
+                options.ClientId = builder.Configuration["Authentication:GitHub:ClientId"];
+                options.ClientSecret = builder.Configuration["Authentication:GitHub:ClientSecret"];
+                options.CallbackPath = "/signin-github";
+                options.Scope.Add("user:email");
+            })
+            .AddGoogle(options =>
+            {
+                options.ClientId = builder.Configuration["Authentication:Google:ClientId"];
+                options.ClientSecret = builder.Configuration["Authentication:Google:ClientSecret"];
+            });
 
         builder.Services.AddSession(options =>
         {
@@ -89,6 +105,9 @@ public class Program
         builder.Services.AddScoped<IScreenshotService, ScreenshotService>();
         builder.Services.AddScoped<PdfExportService>();
 
+        // Register Captcha Service 
+        builder.Services.AddScoped<ICaptchaService, CaptchaService>();
+
         // Register Report Services
         builder.Services.AddScoped<IReportService, ReportService>();
         builder.Services.AddScoped<IWebScraperService, WebScraperService>();
@@ -97,7 +116,6 @@ public class Program
         builder.Services.AddScoped<IColorSchemeService, ColorSchemeService>();
         builder.Services.AddScoped<IMobileResponsivenessService, MobileResponsivenessService>();
         builder.Services.AddScoped<IViewRenderService, ViewRenderService>();
-        builder.Services.AddHttpClient<IFaviconDetectionService, FaviconDetectionService>();
         builder.Services.AddScoped<IPlaywrightScraperService, PlaywrightScraperService>();
         builder.Services.AddScoped<IPopUpsService, PopUpsService>();
         builder.Services.AddScoped<IAnimationService, AnimationService>();
@@ -107,8 +125,13 @@ public class Program
         builder.Services.AddScoped<IFPatternService, FPatternService>();
         builder.Services.AddScoped<IZPatternService, ZPatternService>();
         builder.Services.AddScoped<ISymmetryService, SymmetryService>();
+
+        //Register Background Services
         builder.Services.AddSingleton<IBackgroundTaskQueue, BackgroundTaskQueue>();
         builder.Services.AddHostedService<QueueService>();
+        builder.Services.AddHostedService<ReportCleanupService>();
+
+        // Register and Config Jira
         builder.Services.Configure<JiraSettings>(builder.Configuration.GetSection("Jira"));
         builder.Services.AddHttpClient<IJiraService, JiraService>();
 

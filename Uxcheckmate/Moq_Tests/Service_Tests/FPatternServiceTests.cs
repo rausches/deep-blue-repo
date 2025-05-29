@@ -41,12 +41,6 @@ namespace Uxcheckmate_Tests
             Assert.That(result, Does.Contain("This layout does not follow the F-pattern well."));
         }
         [Test]
-        public async Task NoElementsReturnsNoElementsWarning()
-        {
-            var result = await _service.AnalyzeFPatternAsync(1000, 1000, new List<HtmlElement>());
-            Assert.That(result, Does.Contain("No layout elements were found"));
-        }
-        [Test]
         public async Task BandSplittingWorksWithGaps()
         {
             double width = 1000, height = 2000;

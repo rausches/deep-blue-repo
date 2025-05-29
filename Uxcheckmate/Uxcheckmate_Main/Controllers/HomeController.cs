@@ -37,12 +37,15 @@ public class HomeController : Controller
     private readonly IBackgroundTaskQueue _backgroundTaskQueue;
     private readonly IServiceScopeFactory _scopeFactory;
     private readonly IMemoryCache _cache;
+    private readonly IConfiguration _configuration;
+    private readonly bool _captchaEnabled;
+    private const int ANON_REPORT_LIMIT = 3;
 
 
-    public HomeController(ILogger<HomeController> logger, HttpClient httpClient, UxCheckmateDbContext dbContext, 
-        IOpenAiService openAiService, IAxeCoreService axeCoreService, IReportService reportService, 
-        PdfExportService pdfExportService, IScreenshotService screenshotService, IViewRenderService viewRenderService,IBackgroundTaskQueue backgroundTaskQueue, IServiceScopeFactory scopeFactory, IMemoryCache cache, UserManager<IdentityUser> userManager)
-        
+    public HomeController(ILogger<HomeController> logger, HttpClient httpClient, UxCheckmateDbContext dbContext,
+        IOpenAiService openAiService, IAxeCoreService axeCoreService, IReportService reportService,
+        PdfExportService pdfExportService, IScreenshotService screenshotService, IViewRenderService viewRenderService, IBackgroundTaskQueue backgroundTaskQueue, IServiceScopeFactory scopeFactory, IMemoryCache cache, UserManager<IdentityUser> userManager, IConfiguration configuration)
+
     {
         _logger = logger;
         _httpClient = httpClient;
@@ -56,15 +59,29 @@ public class HomeController : Controller
         _backgroundTaskQueue = backgroundTaskQueue;
         _scopeFactory = scopeFactory;
         _cache = cache;
+        _configuration = configuration;
+        bool.TryParse(configuration["Captcha:Enabled"], out _captchaEnabled);
     }
 
 
     // ============================================================================================================
     // Static Pages
     // ============================================================================================================
-    public IActionResult Index() => View();
+    public IActionResult Index()
+    {
+        bool showCaptcha = _captchaEnabled && !User.Identity.IsAuthenticated;
+        if (HttpContext.Session.GetString("CaptchaVerified") == "true"){
+            showCaptcha = false;
+        }
+        ViewData["CaptchaEnabled"] = showCaptcha;
+        ViewData["CaptchaSiteKey"] = _configuration["Captcha:SiteKey"];
+        return View();
+    }
 
     public IActionResult Privacy() => View();
+
+    [HttpGet]
+    public IActionResult About() => View();
 
     public IActionResult ErrorPage() => View("ErrorPage");
 
@@ -74,20 +91,53 @@ public class HomeController : Controller
         return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
     }
     // ============================================================================================================
+    // Captcha Validation
+    // ============================================================================================================
+    [HttpPost]
+    public async Task<IActionResult> ValidateCaptcha([FromServices] ICaptchaService captchaService, [FromForm] string captchaToken)
+    {
+        if (!_captchaEnabled){
+            HttpContext.Session.SetString("CaptchaVerified", "true");
+            return Json(new { success = true });
+        }
+        if (User.Identity != null && User.Identity.IsAuthenticated){
+            HttpContext.Session.SetString("CaptchaVerified", "true");
+            return Json(new { success = true });
+        }
+        if (string.IsNullOrEmpty(captchaToken)){
+            return Json(new { success = false, error = "CAPTCHA token is missing." });
+        }
+        bool isValid = await captchaService.VerifyTokenAsync(captchaToken);
+        if (!isValid){
+            return Json(new { success = false, error = "CAPTCHA validation failed." });
+        }
+        HttpContext.Session.SetString("CaptchaVerified", "true");
+        return Json(new { success = true });
+    }
+
+    // ============================================================================================================
     // Report Logic
     // ============================================================================================================
     [HttpPost]
-    public async Task<IActionResult> Report(string url, string sortOrder = "category", bool isAjax = false, CancellationToken cancellationToken = default)
+    public async Task<IActionResult> Report([FromServices] ICaptchaService captchaService, string url, string sortOrder = "category", bool isAjax = false, CancellationToken cancellationToken = default)
     {
         try
         {
+            bool requireCaptcha = _captchaEnabled && !User.Identity.IsAuthenticated;
+            if (requireCaptcha){
+                var captchaStatus = HttpContext.Session.GetString("CaptchaVerified");
+                if (captchaStatus != "true"){
+                    TempData["CaptchaMessage"] = "CAPTCHA verification required. Please complete the CAPTCHA and try again.";
+                    return RedirectToAction("Index");
+                }
+            }
             if (string.IsNullOrEmpty(url))
             {
                 ModelState.AddModelError("url", "URL cannot be empty.");
                 return View("Index");
             }
-                // Normalize the URL *before* checking if it's reachable
-                url = NormalizeUrl(url);
+            // Normalize the URL *before* checking if it's reachable
+            url = NormalizeUrl(url);
 
             if (!await IsUrlReachable(url))
             {
@@ -95,8 +145,15 @@ public class HomeController : Controller
                 return RedirectToAction("Index");
             }
 
+            if (!User.Identity.IsAuthenticated && IsAnonLimitGloballyEnabled()){
+                if (IsAnonymousUserLimitReached()){
+                    TempData["MaxedAnonSubmis"] = $"Anonymous users may only submit {ANON_REPORT_LIMIT} reports per session. Please register or log in for unlimited submissions.";
+                    return RedirectToAction("Index");
+                }
+            }
+
             var websiteScreenshot = await CaptureScreenshot(url);
-            if (string.IsNullOrEmpty(websiteScreenshot ))
+            if (string.IsNullOrEmpty(websiteScreenshot))
             {
                 _logger.LogError("Failed to capture screenshot for URL: {Url}", url);
                 ModelState.AddModelError("", "An error occurred while capturing the screenshot.");
@@ -110,8 +167,8 @@ public class HomeController : Controller
             if (User.Identity.IsAuthenticated)
             {
                 userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-                    var roleClaims = User.FindAll(ClaimTypes.Role);
-                    isAdmin = roleClaims.Any(c => c.Value == "Admin");
+                var roleClaims = User.FindAll(ClaimTypes.Role);
+                isAdmin = roleClaims.Any(c => c.Value == "Admin");
             }
 
             // Create and save the report record.
@@ -122,8 +179,9 @@ public class HomeController : Controller
 
             // Attach results, and set Processing status
             report.AccessibilityIssues = accessibilityIssues.ToList();
+
             report.Status = "Processing"; 
-            await _context.SaveChangesAsync(cancellationToken);
+            await _context.SaveChangesAsync();
 
             // Queue background design work
             await _backgroundTaskQueue.QueueBackgroundWorkItemAsync(async token =>
@@ -134,7 +192,7 @@ public class HomeController : Controller
 
                     // Retrieve a scoped instance of the database context
                     var scopedDbContext = scope.ServiceProvider.GetRequiredService<UxCheckmateDbContext>();
-                    
+
                     // Retrieve a scoped instance of the report service
                     var scopedReportService = scope.ServiceProvider.GetRequiredService<IReportService>();
 
@@ -167,29 +225,30 @@ public class HomeController : Controller
                     _logger.LogError(ex, "Background design analysis failed.");
                 }
             });
+            
 
             // Fetch the full report inclunding related issues and categories
-        /* if (string.IsNullOrEmpty(userId)){
-                report.AccessibilityIssues = accessibilityIssues.ToList();
-                report.DesignIssues = designIssues.ToList();
-                foreach (var issue in report.AccessibilityIssues){
-                    issue.Category = await _context.AccessibilityCategories.FindAsync(issue.CategoryId);
+            /* if (string.IsNullOrEmpty(userId)){
+                    report.AccessibilityIssues = accessibilityIssues.ToList();
+                    report.DesignIssues = designIssues.ToList();
+                    foreach (var issue in report.AccessibilityIssues){
+                        issue.Category = await _context.AccessibilityCategories.FindAsync(issue.CategoryId);
+                    }
+                    foreach (var issue in report.DesignIssues){
+                        issue.Category = await _context.DesignCategories.FindAsync(issue.CategoryId);
+                    }
                 }
-                foreach (var issue in report.DesignIssues){
-                    issue.Category = await _context.DesignCategories.FindAsync(issue.CategoryId);
-                }
-            }
-            // Fetch the report from the database to include related issues and categories
-            Report fullReport;
-            if (!string.IsNullOrEmpty(userId)){
-            // Fetch the full report including related issues and categories
-            fullReport = await _context.Reports
-                .Include(r => r.AccessibilityIssues).ThenInclude(a => a.Category)
-                .Include(r => r.DesignIssues).ThenInclude(d => d.Category)
-                .FirstOrDefaultAsync(r => r.Id == report.Id);
-            }else{
-                fullReport = report;
-            }*/
+                // Fetch the report from the database to include related issues and categories
+                Report fullReport;
+                if (!string.IsNullOrEmpty(userId)){
+                // Fetch the full report including related issues and categories
+                fullReport = await _context.Reports
+                    .Include(r => r.AccessibilityIssues).ThenInclude(a => a.Category)
+                    .Include(r => r.DesignIssues).ThenInclude(d => d.Category)
+                    .FirstOrDefaultAsync(r => r.Id == report.Id);
+                }else{
+                    fullReport = report;
+                }*/
 
             // Load fresh report for view
             var fullReport = await _context.Reports
@@ -219,6 +278,9 @@ public class HomeController : Controller
             }
 
             // Return the full results view
+            if (!User.Identity.IsAuthenticated && IsAnonLimitGloballyEnabled()){
+                IncrementAnonymousUserCount();
+            }
             return View("Results", fullReport);
         }
         catch (Exception ex)
@@ -282,7 +344,8 @@ public class HomeController : Controller
                 Severity = a.Severity,
                 WCAG = a.WCAG,
                 Category = a.Category?.Name
-            }).ToList()
+            }).ToList(),
+            Summary = r.Summary
         }).ToList();
         return View(reportDTOs);
     }
@@ -462,24 +525,28 @@ public class HomeController : Controller
     }
 
     private async Task<bool> IsUrlReachable(string url)
-    {
-        try
         {
-            using var httpClient = new HttpClient();
-            var request = new HttpRequestMessage(HttpMethod.Get, url);
-            _logger.LogInformation("Request Headers: {Headers}", request.Headers);
+            if (HttpContext?.Items.TryGetValue("BypassReachability", out var bypass) == true && bypass is bool b && b){
+                return true;
+            }
+            try
+            {
+                using var httpClient = new HttpClient();
+                var request = new HttpRequestMessage(HttpMethod.Get, url);
+                _logger.LogInformation("Request Headers: {Headers}", request.Headers);
 
-            var response = await httpClient.SendAsync(request);
-            _logger.LogInformation("Response Headers: {Headers}", response.Headers);
+                var response = await httpClient.SendAsync(request);
+                _logger.LogInformation("Response Headers: {Headers}", response.Headers);
 
-            return response.IsSuccessStatusCode;
+                return response.IsSuccessStatusCode;
+            }
+            catch (HttpRequestException ex)
+            {
+                _logger.LogError(ex, "The URL is unreachable: {Url}", url);
+                return false;
+            }
         }
-        catch (HttpRequestException ex)
-        {
-            _logger.LogError(ex, "The URL is unreachable: {Url}", url);
-            return false;
-        }
-    }
+
 
     private async Task<string?> CaptureScreenshot(string url)
     {
@@ -570,16 +637,16 @@ public class HomeController : Controller
     {
         report.DesignIssues = sortOrder switch
         {
-            "severity-high-low" => report.DesignIssues.OrderByDescending(i => i.Severity).ThenBy(i => i.Category.Name).ToList(),
-            "severity-low-high" => report.DesignIssues.OrderBy(i => i.Severity).ThenBy(i => i.Category.Name).ToList(),
-            _ => report.DesignIssues.OrderBy(i => i.Category.Name).ThenByDescending(i => i.Severity).ToList()
+            "severity-high-low" => report.DesignIssues.OrderByDescending(i => i.Severity).ThenBy(i => i.Category?.Name ?? "Uncategorized").ToList(),
+            "severity-low-high" => report.DesignIssues.OrderBy(i => i.Severity).ThenBy(i => i.Category?.Name ?? "Uncategorized").ToList(),
+            _ => report.DesignIssues.OrderBy(i => i.Category?.Name ?? "Uncategorized").ThenByDescending(i => i.Severity).ToList()
         };
 
         report.AccessibilityIssues = sortOrder switch
         {
-            "severity-high-low" => report.AccessibilityIssues.OrderByDescending(i => i.Severity).ThenBy(i => i.Category.Name).ToList(),
-            "severity-low-high" => report.AccessibilityIssues.OrderBy(i => i.Severity).ThenBy(i => i.Category.Name).ToList(),
-            _ => report.AccessibilityIssues.OrderBy(i => i.Category.Name).ThenByDescending(i => i.Severity).ToList()
+            "severity-high-low" => report.AccessibilityIssues.OrderByDescending(i => i.Severity).ThenBy(i => i.Category?.Name ?? "Uncategorized").ToList(),
+            "severity-low-high" => report.AccessibilityIssues.OrderBy(i => i.Severity).ThenBy(i => i.Category?.Name ?? "Uncategorized").ToList(),
+            _ => report.AccessibilityIssues.OrderBy(i => i.Category?.Name ?? "Uncategorized").ThenByDescending(i => i.Severity).ToList()
         };
     }
     
@@ -592,6 +659,22 @@ public class HomeController : Controller
             return Redirect($"/Identity/Account/Register?reportId={reportId}");
         else
             return Redirect($"/Identity/Account/Login?reportId={reportId}");
+    }
+    private bool IsAnonLimitGloballyEnabled()
+    {
+        return _configuration.GetValue("ReportLimit:AnonymousUserLimitEnabled", true);
+    }
+
+    private bool IsAnonymousUserLimitReached()
+    {
+        int anonCount = HttpContext.Session.GetInt32("AnonReportCount") ?? 0;
+        return anonCount >= ANON_REPORT_LIMIT;
+    }
+
+    private void IncrementAnonymousUserCount()
+    {
+        int anonCount = HttpContext.Session.GetInt32("AnonReportCount") ?? 0;
+        HttpContext.Session.SetInt32("AnonReportCount", anonCount + 1);
     }
 
     private void StoreReportInTempData(Report report)
@@ -616,4 +699,4 @@ public class HomeController : Controller
         };
         TempData["Report"] = JsonSerializer.Serialize(tempReport);
     }
-}
+} 

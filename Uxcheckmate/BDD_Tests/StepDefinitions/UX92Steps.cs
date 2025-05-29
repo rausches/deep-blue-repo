@@ -18,29 +18,51 @@ namespace BDD_Tests.StepDefinitions
         [When(@"they go to feedback as ""(.*)""")]
         public void WhenTheyGoToFeedbackAs(string role)
         {
-            var wait = new WebDriverWait(_driver, TimeSpan.FromSeconds(10));
+            var wait = new WebDriverWait(_driver, TimeSpan.FromSeconds(100));
             string feedbackUrl = role == "Admin" ? "/Admin/AdminFeedback" : "/Home/Feedback";
-            wait.Until(driver =>
+            if (role == "Admin")
             {
-                try{
-                    var feedbackLink = driver.FindElement(By.XPath($"//a[@href='{feedbackUrl}']"));
-                    feedbackLink.Click();
-                    return true;
-                }catch{
-                    return false;
-                }
-            });
-            if (role == "Admin"){
-                wait.Until(driver => driver.FindElement(By.XPath("//h1[text()='User Feedback']")));
-            }else{
-                wait.Until(driver => driver.FindElement(By.Id("Message")));
+                wait.Until(driver =>
+                {
+                    try{
+                        var feedbackLink = driver.FindElement(By.XPath($"//a[@href='{feedbackUrl}']"));
+                        feedbackLink.Click();
+                        return true;
+                    }catch{
+                        return false;
+                    }
+                });
             }
+            else
+            {
+                wait.Until(driver =>
+                {
+                    try
+                    {
+                        var feedbackLink = driver.FindElement(By.ClassName("feedbackLink"));
+                        feedbackLink.Click();
+                        return true;
+                    }
+                    catch
+                    {
+                        return false;
+                    }
+                });
+            }
+            if (role == "Admin")
+                {
+                    wait.Until(driver => driver.FindElement(By.XPath("//h1[text()='User Feedback']")));
+                }
+                else
+                {
+                    wait.Until(driver => driver.FindElement(By.ClassName("Message")));
+                }
         }
         [When(@"enter feedback ""(.*)""")]
         public void WhenEnterFeedback(string feedbackText)
         {
             var wait = new WebDriverWait(_driver, TimeSpan.FromSeconds(10));
-            var input = wait.Until(d => d.FindElement(By.Id("Message")));
+            var input = wait.Until(d => d.FindElement(By.ClassName("Message")));
             input.Clear();
             input.SendKeys(feedbackText);
             var submit = wait.Until(d => d.FindElement(By.Id("submitFeedback")));

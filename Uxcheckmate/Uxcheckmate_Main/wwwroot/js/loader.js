@@ -47,7 +47,7 @@ function populateScanningMessages() {
     const scanStatus = scanningWrapper.querySelector('.scan-status');
 
     // Clear existing messages
-    scanStatus.innerHTML = '<h1>Scanning your website...</h1>';
+    scanStatus.innerHTML = '<h1 class="skeleton-header-text">Scanning your website...</h1>';
 
     // Add messages dynamically
     scanningMessages.forEach(message => {

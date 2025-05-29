@@ -84,7 +84,7 @@ namespace Uxcheckmate_Main.Services
             // Return message if more than one popup is found
             if (popupCount > 1)
             {
-                return "More than 1 Pop Up detected. Consider limiting your site to one or none to improve user experience.";
+                return $"Found {popupNodes.Count()} pop ups. Consider limiting your site to one or none to improve user experience.";
             }
 
             // If only one or no popups are found, return an empty string

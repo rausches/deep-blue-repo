@@ -103,10 +103,13 @@ this.ScenarioInitialize(scenarioInfo);
     await testRunner.GivenAsync("the user has generated a report for \"https://momkage-lexy.github.io/\"", ((string)(null)), ((global::Reqnroll.Table)(null)), "Given ");
 #line hidden
 #line 6
-    await testRunner.ThenAsync("the user will see a modal containing the summary and mock up image", ((string)(null)), ((global::Reqnroll.Table)(null)), "Then ");
+    await testRunner.ThenAsync("the user will see a modal containing the summary", ((string)(null)), ((global::Reqnroll.Table)(null)), "Then ");
 #line hidden
 #line 7
     await testRunner.AndAsync("the user clicks the let\'s begin button", ((string)(null)), ((global::Reqnroll.Table)(null)), "And ");
+#line hidden
+#line 8
+    await testRunner.ThenAsync("the modal will close", ((string)(null)), ((global::Reqnroll.Table)(null)), "Then ");
 #line hidden
             }
             await this.ScenarioCleanupAsync();

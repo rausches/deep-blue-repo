@@ -21,8 +21,8 @@ namespace BDD_Tests.StepDefinitions
             _driver = driver;
             _scenarioContext = scenarioContext;
         }
-        [Then("the user will see a modal containing the summary and mock up image")]
-        public void ThenHeWillSeeAModalContainingSummaryAndMockUp()
+        [Then("the user will see a modal containing the summary")]
+        public void ThenHeWillSeeAModalContainingSummary()
         {
             var wait = new WebDriverWait(_driver, TimeSpan.FromSeconds(300));
     
@@ -49,11 +49,10 @@ namespace BDD_Tests.StepDefinitions
         public void TheModalWillClose()
         {
             var wait = new WebDriverWait(_driver, TimeSpan.FromSeconds(10));
-
-            // Find and click the let's begin button
-            var modal = wait.Until(driver => driver.FindElement(By.Id("Modal")));
-           
-           Assert.That(modal.Displayed, Is.False);
+            
+            bool isInvisible = wait.Until(SeleniumExtras.WaitHelpers.ExpectedConditions.InvisibilityOfElementLocated(By.Id("onLoadModal")));
+            
+            Assert.That(isInvisible, Is.True, "Modal should be closed.");
         }
     }
 }

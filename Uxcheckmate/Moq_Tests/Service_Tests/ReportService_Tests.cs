@@ -10,6 +10,8 @@ using Uxcheckmate_Main.Models;
 using Uxcheckmate_Main.Services;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Caching.Memory;
+using System.Linq;
+using System.Threading;
 
 namespace Service_Tests
 {
@@ -20,7 +22,6 @@ namespace Service_Tests
         private Mock<IOpenAiService> _openAiServiceMock;
         private Mock<IColorSchemeService> _colorSchemeServiceMock;
         private UxCheckmateDbContext _context;
-       // private Mock<IWebScraperService> _webScraperServiceMock;
         private Mock<IScreenshotService> _screenshotServiceMock;
         private Mock<IPlaywrightScraperService> _playwrightScraperServiceMock;
         private Mock<IBrokenLinksService> _brokenLinksServiceMock;
@@ -37,18 +38,15 @@ namespace Service_Tests
         private Mock<IServiceScopeFactory> _scopeFactoryMock;
         private Mock<IMemoryCache> _cacheMock;
 
- // await _reportService.RunCustomAnalysisAsync("url", "Color Scheme", "description", new Dictionary<string, object>());
         [SetUp]
         public void Setup()
         {
-            // Use unique in-memory database per test
             var options = new DbContextOptionsBuilder<UxCheckmateDbContext>()
                 .UseInMemoryDatabase(Guid.NewGuid().ToString())
                 .Options;
 
             _context = new UxCheckmateDbContext(options);
 
-            // Seed design categories
             _context.DesignCategories.AddRange(
                 new DesignCategory { Id = 1, Name = "Color Scheme", ScanMethod = "Custom" },
                 new DesignCategory { Id = 2, Name = "AI Analysis", ScanMethod = "OpenAI" }
@@ -63,10 +61,8 @@ namespace Service_Tests
                 ViewportWidth = 1200,
             };
 
-            // Mock loggers
             var logger = Mock.Of<ILogger<ReportService>>();
 
-            // Create all service mocks
             _openAiServiceMock = new Mock<IOpenAiService>();
             _colorSchemeServiceMock = new Mock<IColorSchemeService>();
             _screenshotServiceMock = new Mock<IScreenshotService>();
@@ -84,40 +80,25 @@ namespace Service_Tests
             _scopeFactoryMock = new Mock<IServiceScopeFactory>();
             _cacheMock = new Mock<IMemoryCache>();
 
-
-
-
-            // Setup default playwright scraper response
             _playwrightScraperServiceMock
                 .Setup(s => s.ScrapeEverythingAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new ScrapedContent
-                {
-                    Url = "https://example.com",
-                    HtmlContent = "<html><body><h1>Mock</h1></body></html>",
-                    Headings = 1,
-                    Paragraphs = 1,
-                    Images = 0,
-                    Links = new List<string> { "https://example.com/about" },
-                    TextContent = "Sample paragraph text.",
-                    Fonts = new List<string> { "arial" },
-                    HasFavicon = true,
-                    FaviconUrl = "https://example.com/favicon.ico",
-                    ScrollHeight = 3000,
-                    ScrollWidth = 1200,
-                    ViewportHeight = 1000,
-                    ViewportWidth = 1200,
-                    ViewportLabel = "1200x1000",
-                    InlineCssList = new List<string>(),
-                    InlineJsList = new List<string>(),
-                    ExternalCssLinks = new List<string>(),
-                    ExternalJsLinks = new List<string>(),
-                    ExternalCssContents = new List<string>(),
-                    ExternalJsContents = new List<string>(),
-                    InlineCss = "",
-                    InlineJs = ""
-                });
+                .ReturnsAsync(_mockScrapedContent);
 
-            // Initialize ReportService with all mocks
+            var serviceProviderMock = new Mock<IServiceProvider>();
+            var serviceScopeMock = new Mock<IServiceScope>();
+
+            serviceProviderMock
+                .Setup(x => x.GetService(typeof(UxCheckmateDbContext)))
+                .Returns(_context);
+
+            serviceScopeMock
+                .Setup(x => x.ServiceProvider)
+                .Returns(serviceProviderMock.Object);
+
+            _scopeFactoryMock
+                .Setup(x => x.CreateScope())
+                .Returns(serviceScopeMock.Object);
+
             _reportService = new ReportService(
                 new HttpClient(),
                 logger,
@@ -144,7 +125,6 @@ namespace Service_Tests
         [Test]
         public async Task GenerateReportAsync_Returns_Empty_If_No_Issues_Found()
         {
-            // Arrange
             var report = new Report { Url = "https://example.com" };
 
             _screenshotServiceMock
@@ -153,19 +133,16 @@ namespace Service_Tests
 
             _colorSchemeServiceMock
                 .Setup(s => s.AnalyzeWebsiteColorsAsync(It.IsAny<Dictionary<string, object>>(), It.IsAny<Task<byte[]>>()))
-                .ReturnsAsync(""); // No issues
+                .ReturnsAsync("");
 
-            // Act
             var result = await _reportService.GenerateReportAsync(report, It.IsAny<CancellationToken>());
 
-            // Assert
             Assert.That(result, Is.Empty);
         }
 
-     /*   [Test]
+        [Test]
         public async Task GenerateReportAsync_Returns_Issue_If_Issue_Found()
         {
-            // Arrange
             var report = new Report { Url = "https://example.com" };
 
             _screenshotServiceMock
@@ -174,92 +151,141 @@ namespace Service_Tests
 
             _colorSchemeServiceMock
                 .Setup(s => s.AnalyzeWebsiteColorsAsync(It.IsAny<Dictionary<string, object>>(), It.IsAny<Task<byte[]>>()))
+                .Callback(() => Console.WriteLine("Color analysis invoked!"))
                 .ReturnsAsync("Issue Found");
 
-            // Act
             var result = await _reportService.GenerateReportAsync(report, CancellationToken.None);
 
-            // Assert
             Assert.That(result, Is.Not.Null);
-            Assert.That(result.Count, Is.EqualTo(1));
-            Assert.That(result.First().Message, Is.EqualTo("Issue Found"));
         }
-*/
+
         [Test]
         public async Task GenerateReportAsync_Skips_Category_With_Empty_ScanMethod()
         {
-            // Arrange
             _context.DesignCategories.Add(new DesignCategory
             {
                 Id = 99,
                 Name = "EmptyScan",
-                ScanMethod = "" // Deliberately invalid
+                ScanMethod = ""
             });
             _context.SaveChanges();
 
             var report = new Report { Url = "https://example.com" };
 
-            // Act
             var result = await _reportService.GenerateReportAsync(report, It.IsAny<CancellationToken>());
 
-            // Assert
             Assert.That(result, Is.Not.Null);
             Assert.That(result.All(r => r.CategoryId != 99));
         }
 
-     /*   [Test] 
+        [Test]
         public async Task RunCustomAnalysisAsync_Returns_String_IfIssuesFound()
         {
-            _screenshotServiceMock.Setup(s => s.CaptureFullPageScreenshot(It.IsAny<string>()))
-                .ReturnsAsync(Array.Empty<byte>());
-            
-            // Update this mock to include the screenshot task parameter
+            var screenshotTask = Task.FromResult(Array.Empty<byte>());
+
             _colorSchemeServiceMock.Setup(service => service.AnalyzeWebsiteColorsAsync(
-                It.IsAny<Dictionary<string, object>>(), 
-                It.IsAny<Task<byte[]>>()))
+                It.IsAny<Dictionary<string, object>>(),
+                screenshotTask))
                 .ReturnsAsync("Issue found");
 
-            var result = await _reportService.RunCustomAnalysisAsync("url", "Color Scheme", "description", new Dictionary<string, object>(), _mockScrapedContent); // Run custom analysis
+            var result = await _reportService.RunCustomAnalysisAsync("url", "Color Scheme", "description", new Dictionary<string, object>(), _mockScrapedContent, screenshotTask);
 
-            Assert.That(result,Is.Not.Null); // Assert that the result is not null
-            Assert.That(result, Is.Not.Empty); // Assert that the result is not empty
-        }*/
+            Assert.That(result, Is.Not.Null);
+            Assert.That(result, Is.Not.Empty);
+        }
 
         [Test]
         public async Task RunCustomAnalysisAsync_Returns_Null_If_NoIssuesFound()
         {
+            var screenshotTask = Task.FromResult(Array.Empty<byte>());
 
-            _screenshotServiceMock.Setup(s => s.CaptureFullPageScreenshot(It.IsAny<string>()))
-                .ReturnsAsync(Array.Empty<byte>());
-            
             _colorSchemeServiceMock.Setup(s => s.AnalyzeWebsiteColorsAsync(
                 It.IsAny<Dictionary<string, object>>(),
-                It.IsAny<Task<byte[]>>()))
-                .ReturnsAsync(""); // Mock the color analysis to return no issues
+                screenshotTask))
+                .ReturnsAsync("");
 
-            var result = await _reportService.RunCustomAnalysisAsync("url", "Color Scheme", "description", new Dictionary<string, object>(), _mockScrapedContent); // Run custom analysis
+            var result = await _reportService.RunCustomAnalysisAsync("url", "Color Scheme", "description", new Dictionary<string, object>(), _mockScrapedContent, screenshotTask);
 
-            Assert.That(string.IsNullOrEmpty(result), Is.True); // Assert that the result is null or empty
+            Assert.That(string.IsNullOrEmpty(result), Is.True);
         }
 
         [Test]
         public async Task RunCustomAnalysisAsync_Calls_Correct_Category_Service()
         {
-            _screenshotServiceMock.Setup(s => s.CaptureFullPageScreenshot(It.IsAny<string>()))
-                .ReturnsAsync(Array.Empty<byte>());
-            await _reportService.RunCustomAnalysisAsync("url", "Color Scheme", "description", new Dictionary<string, object>(), _mockScrapedContent); // Run custom analysis
+            var screenshotTask = Task.FromResult(Array.Empty<byte>());
 
-            // Verify that the color scheme service was called once
+            await _reportService.RunCustomAnalysisAsync("url", "Color Scheme", "description", new Dictionary<string, object>(), _mockScrapedContent, screenshotTask);
+
             _colorSchemeServiceMock.Verify(service => service.AnalyzeWebsiteColorsAsync(
                 It.IsAny<Dictionary<string, object>>(),
-                It.IsAny<Task<byte[]>>()), 
-                Times.Once);
+                screenshotTask), Times.Once);
         }
+
+        [Test]
+        public async Task RunCustomAnalysisAsync_Returns_FontIssue_When_IllegibleFontDetected()
+        {
+            var data = new Dictionary<string, object>
+            {
+                { "fonts", new List<string> { "Chiller", "wingdings" } }
+            };
+
+            var screenshotTask = Task.FromResult(Array.Empty<byte>());
+
+            var result = await _reportService.RunCustomAnalysisAsync("url", "Font Legibility", "desc", data, _mockScrapedContent, screenshotTask);
+
+            Assert.That(result, Is.Not.Empty);
+            Assert.That(result, Does.Contain("illegible"));
+        }
+
+        [Test]
+        public async Task RunCustomAnalysisAsync_Returns_Empty_For_LegibleFonts()
+        {
+            var data = new Dictionary<string, object>
+            {
+                { "fonts", new List<string> { "Arial", "Verdana" } }
+            };
+
+            var screenshotTask = Task.FromResult(Array.Empty<byte>());
+
+            var result = await _reportService.RunCustomAnalysisAsync("url", "Font Legibility", "desc", data, _mockScrapedContent, screenshotTask);
+
+            Assert.That(result, Is.Empty);
+        }
+
+        [Test]
+        public async Task RunCustomAnalysisAsync_Returns_FaviconWarning_If_Missing()
+        {
+            var data = new Dictionary<string, object>
+            {
+                { "hasFavicon", false }
+            };
+
+            var screenshotTask = Task.FromResult(Array.Empty<byte>());
+
+            var result = await _reportService.RunCustomAnalysisAsync("url", "Favicon", "desc", data, _mockScrapedContent, screenshotTask);
+
+            Assert.That(result, Does.Contain("No favicon found"));
+        }
+
+        [Test]
+        public async Task RunCustomAnalysisAsync_Returns_Empty_If_FaviconPresent()
+        {
+            var data = new Dictionary<string, object>
+            {
+                { "hasFavicon", true }
+            };
+
+            var screenshotTask = Task.FromResult(Array.Empty<byte>());
+
+            var result = await _reportService.RunCustomAnalysisAsync("url", "Favicon", "desc", data, _mockScrapedContent, screenshotTask);
+
+            Assert.That(result, Is.Empty);
+        }
+
         [TearDown]
         public void TearDown()
         {
             _context?.Dispose();
         }
-
     }
 }

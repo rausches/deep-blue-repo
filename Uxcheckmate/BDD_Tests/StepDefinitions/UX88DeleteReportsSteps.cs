@@ -60,7 +60,7 @@ namespace BDD_Tests.StepDefinitions
         {
             _result = await _controller.UserDash();
         }
-        [Then("they should be in user dash page")]
+        [Then("they should be in the user dash page")]
         public void ThenTheyShouldSeeALogout()
         {
             var viewResult = _result as ViewResult;

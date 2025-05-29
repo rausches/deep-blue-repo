@@ -121,3 +121,164 @@ function initBootstrapCollapses() {
         });
     });
 }
+
+document.addEventListener("DOMContentLoaded", function () {
+
+    // Grab the sorting dropdown element
+    const sortSelect = document.getElementById('sortSelect');
+    if (!sortSelect) return; // Exit if sort dropdown isn't found (fail-safe)
+
+    // Extract the report ID from a data attribute set on the sort dropdown
+    const reportId = sortSelect.dataset.reportId;
+
+    // Store the current sort value
+    let currentSortOrder = sortSelect.value;
+
+    // Will hold the ID for the interval-based polling timer
+    let pollingIntervalId;
+
+    // Used to prevent the summary modal from being shown more than once
+    let hasShownModal = false;
+
+    // Polling function: fetch updated issue data from the server
+    async function fetchUpdatedIssues() {
+        try {
+            // Send request to the backend API with current sort order and cache-busting timestamp
+            const response = await fetch(`${window.location.origin}/Home/GetSortedIssues?id=${reportId}&sortOrder=${currentSortOrder}&t=${Date.now()}`);
+            if (!response.ok) throw new Error("Fetch failed");
+
+            // Parse the JSON response
+            const data = await response.json();
+
+            // Update the Design Issues section if new HTML is provided
+            if (data.designHtml) {
+                // Replace existing design issue content with the new sorted HTML
+                document.getElementById('designIssuesContainer').innerHTML = data.designHtml;
+
+                // Re-attach click event listeners to any ✨ buttons
+                delegateOptimizeButtons();
+
+                // Update the displayed issue count
+                const totalIssues = document.querySelectorAll('.issue-card').length;
+                document.getElementById('totalIssues').innerHTML = `Total Issues Found: ${totalIssues}`;
+            }
+
+            // Check if the backend marked the report as "Completed"
+            if (data.status === "Completed") {
+
+                // Update the summary text content dynamically
+                const summaryElement = document.getElementById('summary');
+                if (summaryElement) {
+                    summaryElement.innerText = data.summary || "No summary available.";
+                    summaryElement.classList.add('visible');
+                }
+
+                // Hide the loading overlay on the design issues section
+                const overlay = document.getElementById('designIssuesOverlay');
+                overlay?.classList.add('hidden');
+
+                // If no design issues are found, display a success alert instead
+                const designIssuesCount = document.querySelectorAll('#designIssuesContainer .issue-card').length;
+                if (designIssuesCount === 0) {
+                    document.getElementById('designIssuesContainer').innerHTML = `
+                        <div class="alert alert-success">
+                            <strong>No UX issues found! Your site looks great.</strong>
+                        </div>
+                    `;
+                }
+
+                // Show the AI-generated summary modal once
+                if (!hasShownModal) {
+                    const modalElement = document.getElementById('onLoadModal');
+                    if (modalElement) {
+                        const modal = new bootstrap.Modal(modalElement);
+                        modal.show();
+                        hasShownModal = true;
+                    }
+                }
+
+                // Enable the sort dropdown again now that analysis is done
+                sortSelect.disabled = false;
+
+                // Reveal the "View Summary" button
+                document.getElementById("viewSummaryBtn").hidden = false;
+
+                // Stop polling because analysis is complete
+                clearInterval(pollingIntervalId);
+                console.log("Polling stopped — report analysis completed!");
+            }
+        } catch (error) {
+            console.error("Failed to fetch updated issues:", error);
+        }
+    }
+
+    // When the user changes the sort option, re-fetch updated sorted issues
+    sortSelect.addEventListener('change', () => {
+        currentSortOrder = sortSelect.value;
+        fetchUpdatedIssues();
+    });
+
+    // Allow users to re-open the summary modal manually
+    document.getElementById("viewSummaryBtn").addEventListener("click", function () {
+        const modalElement = document.getElementById('onLoadModal');
+        if (modalElement) {
+            const modal = new bootstrap.Modal(modalElement);
+            modal.show();
+        }
+    });
+
+    // Perform the first fetch immediately so the user sees results quickly
+    fetchUpdatedIssues();
+
+    // Start polling every second to check for updated report status and content
+    pollingIntervalId = setInterval(fetchUpdatedIssues, 1000);
+});
+
+
+// Attach click handlers to all ✨ buttons that exist
+function delegateOptimizeButtons() {
+    document.querySelectorAll(".optimize-btn").forEach(btn => {
+        btn.addEventListener("click", async function () {
+            // Get the issue's message and category from data attributes
+            const message = btn.dataset.message;
+            const category = btn.dataset.category;
+
+            // Look for the parent container where we want to show the AI response
+            const container = btn.closest('.issueItem') || btn.closest('.col-md-11');
+            const responseContainer = container.querySelector('.ai-response');
+            if (!responseContainer) return;
+
+            // Show a spinner and loading message while we fetch the AI insight
+            responseContainer.classList.remove('d-none');
+            responseContainer.innerHTML = `
+                <div class="d-flex align-items-center">
+                    <div class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></div>
+                    <span>Fetching AI insights…</span>
+                </div>
+            `;
+
+            try {
+                // Send the raw message and category to the backend API
+                const response = await fetch('/api/chat/improve', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ message: message, category: category })
+                });
+
+                // If the request failed, throw an error
+                if (!response.ok) throw new Error("Fetch failed");
+
+                // Read and display the AI-generated suggestion
+                const data = await response.text();
+                responseContainer.textContent = data;
+            } catch (error) {
+                // Show a fallback error message if the fetch fails
+                responseContainer.textContent = "Server is busy. Try again later.";
+                console.error(error);
+            }
+        });
+    });
+}
+

@@ -11,3 +11,4 @@ Feature: Role-based dashboard redirection
     When they visit the dashboard
     Then they should see the "AdminDashboard" view
     And they should land on the correct page in browser
+
