@@ -78,10 +78,20 @@ document.addEventListener("DOMContentLoaded", function () {
             </div>`;
             return false; 
         }
-
+        if (!urlInput || urlInput === "") return false;
+        
         if (window.captchaEnabled === "true" && window.userIsAuthenticated !== "true"){
             document.getElementById('analyzeBtn').disabled = true;
         }
+
+        const analyzeBtn = document.getElementById("analyzeBtn");
+        const btnText = analyzeBtn.querySelector(".btn-text");
+        const spinner = analyzeBtn.querySelector(".spinner-border");
+
+        // Show spinner and disable button
+        btnText.classList.add("d-none");
+        spinner.classList.remove("d-none");
+        analyzeBtn.disabled = true;
 
         const captchaContainer = document.getElementById("captchaContainer");
         if (captchaContainer && captchaContainer.offsetParent !== null) {
@@ -92,6 +102,10 @@ document.addEventListener("DOMContentLoaded", function () {
                         <h5><strong>CAPTCHA Required!</strong></h5>
                         <p>Please complete the CAPTCHA before submitting a report.</p>
                     </div>`;
+                btnText.classList.remove("d-none");
+                spinner.classList.add("d-none");
+                analyzeBtn.disabled = false;
+
                 return false;
             }
         }
@@ -109,6 +123,10 @@ document.addEventListener("DOMContentLoaded", function () {
                         <h5>Server CAPTCHA check failed!</h5>
                         <p>${data.error || "Try again."}</p>
                     </div>`;
+                btnText.classList.remove("d-none");
+                spinner.classList.add("d-none");
+                analyzeBtn.disabled = false;
+
                 return false;
             }
         }else if (captchaContainer && captchaContainer.offsetParent !== null){
@@ -124,6 +142,10 @@ document.addEventListener("DOMContentLoaded", function () {
                         <h5>CAPTCHA validation failed!</h5>
                         <p>${data.error || "Please try again."}</p>
                     </div>`;
+                btnText.classList.remove("d-none");
+                spinner.classList.add("d-none");
+                analyzeBtn.disabled = false;
+
                 return false;
             }
         }

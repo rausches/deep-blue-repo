@@ -40,14 +40,18 @@
                 <h3 id="landingCallToAction">Try it now!</h3>
                 <form method="post" asp-action="Report" id="urlForm" onsubmit="return handleUserUrl(event);">
                     <div class="form-group">
-                        <input type="hidden" id="g-recaptcha-response" name="CaptchaToken" />
-                        @if (ViewData["CaptchaEnabled"] is bool captchaEnabled && captchaEnabled){
-                            <div class="g-recaptcha" id="captchaContainer" data-sitekey="@ViewData["CaptchaSiteKey"]"></div>
-                        }
                         <div class="input-container">
                             <input type="text" id="urlInput" name="Url" asp-for="Url" placeholder="https://uxcheckmate.com">
-                            <button type="submit" id="analyzeBtn">GET AUDIT →</button>
+                            <button type="submit" id="analyzeBtn">
+                                <span class="btn-text">GET AUDIT →</span>
+                                <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+                            </button>
                         </div>
+                        <br>
+                        <input type="hidden" id="g-recaptcha-response" name="CaptchaToken" />
+                            @if (ViewData["CaptchaEnabled"] is bool captchaEnabled && captchaEnabled){
+                                <div class="g-recaptcha" id="captchaContainer" data-sitekey="@ViewData["CaptchaSiteKey"]"></div>
+                            }
                         <span asp-validation-for="Url" class="text-danger"></span>
                     </div>
                 </form>
@@ -174,7 +178,7 @@
 <section class="disclosure" id="disclosure">
     <div class="container" id="disclosureContainer">
         <div class="row g-3" id="disclosureRowOne">
-            <h3 id="disclosureHeader" class="homeHeader">What going on back there?</h3>
+            <h3 id="disclosureHeader" class="homeHeader">What's going on back there?</h3>
             <!-- Left Column -->
             <div class="col-md-4 d-flex flex-column">
                 <div class="disclosureBoxes flex-grow-1">
