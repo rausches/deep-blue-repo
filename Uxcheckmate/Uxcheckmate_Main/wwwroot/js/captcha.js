@@ -24,7 +24,7 @@ function onCaptchaLoadCallback() {
     const container = document.getElementById('captchaContainer');
     if (container) {
         const siteKey = container.getAttribute('data-sitekey');
-        console.log("Site key:", siteKey);
+      //  console.log("Site key:", siteKey);
         grecaptcha.render('captchaContainer', {
             sitekey: siteKey,
             callback: onCaptchaSuccess

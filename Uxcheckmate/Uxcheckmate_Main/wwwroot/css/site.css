@@ -1492,6 +1492,44 @@ Login Page Styling
 
 /*
 ==================================================
+Logout Page Styling
+==================================================
+*/
+.checkmate-container {
+  max-width: 700px;
+  margin: 80px auto;
+  background: var(--nav-bg);
+  padding: 3rem;
+  border-radius: 12px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+  text-align: center;
+  background-size: cover;
+  background-position: center;
+}
+
+.checkmate-icon {
+  font-size: 3rem;
+  color: var(--primary);
+}
+
+.checkmate-heading {
+  font-size: 2.5rem;
+  font-weight: bold;
+  color: #212529;
+}
+.checkmate-subtext {
+  font-size: 1.25rem;
+  color: #6c757d;
+  margin-bottom: 2rem;
+}
+
+.btn-login:hover {
+  background-color: #343a40;
+}
+
+
+/*
+==================================================
 Feedback Page Styling
 ==================================================
 */
