@@ -36,10 +36,7 @@ namespace Uxcheckmate_Main.Services
         private readonly IMemoryCache _cache;
         private readonly IPlaywrightApiService _playwrightApiService;
 
-        public ReportService(HttpClient httpClient, ILogger<ReportService> logger, UxCheckmateDbContext context, IOpenAiService openAiService, IBrokenLinksService brokenLinksService, IHeadingHierarchyService headingHierarchyService, IColorSchemeService colorSchemeService, IMobileResponsivenessService mobileResponsivenessService, IScreenshotService screenshotService, IPlaywrightScraperService playwrightScraperService, IPopUpsService popUpsService, IAnimationService animationService, IAudioService audioService, IScrollService scrollService, IFPatternService fPatternService, IZPatternService zPatternService, ISymmetryService symmetryService, IServiceScopeFactory scopeFactory,
-    IMemoryCache cache,
-            IPlaywrightApiService playwrightApiService)
-        public ReportService(HttpClient httpClient, ILogger<ReportService> logger, UxCheckmateDbContext context, IOpenAiService openAiService, IBrokenLinksService brokenLinksService, IHeadingHierarchyService headingHierarchyService, IColorSchemeService colorSchemeService, IMobileResponsivenessService mobileResponsivenessService, IScreenshotService screenshotService, IPlaywrightScraperService playwrightScraperService, IPopUpsService popUpsService, IAnimationService animationService, IAudioService audioService, IScrollService scrollService, IFPatternService fPatternService, IZPatternService zPatternService, ISymmetryService symmetryService, IServiceScopeFactory scopeFactory, IMemoryCache cache)
+        public ReportService(HttpClient httpClient, ILogger<ReportService> logger, UxCheckmateDbContext context, IOpenAiService openAiService, IBrokenLinksService brokenLinksService, IHeadingHierarchyService headingHierarchyService, IColorSchemeService colorSchemeService, IMobileResponsivenessService mobileResponsivenessService, IScreenshotService screenshotService, IPlaywrightScraperService playwrightScraperService, IPopUpsService popUpsService, IAnimationService animationService, IAudioService audioService, IScrollService scrollService, IFPatternService fPatternService, IZPatternService zPatternService, ISymmetryService symmetryService, IServiceScopeFactory scopeFactory, IMemoryCache cache, IPlaywrightApiService playwrightApiService)
         {
             _httpClient = httpClient;
             _dbContext = context;
@@ -81,66 +78,6 @@ namespace Uxcheckmate_Main.Services
 
             // Scrape site with caching
             var (scrapedData, fullScraped) = await GetScrapedContentAsync(url, cancellationToken);
-            if (scrapedData == null)
-            ScrapedContent fullScraped;
-            Dictionary<string, object> scrapedData;
-
-            try
-            {
-                string cacheKey = $"scrapedcontent_{url.ToLowerInvariant()}";
-                
-                // Try to get from cache
-                if (!_cache.TryGetValue(cacheKey, out fullScraped))
-                {
-                    _logger.LogInformation("No cached scrape found for {Url}. Scraping now.", url);
-                    var result = await _playwrightApiService.AnalyzeWebsiteAsync(url);
-                    fullScraped = new ScrapedContent
-                    {
-                        Url = url,
-                        HtmlContent = result?.Html,
-                        TextContent = result?.TextContent,
-                        Headings = result?.AxeResults?.Violations?.Count ?? 0,
-                        Paragraphs = 0, 
-                        Fonts = result?.AxeResults?.Violations?
-                            .Where(v => v.Id == "font-usage") // Or however you track fonts
-                            .SelectMany(v => v.Nodes.Select(n => n.Html))
-                            .ToList() ?? new List<string>(),
-
-                        HasFavicon = result?.HasFavicon ?? false,
-                        FaviconUrl = result?.FaviconUrl,
-                        ExternalCssContents = result?.ExternalCssContents ?? new List<string>(),
-                        ExternalJsContents = result?.ExternalJsContents ?? new List<string>(),
-                        ScrollHeight = result?.ScrollHeight ?? 0,
-                        ScrollWidth = result?.ScrollWidth ?? 0,
-                        ViewportHeight = result?.ViewportHeight ?? 0,
-                        ViewportWidth = result?.ViewportWidth ?? 0,
-                        ViewportLabel = result?.ViewportLabel ?? "",
-                        InlineCssList = result?.InlineCssList ?? new List<string>(),
-                        InlineJsList = result?.InlineJsList ?? new List<string>(),
-                        ExternalCssLinks = result?.ExternalCssLinks ?? new List<string>(),
-                        ExternalJsLinks = result?.ExternalJsLinks ?? new List<string>(),
-                        InlineCss = string.Join("\n", result?.InlineCssList ?? new List<string>()),
-                        InlineJs = string.Join("\n", result?.InlineJsList ?? new List<string>()),
-                        Links = result?.Links ?? new List<string>(),
-                        LayoutElements = result?.LayoutElements ?? new List<HtmlElement>()
-                    };
-
-
-                    // Cache it for 1 hour
-                    _cache.Set(cacheKey, fullScraped, TimeSpan.FromHours(1));
-                }
-                else
-                {
-                    _logger.LogInformation("Using cached scrape for {Url}.", url);
-                }
-
-                scrapedData = fullScraped.ToDictionary();
-            }
-
-            catch (OperationCanceledException)
-            {
-                _logger.LogWarning("Scraping cancelled.");
-                return scanResults.ToList();
 
             // Screenshot with caching
             var screenshotTask = GetOrCaptureScreenshot(url);
