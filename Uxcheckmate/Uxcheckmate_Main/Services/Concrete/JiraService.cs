@@ -5,6 +5,7 @@ using Microsoft.Extensions.Options;
 using Uxcheckmate_Main.Models;
 using Uxcheckmate_Main.Services;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace Uxcheckmate_Main.Services
 {
@@ -19,14 +20,16 @@ namespace Uxcheckmate_Main.Services
         private readonly JiraSettings _settings;
         private readonly UxCheckmateDbContext _context;
         private readonly IOpenAiService _openAiService; 
+        private readonly IMemoryCache _cache;
 
-        public JiraService(HttpClient httpClient, IOptions<JiraSettings> settings, UxCheckmateDbContext dbContext, 
-        IOpenAiService openAiService)
+        public JiraService(HttpClient httpClient, IOptions<JiraSettings> settings, UxCheckmateDbContext dbContext,
+        IOpenAiService openAiService, IMemoryCache cache)
         {
             _httpClient = httpClient;
             _settings = settings.Value;
             _context = dbContext;
             _openAiService = openAiService;
+            _cache = cache;
         }
 
         public async Task ExportReportAsync(Report report, string accessToken, string cloudId, string projectId)
@@ -37,12 +40,12 @@ namespace Uxcheckmate_Main.Services
                 if (string.IsNullOrEmpty(issue.Title))
                 {
                     // Generate a title for the issue using OpenAI
-                    issue.Title = await _openAiService.GenerateTitleAsync(issue.Message, issue.Category?.Name ?? "General");
+                    issue.Title = await GetOrGenerateTitleAsync(issue.Message, issue.Category?.Name ?? "General");
                     await _context.SaveChangesAsync();
                 }
 
                 // Generate an improved description for the issue using OpenAI
-                issue.Message = await _openAiService.GenerateImprovedDescriptionAsync(issue.Message, issue.Category?.Name ?? "General");
+                issue.Message = await GetOrGenerateImprovedDescriptionAsync(issue.Message, issue.Category?.Name ?? "General");
 
                 await CreateJiraIssueAsync(accessToken, cloudId, projectId, issue.Title, issue.Message);
             }
@@ -53,11 +56,11 @@ namespace Uxcheckmate_Main.Services
                 if (string.IsNullOrEmpty(issue.Title))
                 {
                     // Generate a title for the issue using OpenAI
-                    issue.Title = await _openAiService.GenerateAccTitleAsync(issue.Message, issue.Category?.Name ?? "General", issue.Selector);
+                    issue.Title = await GetOrGenerateAccTitleAsync(issue.Message, issue.Category?.Name ?? "General", issue.Selector);
                     await _context.SaveChangesAsync();
                 }
                 // Generate an improved description for the issue using OpenAI
-                issue.Message = await _openAiService.GenerateImprovedDescriptionAsync(issue.Message, issue.Category?.Name ?? "General");
+                issue.Message = await GetOrGenerateImprovedDescriptionAsync(issue.Message, issue.Category?.Name ?? "General");
 
                 await CreateJiraIssueAsync(accessToken, cloudId, projectId, issue.Title, issue.Message);
             }
@@ -121,6 +124,58 @@ namespace Uxcheckmate_Main.Services
             // Throw an exception if the request fails
             if (!response.IsSuccessStatusCode)
                 throw new Exception($"Jira issue creation failed: {response.StatusCode} - {await response.Content.ReadAsStringAsync()}");
+        }
+
+        private async Task<string> GetOrGenerateAccTitleAsync(string message, string category, string selector)
+        {
+            // Construct a unique cache key using the category and a hash of the message content
+            var cacheKey = $"openai_title_{category}_{message.GetHashCode()}";
+
+            // Try to retrieve the cached title from memory
+            if (_cache.TryGetValue(cacheKey, out string cachedTitle))
+                return cachedTitle; // Return cached result if available
+
+            // Otherwise, call the OpenAI service to generate a new title
+            var title = await _openAiService.GenerateAccTitleAsync(message, category, selector);
+
+            // Store the generated title in the cache for 1 hour
+            _cache.Set(cacheKey, title, TimeSpan.FromHours(1));
+
+            return title;
+        }
+        private async Task<string> GetOrGenerateTitleAsync(string message, string category)
+        {
+            // Construct a unique cache key using the category and a hash of the message content
+            var cacheKey = $"openai_title_{category}_{message.GetHashCode()}";
+
+            // Try to retrieve the cached title from memory
+            if (_cache.TryGetValue(cacheKey, out string cachedTitle))
+                return cachedTitle; // Return cached result if available
+
+            // Otherwise, call the OpenAI service to generate a new title
+            var title = await _openAiService.GenerateTitleAsync(message, category);
+
+            // Store the generated title in the cache for 1 hour
+            _cache.Set(cacheKey, title, TimeSpan.FromHours(1));
+
+            return title;
+        }
+        private async Task<string> GetOrGenerateImprovedDescriptionAsync(string message, string category)
+        {
+            // Construct a unique cache key using the category and a hash of the message content
+            var cacheKey = $"openai_description_{category}_{message.GetHashCode()}";
+
+            // Try to retrieve the cached description from memory
+            if (_cache.TryGetValue(cacheKey, out string cachedDesc))
+                return cachedDesc; // Return cached result if available
+
+            // Otherwise, call the OpenAI service to generate a new improved description
+            var desc = await _openAiService.GenerateImprovedDescriptionAsync(message, category);
+
+            // Store the generated description in the cache for 1 hour
+            _cache.Set(cacheKey, desc, TimeSpan.FromHours(1));
+
+            return desc;
         }
 
         private string CleanSummary(string input)

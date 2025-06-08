@@ -46,20 +46,22 @@ namespace Uxcheckmate_Main.Services
             var htmlDoc = new HtmlDocument();
             htmlDoc.LoadHtml(htmlContent);
 
-            // Search for <audio> tags or video with autoplay
+            // Search for <audio> and <video> tags with autoplay
             var audioNodes = htmlDoc.DocumentNode
                 .Descendants()
                 .Where(n =>
-                    n.Name == "audio" ||
-                    (n.Name == "video" && n.GetAttributeValue("autoplay", null) != null) ||
-                    (n.Name == "audio" && n.GetAttributeValue("autoplay", null) != null)
-                )
+                    (n.Name == "audio" || n.Name == "video") &&
+                    n.GetAttributeValue("autoplay", null) != null)
                 .ToList();
 
             if (audioNodes.Any())
             {
-                findings.Add($"Found {audioNodes.Count} HTML media elements with autoplay.");
                 audioScore += audioNodes.Count;
+                foreach (var node in audioNodes)
+                {
+                    var elementHtml = node.OuterHtml.Trim();
+                    findings.Add($"Autoplay Element:\n{elementHtml}");
+                }
             }
 
             // Search JS files for common autoplay patterns
@@ -80,7 +82,7 @@ namespace Uxcheckmate_Main.Services
                 {
                     if (js.Contains(keyword, StringComparison.OrdinalIgnoreCase))
                     {
-                        findings.Add($"Found JavaScript audio trigger: `{keyword}`");
+                        findings.Add($"JavaScript audio trigger found: `{keyword}`");
                         audioScore++;
                     }
                 }
@@ -92,10 +94,9 @@ namespace Uxcheckmate_Main.Services
                 return string.Empty;
             }
 
-            _logger.LogInformation("Audio behavior detected with {Score} instances.", audioScore);
+            _logger.LogInformation("Audio autoplay behavior detected ({Score} instances).", audioScore);
 
-            return $"Detected {audioScore} audio-related behaviors. Consider disabling autoplay or prompting users before playing audio.\n\n {string.Join("\n- ", findings)}";
-
+            return $"Found {audioScore} audio-related behaviors.\n\n{string.Join("\n\n", findings)}. Consider disabling autoplay or prompting users before playing audio.";
         }
     }
 }

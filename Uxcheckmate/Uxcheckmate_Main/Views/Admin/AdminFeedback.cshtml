@@ -1,45 +1,148 @@
 @model List<Uxcheckmate_Main.ViewModels.AdminFeedbackViewModel>
-
 @{
     ViewData["Title"] = "Admin Feedback";
     var feedbackIndex = 0;
+    var recentFeedback = Model
+        .SelectMany(u => u.Feedbacks.Select(f => new { User = u, Feedback = f }))
+        .OrderByDescending(x => x.Feedback.DateSubmitted)
+        .FirstOrDefault();
 }
-<div class="text-center">
-    <h1 class="display-4">User Feedback</h1>
+
+<div class="container-fluid userdash-wrapper g-0">
+
+    <div class="row myAdminFeedbackHeader">
+        <h1 class="display-4 my-dashboard-text">User Feedback</h1> <br>
+            <small class="text-muted">What People Are Saying...</small>
+    </div>
 </div>
-<div class="container mt-4">
-    @foreach (var user in Model){
-        var collapseId = $"collapseFeedback{feedbackIndex++}";
-        <div class="mb-3">
-            <h5>User ID: @user.UserId</h5>
-            @if (user.Feedbacks.Any()){
-                <div class="d-flex gap-2 mb-2">
-                <button class="btn btn-primary btn-sm" type="button" data-bs-toggle="collapse" data-bs-target="#@collapseId" aria-expanded="false" aria-controls="@collapseId">
-                    View Feedback (@user.Feedbacks.Count)
-                </button>
-                <form method="post" asp-action="DeleteAllFeedback" asp-controller="Admin" onsubmit="return confirm('Are you sure you want to delete ALL feedback from this user?');">
-                    <input type="hidden" name="userId" value="@user.UserId" />
-                    <button type="submit" class="btn btn-danger btn-sm">Delete All Feedback</button>
-                </form>
-            </div>
-                <div class="collapse" id="@collapseId">
-                    <ul class="list-group">
-                        @foreach (var feedback in user.Feedbacks.OrderByDescending(f => f.DateSubmitted)){
-                            <li class="list-group-item d-flex justify-content-between align-items-center">
-                                <div>
-                                    <strong>@feedback.DateSubmitted.ToLocalTime().ToString("g")</strong><br />
-                                    @feedback.Message
-                                </div>
-                                <form method="post" asp-action="DeleteFeedback" asp-controller="Admin" asp-route-id="@feedback.Id" onsubmit="return confirm('Are you sure you want to delete this feedback?');">
-                                    <button type="submit" class="btn btn-sm btn-danger">Delete</button>
-                                </form>
-                            </li>
-                        }
-                    </ul>
+
+<div class="row mb-4 mt-4">
+    <div class="row mb-4">
+        <div class="col h-100">
+            <div class="card text-center h-100">
+                <div class="card-body ">
+                    <h6 class="card-title">Total User Feedback</h6>
+                    <h2>@Model.Count</h2>
                 </div>
-            }else{
-                <p><em>No feedback submitted.</em></p>
-            }
+            </div>
         </div>
-    }
+        <div class="col h-100">
+            <div class="card text-center h-100">
+                <div class="card-body">
+                    <h6 class="card-title">Total Feedback Entries</h6>
+                    <h2>@Model.Sum(u => u.Feedbacks.Count)</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col h-100">
+            <div class="card text-center shadow-sm h-100">
+                <div class="card-body">
+                    <h6 class="card-title mb-2 fw-semibold">Latest User Feedback</h6>
+                    @if (recentFeedback != null)
+                    {                                
+                    <p class="text-muted mb-3">
+                        <strong>"@recentFeedback.Feedback.Message"</strong><br />
+                        <small>Sent by <strong>@recentFeedback.User.UserId</strong><br />
+                        on @recentFeedback.Feedback.DateSubmitted.ToLocalTime().ToString("MMMM dd, yyyy")</small>
+                    </p>             
+                    }
+                    else
+                    {
+                        <p class="text-muted">No recent feedback available.</p>
+                    }
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+    <div class="container my-5">
+    <div class="row row-cols-1 g-4">
+        @foreach (var user in Model)
+        {
+            var currentIndex = feedbackIndex++;
+            <div class="col">
+                <div class="card h-100 shadow-sm">
+                    <div class="card-body h-100">
+                        <div class="row h-100 d-flex align-items-center">
+                            <!-- Left side -->
+                            <div class="col-md-4">
+                                <div class="card-title">
+                                    <div class="text-center">
+                                        <img src="https://ui-avatars.com/api/?name=@(Uri.EscapeDataString(user.UserId))&background=random&length=1"
+                                             class="rounded-circle img-fluid"
+                                             alt="Avatar for @user.UserId"
+                                             width="80" height="80" />
+                                        <h5 class="card-title">@user.UserId</h5>
+                                        <span class="badge bg-primary me-1">@user.Feedbacks.Count</span>
+                                        <span class="badge bg-secondary">Feedbacks</span>
+                                        <form method="post" asp-action="DeleteAllFeedback" asp-controller="Admin"
+                                              onsubmit="return confirm('Are you sure you want to delete ALL feedback from this user?');">
+                                            <input type="hidden" name="userId" value="@user.UserId" />
+                                            <button type="submit" class="btn btn-sm btn-danger bi-trash">
+                                                Delete All Feedback
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                                                     class="bi bi-trash" viewBox="0 0 16 16">
+                                                    <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0z"/>
+                                                    <path d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4zM2.5 3h11V2h-11z"/>
+                                                </svg>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Right side -->
+                            <div class="col-md-8 text-center">
+                                <!-- Card Carousel -->
+                                <div id="carouselFeedback@(currentIndex)" class="carousel slide" data-bs-ride="carousel">
+                                    <div class="carousel-inner">
+                                        @if (user.Feedbacks.Any())
+                                        {
+                                            int feedbackCount = user.Feedbacks.Count;
+                                            for (int i = 0; i < feedbackCount; i++)
+                                            {
+                                                var feedback = user.Feedbacks.OrderByDescending(f => f.DateSubmitted).ElementAt(i);
+                                                <div class="carousel-item @(i == 0 ? "active" : "")">
+                                                    <p class="card-text"><strong>"@feedback.Message"</strong></p>
+                                                    <small class="text-muted">
+                                                        Submitted on @feedback.DateSubmitted.ToLocalTime().ToString("MMMM dd, yyyy")
+                                                        <form method="post" asp-action="DeleteFeedback" asp-controller="Admin" asp-route-id="@feedback.Id"
+                                                              onsubmit="return confirm('Are you sure you want to delete this feedback?');">
+                                                            <button type="submit" class="btn btn-sm bi-trash">
+                                                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="red"
+                                                                     class="bi bi-trash" viewBox="0 0 16 16">
+                                                                    <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0z"/>
+                                                                    <path d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4zM2.5 3h11V2h-11z"/>
+                                                                </svg>
+                                                            </button>
+                                                        </form>
+                                                    </small>
+                                                </div>
+                                            }
+                                        }
+                                        else
+                                        {
+                                            <div class="carousel-item active">
+                                                <p class="card-text"><em>No feedback submitted.</em></p>
+                                            </div>
+                                        }
+                                    </div>
+                                    <!-- Carousel controls -->
+                                    <button class="carousel-control-prev" type="button" data-bs-target="#carouselFeedback@(currentIndex)" data-bs-slide="prev">
+                                        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                                        <span class="visually-hidden">Previous</span>
+                                    </button>
+                                    <button class="carousel-control-next" type="button" data-bs-target="#carouselFeedback@(currentIndex)" data-bs-slide="next">
+                                        <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                                        <span class="visually-hidden">Next</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
 </div>

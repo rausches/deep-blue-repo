@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Options;
 using Uxcheckmate_Main.Services;
 using Uxcheckmate_Main.Models;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace Service_Tests
 {
@@ -18,6 +19,7 @@ namespace Service_Tests
         private Mock<HttpMessageHandler> _httpHandlerMock;
         private Mock<UxCheckmateDbContext> _dbContextMock;
         private Mock<IOpenAiService> _openAiServiceMock;
+        private Mock<IMemoryCache> _cacheMock;
 
         [SetUp]
         public void Setup()
@@ -30,8 +32,9 @@ namespace Service_Tests
 
             _dbContextMock = new Mock<UxCheckmateDbContext>();
             _openAiServiceMock = new Mock<IOpenAiService>();
+            _cacheMock = new Mock<IMemoryCache>();
 
-            _jiraService = new JiraService(httpClient, options, _dbContextMock.Object, _openAiServiceMock.Object);
+            _jiraService = new JiraService(httpClient, options, _dbContextMock.Object, _openAiServiceMock.Object, _cacheMock.Object);
         }
 
         [Test]

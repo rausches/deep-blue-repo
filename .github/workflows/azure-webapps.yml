@@ -4,12 +4,13 @@ on:
   workflow_dispatch:
   push:
     branches:
-      - dev
+      - deploy-test-branch
 
 env:
   AZURE_WEBAPP_NAME: DBUxCheckmateMain
-  AZURE_WEBAPP_PACKAGE_PATH: "/home/site/wwwroot"
+  AZURE_WEBAPP_PACKAGE_PATH: './publish'
   DB_STRING_SECRET: ${{ secrets.DB_STRING_SECRET }}
+  PLAYWRIGHT_BROWSERS_PATH: './publish/playwright'
 
 permissions:
   contents: read
@@ -27,10 +28,10 @@ jobs:
           dotnet-version: '9.0.x'
 
       - name: Restore
-        run: dotnet restore ./Uxcheckmate/Uxcheckmate.sln
+        run: dotnet restore ./Uxcheckmate/Uxcheckmate_Main/Uxcheckmate_Main.sln
 
       - name: Build
-        run: dotnet build ./Uxcheckmate/Uxcheckmate.sln --configuration Release --no-restore
+        run: dotnet build ./Uxcheckmate/Uxcheckmate_Main/Uxcheckmate_Main.sln --configuration Release --no-restore
 
       - name: Run Tests
         run: dotnet test ./Uxcheckmate/Uxcheckmate_Tests/Uxcheckmate_Tests.csproj --configuration Release

@@ -15,8 +15,22 @@
         @TempData["UrlUnreachable"]
     </div>
 }
+@if (TempData["CaptchaMessage"] != null)
+{
+    <div class="alert alert-warning">
+        @TempData["CaptchaMessage"]
+    </div>
+}
+@if (TempData["MaxedAnonSubmis"] != null)
+{
+    <div class="alert alert-warning">@TempData["MaxedAnonSubmis"]</div>
+    <a class="btn btn-dark btn-global" asp-area="Identity" asp-page="/Account/Login">Login</a>
+    <span> or </span>
+    <a class="btn btn-dark btn-global" asp-area="Identity" asp-page="/Account/Register">Register</a>
+}
 
-<section class="main full-screen">
+
+<section class="main">
     <div class="container scanContainer">
         <div class="row" id="landingRowOne">
             <div class="col-md-6">
@@ -28,8 +42,16 @@
                     <div class="form-group">
                         <div class="input-container">
                             <input type="text" id="urlInput" name="Url" asp-for="Url" placeholder="https://uxcheckmate.com">
-                            <button type="submit" id="analyzeBtn">GET AUDIT →</button>
+                            <button type="submit" id="analyzeBtn">
+                                <span class="btn-text">GET AUDIT →</span>
+                                <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+                            </button>
                         </div>
+                        <br>
+                        <input type="hidden" id="g-recaptcha-response" name="CaptchaToken" />
+                            @if (ViewData["CaptchaEnabled"] is bool captchaEnabled && captchaEnabled){
+                                <div class="g-recaptcha" id="captchaContainer" data-sitekey="@ViewData["CaptchaSiteKey"]"></div>
+                            }
                         <span asp-validation-for="Url" class="text-danger"></span>
                     </div>
                 </form>
@@ -86,7 +108,7 @@
                                         <!-- Skeleton for Sort Dropdown -->
                                         <div class="placeholder-glow">
                                             <span class="placeholder col-12" style="height: 38px; border-radius: 5px; display: flex; align-items: center; justify-content: center;">
-                                                <p id="skeleton-text">Categories...</p>
+                                                <p class="scan-status">Categories...</p>
                                             </span>                                        
                                         </div>
                                     </div>
@@ -97,7 +119,7 @@
                                     <div class="report-section">
                                         <div class="placeholder-glow mb-4">
                                             <span class="placeholder col-4" style="height: 38px; border-radius: 5px; display: flex; align-items: center; justify-content: left;">
-                                                <h2 id="skeleton-text">Design Issues...</h2>
+                                                <h2 class="skeleton-text-color"></h2>
                                             </span> <!-- Skeleton for 'Design Issues' header -->
                                         </div>
                                         <div class="placeholder-glow">
@@ -113,7 +135,7 @@
                                     <div class="report-section">
                                         <div class="placeholder-glow mb-4">
                                             <span class="placeholder col-5" style="height: 38px; border-radius: 5px; display: flex; align-items: center; justify-content: left;">
-                                                <h2 id="skeleton-text">Accessibility Issues...</h2>
+                                                <h2 class="skeleton-text-color"></h2>
                                             </span> <!-- Skeleton for 'Accessibility Issues' header -->
                                         </div>
                                         <div class="placeholder-glow">
@@ -156,12 +178,13 @@
 <section class="disclosure" id="disclosure">
     <div class="container" id="disclosureContainer">
         <div class="row g-3" id="disclosureRowOne">
-            <h3 id="disclosureHeader">What going on back there?</h3>
+            <h3 id="disclosureHeader" class="homeHeader">What's going on back there?</h3>
             <!-- Left Column -->
             <div class="col-md-4 d-flex flex-column">
                 <div class="disclosureBoxes flex-grow-1">
                     <img src="~/images/Scrapers.png" alt="Playwright and htmlAgility logos" id="logoImg">
-                    <p>UxCheckmate uses HtmlAgilityPack and Playwright to scrape static and dynamic content from a website. Playwright also assists in capturing a screenshot of the webpage.</p>
+                    <div class="disclosure-badge">SCRAPE</div>
+                    <p>UxCheckmate uses Playwright to screenshot and scrape static and dynamic content from a website.</p>
                 </div>
             </div>
             
@@ -169,6 +192,7 @@
             <div class="col-md-4 d-flex flex-column">
                 <div class="disclosureBoxes flex-grow-1">
                     <img src="~/images/AxeCore_Logo.png" alt="Axe Core Logo" id="axelogoImg">
+                    <div class="disclosure-badge">ANALYZE</div>
                     <p>UxCheckmate uses the AxeCore JS library to reference accessibility guidelines per the WCAG.</p>
                 </div>
             </div>
@@ -177,7 +201,8 @@
             <div class="col-md-4 d-flex flex-column">
                 <div class="disclosureBoxes flex-grow-1">
                     <img src="~/images/OpenAI_Logo.png" alt="Open AI Logo" id="ailogoImg">
-                    <p>UxCheckmate uses OpenAI to improve analysis responses and DALL·E to provide a mockup of the suggested changes.</p>
+                    <div class="disclosure-badge">OPTIMIZE</div>
+                    <p>UxCheckmate uses OpenAI to improve analysis responses and create report summaries.</p>
                 </div>
             </div>
         </div>
@@ -191,31 +216,64 @@
 *@
 
 <section class="faq" id="faq">
-    <div class="container faqContainer">
-        <div class="row faqRow gx-2">
-            <div class="col-md-12">
-                <h3 id="faqHeader">FAQ</h3>
-                <div class="faqContent faqBigBox">
-                    <h4 class="faqSubheader">What does UxCheckmate Check?</h4><br>
-                    <p>The Uxcheckmate Website Scanner checks for webpage accessibility and UX/UI improvements.</p>
-                </div>
-                <br>
+  <div class="container faqContainer">
+    <div class="row faqRow gx-2">
+      <div class="col-md-12">
+        <h3 id="faqHeader" class="homeHeader">FAQ</h3>
 
-                <div class="faqContent faqBigBox">
-                    <h4 class="faqSubheader">What is Web Site Accessibility?</h4><br>
-                    <p>Accessibility in web design is the commitment to creating digital experiences that are inclusive and functional for all users, including those with disabilities. It involves designing websites that are easy to perceive, navigate, and interact with, ensuring that everyone, regardless of their abilities or assistive technologies, can access and engage with online content effectively.</p>
-                </div>
-                <br>
+        <div class="accordion" id="faqAccordion">
+          <!-- Question 1 -->
+          <div class="accordion-item faqAccordionItem">
+            <h2 class="accordion-header" id="faqHeadingOne">
+              <button class="accordion-button collapsed faqAccordionItem" type="button" data-bs-toggle="collapse" data-bs-target="#faqCollapseOne" aria-expanded="false" aria-controls="faqCollapseOne">
+                <span class="faqSubheader">What does UxCheckmate do?</span>
+              </button>
+            </h2>
+            <div id="faqCollapseOne" class="accordion-collapse collapse" aria-labelledby="faqHeadingOne" data-bs-parent="#faqAccordion">
+              <div class="accordion-body faqAccordionItem">
+                The Uxcheckmate Website Scanner checks for webpage accessibility and UX/UI improvements.
+              </div>
+            </div>
+          </div>
 
-                <div class="faqContent faqBigBox">
-                    <h4 class="faqSubheader">What is UX/UI Design?</h4><br>
-                    <p>User Experience/User Interface, UX/UI, design focuses on crafting digital experiences that are both visually engaging and functionally intuitive. UX (User Experience) design emphasizes usability, accessibility, and user satisfaction by optimizing interactions and navigation. UI (User Interface) design ensures an aesthetically cohesive and responsive interface that enhances usability. Together, they create seamless, user-friendly digital products that meet both user needs and business objectives.</p>
-                </div>
-                <br>
+          <!-- Question 2 -->
+          <div class="accordion-item faqAccordionItem">
+            <h2 class="accordion-header" id="faqHeadingTwo">
+              <button class="accordion-button collapsed faqAccordionItem" type="button" data-bs-toggle="collapse" data-bs-target="#faqCollapseTwo" aria-expanded="false" aria-controls="faqCollapseTwo">
+                <span class="faqSubheader">What is Website Accessibility?</span>
+              </button>
+            </h2>
+            <div id="faqCollapseTwo" class="accordion-collapse collapse" aria-labelledby="faqHeadingTwo" data-bs-parent="#faqAccordion">
+              <div class="accordion-body faqAccordionItem">
+                Accessibility in web design is the commitment to creating digital experiences that are inclusive and functional for all users, including those with disabilities. It involves designing websites that are easy to perceive, navigate, and interact with, ensuring that everyone, regardless of their abilities or assistive technologies, can access and engage with online content effectively.
+              </div>
+            </div>
+          </div>
 
-                <div class="faqContent">
-                    <h4 class="faqSubheader">What specific UX/UI elements are checked?</h4><br>
-                    <div class="row cardsRow g-3">
+          <!-- Question 3 -->
+          <div class="accordion-item faqAccordionItem">
+            <h2 class="accordion-header" id="faqHeadingThree">
+              <button class="accordion-button collapsed faqAccordionItem" type="button" data-bs-toggle="collapse" data-bs-target="#faqCollapseThree" aria-expanded="false" aria-controls="faqCollapseThree">
+                <span class="faqSubheader">What is UX/UI Design?</span>
+              </button>
+            </h2>
+            <div id="faqCollapseThree" class="accordion-collapse collapse" aria-labelledby="faqHeadingThree" data-bs-parent="#faqAccordion">
+              <div class="accordion-body faqAccordionItem">
+                User Experience/User Interface, UX/UI, design focuses on crafting digital experiences that are both visually engaging and functionally intuitive. UX (User Experience) design emphasizes usability, accessibility, and user satisfaction by optimizing interactions and navigation. UI (User Interface) design ensures an aesthetically cohesive and responsive interface that enhances usability. Together, they create seamless, user-friendly digital products that meet both user needs and business objectives.
+              </div>
+            </div>
+          </div>
+
+          <!-- Question 4 with Card Grid -->
+          <div class="accordion-item faqAccordionItem">
+            <h2 class="accordion-header" id="faqHeadingFour">
+              <button class="accordion-button faqAccordionItem" type="button" data-bs-toggle="collapse" data-bs-target="#faqCollapseFour" aria-expanded="true" aria-controls="faqCollapseFour">
+                <span class="faqSubheader">What specific UX/UI elements are checked?</span>
+              </button>
+            </h2>
+            <div id="faqCollapseFour" class="accordion-collapse collapse show" aria-labelledby="faqHeadingFour" data-bs-parent="#faqAccordion">
+              <div class="accordion-body faqAccordionItem">
+                <div class="row cardsRow g-3">
                         
                         <!-- 1 -->
                         <div class="col-md-3 d-flex flex-column">
@@ -337,16 +395,6 @@
                             </div>
                         </div>
 
-                        <!-- 13 -->
-                        <div class="col-md-3 d-flex flex-column">
-                            <div class="cards">
-                                <div class="flip-inner">
-                                    <div class="flip-front"><h5><strong>User Feedback</strong></h5></div>
-                                    <div class="flip-back"><p>Visual or interactive responses to user actions, like hover effects, loading indicators, or confirmation messages. Impact: Helps users understand system status and feel in control. Solution: Implement toast notifications, progress bars, and real-time validation.</p></div>
-                                </div>
-                            </div>
-                        </div>
-
                         <!-- 14 -->
                         <div class="col-md-3 d-flex flex-column">
                             <div class="cards">
@@ -386,16 +434,21 @@
                                 </div>
                             </div>
                         </div>
-                    </div> <!-- End Row -->
-                </div> <!-- End FAQ Content -->
+                  <!-- END CARD GRID -->
+                    </div>
+                </div>
             </div>
-        </div>
+          </div>
+        </div> <!-- end accordion -->
+      </div>
     </div>
+  </div>
 </section>
-
+<br>
 <button onclick="scrollToTop()" id="scrollTopBtn" title="Go to top" class="btn btn-dark">
-    Scroll back to top
+    <img src="~/images/back_to_top_icon.png" alt="back to top icon" width="60%;"><br>
 </button>
+<br>
 
 <script>
     var urlUnreachableMessage = '@TempData["UrlUnreachable"]';
@@ -425,6 +478,14 @@
 </script>
 
 @section Scripts {
+    <script>
+        window.userIsAuthenticated = @(User.Identity.IsAuthenticated ? "true" : "false");
+        window.captchaEnabled = @((ViewData["CaptchaEnabled"] is bool ce && ce) ? "true" : "false");
+    </script>
+    
+    <script src="~/js/home.js"></script>
     <script src="~/js/loader.js"></script>
     <script src="~/js/handleUserUrl.js"></script>
+    <script src="~/js/captcha.js"></script>
+    <script src="https://www.google.com/recaptcha/api.js?onload=onCaptchaLoadCallback&render=explicit" async defer></script>
 }

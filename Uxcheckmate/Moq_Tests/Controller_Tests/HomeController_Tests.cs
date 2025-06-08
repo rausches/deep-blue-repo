@@ -12,11 +12,14 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Moq;
+using Moq.Protected;
+using Moq_Tests;
 using NUnit.Framework;
 using Microsoft.Playwright;
 using Uxcheckmate_Main.Controllers;
 using Uxcheckmate_Main.Models;
 using Uxcheckmate_Main.Services;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.AspNetCore.Identity;
@@ -29,14 +32,13 @@ namespace Controller_Tests
     {
         private Mock<ILogger<HomeController>> _loggerMock;
         private Mock<HttpClient> _httpClientMock;
-        private UxCheckmateDbContext _dbContext; 
+        private UxCheckmateDbContext _dbContext;
         private Mock<IOpenAiService> _openAiServiceMock;
         private Mock<IReportService> _reportServiceMock;
         private Mock<IAxeCoreService> _axeCoreServiceMock;
         private Mock<PdfExportService> _pdfExportServiceMock;
         private Mock<IScreenshotService> _screenshotServiceMock;
-        private HomeController _controller; 
-        
+        private HomeController _controller;
         private Mock<DbSet<Report>> _mockReportDbSet;
         private Mock<ICompositeViewEngine> _viewEngineMock;
         private Mock<ITempDataDictionary> _tempDataMock;
@@ -45,8 +47,9 @@ namespace Controller_Tests
         private Mock<IServiceScopeFactory> _serviceScopeFactoryMock;
         private Mock<IMemoryCache> _cacheMock;
         private Mock<UserManager<IdentityUser>> _userManagerMock;
+        private Mock<IConfiguration> _mockConfig;
 
-        [SetUp]  
+        [SetUp]
         public void Setup()
         {
             _loggerMock = new Mock<ILogger<HomeController>>();
@@ -63,12 +66,16 @@ namespace Controller_Tests
             _serviceScopeFactoryMock = new Mock<IServiceScopeFactory>();
             _cacheMock = new Mock<IMemoryCache>();
             _userManagerMock = new Mock<UserManager<IdentityUser>>();
+            var userManager = TestBuilder.BuildUserManager();
+            _mockConfig = new Mock<IConfiguration>();
+            _mockConfig.Setup(c => c["Captcha:SecretKey"]).Returns("dummy-secret");
+
 
             // Configure in-memory database options
             var options = new DbContextOptionsBuilder<UxCheckmateDbContext>()
                 .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())  // Unique name per test
                 .Options;
-            
+
             // Create actual DbContext instance with in-memory provider
             _dbContext = new UxCheckmateDbContext(options);
 
@@ -95,7 +102,8 @@ namespace Controller_Tests
                 _backgroundTaskQueueMock.Object,
                 _serviceScopeFactoryMock.Object,
                 _cacheMock.Object,
-                _userManagerMock.Object
+                userManager,
+                _mockConfig.Object
             );
 
             // Configure TempData for controller
@@ -108,7 +116,7 @@ namespace Controller_Tests
                 .Setup(sp => sp.GetService(typeof(ICompositeViewEngine)))
                 .Returns(_viewEngineMock.Object);
             httpContext.RequestServices = serviceProviderMock.Object;
-            
+
             // Assign context to controller
             _controller.ControllerContext = new ControllerContext()
             {
@@ -128,7 +136,7 @@ namespace Controller_Tests
                 new DesignCategory { Id = 1, Name = "Layout" },
                 new DesignCategory { Id = 2, Name = "Color" }
             };
-            
+
             var accessibilityCategories = new List<AccessibilityCategory>
             {
                 new AccessibilityCategory { Id = 1, Name = "WCAG 2.1" },
@@ -154,11 +162,11 @@ namespace Controller_Tests
                 },
                 AccessibilityIssues = new List<AccessibilityIssue>
                 {
-                    new AccessibilityIssue { Id = 1, Message = "WCAG issue", Details = "Details for WCAG issue", 
+                    new AccessibilityIssue { Id = 1, Message = "WCAG issue", Details = "Details for WCAG issue",
                         Selector = "#element1", WCAG = "1.1.1", Severity = 3, CategoryId = 1 },
-                    new AccessibilityIssue { Id = 2, Message = "Keyboard issue 1", Details = "Details for keyboard issue 1", 
+                    new AccessibilityIssue { Id = 2, Message = "Keyboard issue 1", Details = "Details for keyboard issue 1",
                         Selector = "#element2", WCAG = "2.1.1", Severity = 1, CategoryId = 2 },
-                    new AccessibilityIssue { Id = 3, Message = "Keyboard issue 2", Details = "Details for keyboard issue 2", 
+                    new AccessibilityIssue { Id = 3, Message = "Keyboard issue 2", Details = "Details for keyboard issue 2",
                         Selector = "#element3", WCAG = "2.1.2", Severity = 2, CategoryId = 2 }
                 }
             };
@@ -168,13 +176,13 @@ namespace Controller_Tests
             _dbContext.SaveChanges();
         }
 
-        [TearDown]  
+        [TearDown]
         public void TearDown()
         {
-            _controller.Dispose();  
+            _controller.Dispose();
         }
 
-        public void Dispose()  
+        public void Dispose()
         {
             _controller?.Dispose();  // Ensure controller disposal
             _dbContext?.Dispose();   // Cleanup database context
@@ -196,14 +204,14 @@ namespace Controller_Tests
 
             // Assert - Verify response structure and sorting
             Assert.That(result, Is.Not.Null, "Should return JSON result");
-            Assert.That(_controller.ViewBag.CurrentSort, Is.EqualTo("category"), 
+            Assert.That(_controller.ViewBag.CurrentSort, Is.EqualTo("category"),
                 "ViewBag should store current sort order");
-            
+
             // Verify JSON structure contains expected properties
             var resultValue = result.Value;
-            Assert.That(resultValue.GetType().GetProperty("designHtml"), Is.Not.Null, 
+            Assert.That(resultValue.GetType().GetProperty("designHtml"), Is.Not.Null,
                 "Should contain design HTML");
-            Assert.That(resultValue.GetType().GetProperty("accessibilityHtml"), Is.Not.Null, 
+            Assert.That(resultValue.GetType().GetProperty("accessibilityHtml"), Is.Not.Null,
                 "Should contain accessibility HTML");
         }
 
@@ -215,7 +223,7 @@ namespace Controller_Tests
 
             // Assert - Verify sort order tracking
             Assert.That(result, Is.Not.Null);
-            Assert.That(_controller.ViewBag.CurrentSort, Is.EqualTo("severity-high-low"), 
+            Assert.That(_controller.ViewBag.CurrentSort, Is.EqualTo("severity-high-low"),
                 "Should track current sort order");
         }
 
@@ -227,7 +235,7 @@ namespace Controller_Tests
 
             // Assert - Verify sort order tracking
             Assert.That(result, Is.Not.Null);
-            Assert.That(_controller.ViewBag.CurrentSort, Is.EqualTo("severity-low-high"), 
+            Assert.That(_controller.ViewBag.CurrentSort, Is.EqualTo("severity-low-high"),
                 "Should track reverse sort order");
         }
 
@@ -239,8 +247,39 @@ namespace Controller_Tests
 
             // Assert - Verify fallback behavior
             Assert.That(result, Is.Not.Null);
-            Assert.That(_controller.ViewBag.CurrentSort, Is.EqualTo("invalid-sort"), 
+            Assert.That(_controller.ViewBag.CurrentSort, Is.EqualTo("invalid-sort"),
                 "Should preserve invalid sort parameter");
+        }
+        // Tests for anonymous user submissions
+        [Test]
+        public void AnonymousOnlyCanSubmitThreeReports()
+        {
+            var session = new MockHttpSession();
+            string countKey = "AnonReportCount";
+            int limit = 3;
+            for (int i = 0; i < limit; i++){
+                int count = session.GetInt32(countKey) ?? 0;
+                Assert.That(count, Is.LessThan(limit), $"Attempt {i+1}: should not hit the limit yet");
+                session.SetInt32(countKey, count + 1);
+            }
+            int currentCount = session.GetInt32(countKey) ?? 0;
+            Assert.That(currentCount, Is.EqualTo(3), "After 3 attempts, count should be 3");
+            Assert.That(currentCount, Is.GreaterThanOrEqualTo(limit), "4th attempt: should hit the limit");
+        }
+        [Test]
+        public async Task AuthenticatedUserNoLimit()
+        {
+            var httpContext = new DefaultHttpContext();
+            httpContext.Session = new MockHttpSession();
+            _controller.ControllerContext.HttpContext = httpContext;
+            var claims = new List<Claim> { new Claim(ClaimTypes.NameIdentifier, "tests") };
+            var identity = new ClaimsIdentity(claims, "TestAuthType");
+            httpContext.User = new ClaimsPrincipal(identity);
+            for (int i = 0; i < 10; i++){
+                var testUrl = "https://example.com";
+                var result = await _controller.Report(new FakeCaptchaService(), testUrl, null, false, CancellationToken.None);
+                Assert.That(result, Is.TypeOf<ViewResult>(), $"Authenticated user attempt {i + 1} should succeed");
+            }
         }
     }
 }

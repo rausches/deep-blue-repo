@@ -108,6 +108,26 @@ namespace Uxcheckmate_Main.Services
                 await page.CloseAsync();
                 await context.CloseAsync();
 
+                // List of known 3rd party libaries
+                var knownLibraries = new[]
+                {
+                    "bootstrap",
+                    "jquery",
+                    "cdn.jsdelivr.net",
+                    "cdnjs.cloudflare.com",
+                    "unpkg.com",
+                    "googleapis.com",
+                    "gstatic.com",
+                    "fontawesome",
+                    "fonts.googleapis.com"
+                };
+
+                // Filter external JS contents by removing known libraries
+                externalJsContents = externalJsContents
+                    .Where(js => !knownLibraries.Any(lib => js.Contains(lib, StringComparison.OrdinalIgnoreCase)))
+                    .Where(js => js.Length < 100_000)
+                    .ToArray();
+
                 // Return structured scraping result as model
                 return new ScrapedContent
                 {

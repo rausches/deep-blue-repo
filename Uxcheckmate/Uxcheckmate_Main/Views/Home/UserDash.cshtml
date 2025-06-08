@@ -1,26 +1,112 @@
-@* @model List<Uxcheckmate_Main.DTO.ReportDTO> *@
+@model List<Uxcheckmate_Main.DTO.ReportDTO> 
 
 @{
     ViewData["Title"] = "User Dashboard";
 }
 
-<div class="container userdash-wrapper">
+<div class="container-fluid userdash-wrapper g-0">
 
-    <header class="myUserDashHeader">
-        <h1 class="display-4">My Dashboard</h1>
-        <form method="post" asp-area="Identity" asp-page="/Account/Logout">
-            <button type="submit" class="btn btn-dark">Logout</button>
-        </form>
-    </header>
-
+    <div class="row myUserDashHeader">
+        <h1 class="display-4 my-dashboard-text">My Dashboard</h1> <br>
+       @* <form method="post" asp-area="Identity" asp-page="/Account/Logout">
+            <button type="submit" class="btn btn-dark btn-global">Logout</button>
+        </form>*@
+    </div>
+</div>
+<br>
+<div class="container">
     @if (Model.Count == 0){
-            <h2 class="text-center">No reports yet</h2>
+        <div class="row noReports">
+             <h2 class="text-center">Nothing to see here :(</h2>
             <p class="text-center">You haven't run any reports yet. Please run a report to see the results here.</p>
-            
+            <form method="post" asp-action="Report" id="urlForm" onsubmit="return handleUserUrl(event);">
+                <div class="form-group">
+                    <div class="dashForm">
+                        <input type="text" id="urlInput" name="Url" placeholder="https://uxcheckmate.com">
+                        <button type="submit" id="dashBtn">Scan</button>
+                    </div>
+                    <span class="text-danger"></span>
+                </div>
+            </form>
+        </div>   
     } else {
         <div class="container-report-list">
-            <div class="row" id="reportListSameDomain">
-                @* JavaScript will populate here *@
+            <div class="row dashRow g-5">
+                    <div class="col-md-5 dashLeftCol">
+                            <div class="row">
+                                <div class="col-md-8"></div>
+                                <div class="col-md-3" id="allHeader"><h3 id="allHeaderText">All Reports</h3></div>
+                            </div>
+                        <div id="reportListSameDomain">
+                            @* JavaScript will populate here *@
+                        </div>
+                        <hr>
+                        <div class="row g-0">
+                            <div class="col-md-6">
+                                <form asp-action="Feedback" method="get">
+                                    <button type="submit" class="btn btn-secondary dashFeedback">Feedback</button>
+                                </form>
+                            </div>                             <div class="col-md-6">                     <form method="post" asp-area="Identity" asp-page="/Account/Logout">
+                                    <button type="submit" class="btn btn-dark dashFeedback">Logout</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-7 dashRightCol">
+                        <form method="post" asp-action="Report" id="urlForm" onsubmit="return handleUserUrl(event);">
+                            <div class="form-group">
+                                <div class="dashForm">
+                                    <input type="text" id="urlInput" name="Url" placeholder="https://uxcheckmate.com">
+                                    <button type="submit" id="dashBtn">Scan</button>
+                                </div>
+                                <span class="text-danger"></span>
+                            </div>
+                        </form>
+                        <br>
+                        <div class="container recentReportContainer">
+                            <div class="row">
+                                <div class="col-md-10"></div>
+                                <div class="col-md-2" id="recentHeader"><h3 id="recentHeaderText">Recent Report</h3></div>
+                            </div>
+                            <br>
+                            @{
+                                var lastReport = Model
+                                    .OrderByDescending(r => r.Date)
+                                    .FirstOrDefault();
+                            }
+
+                            @if (lastReport != null)
+                            {
+                                <div class="row g-0">
+                                    <div class="col-md-11 lastReportText"><h5>@lastReport.Url</h5>
+                                    <p>@lastReport.Date</p>
+                                    </div>
+                                    <div class="col-md-1">
+                                        <div class="dropdown">
+                                            <button class="btn btn-light btn-sm btn-ellipsis" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                                &#x2026; <!-- Horizontal Ellipsis -->
+                                            </button>
+                                            <ul class="dropdown-menu dropdown-menu-end lastReportText">
+                                                <li>
+                                                    <a class="dropdown-item" href="javascript:void(0);" onclick="viewReportDetails(@lastReport.Id)">View</a>
+                                                </li>
+                                                <li>
+                                                    <a class="dropdown-item" href="javascript:void(0);" onclick="sendToJira(@lastReport.Id)">Export to Jira</a>
+                                                </li>
+                                                <hr>
+                                                <li>
+                                                    <a class="dropdown-item text-danger" href="javascript:void(0);" onclick="deleteReport(@lastReport.Id)">Delete</a>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                                <br>
+                                <p class="lastReportText">@lastReport.Summary</p>
+                            }
+                        </div>
+                    </div>
+                </div>
             </div>
             @* Report Modal *@
             <div class="modal fade" id="reportModal" tabindex="-1" role="dialog" aria-labelledby="reportModalLabel" aria-hidden="true">
@@ -38,10 +124,95 @@
                     </div>
                 </div>
             </div>
-        </div>
     }    
 
 </div>
+@*
+=======================================================================
+                         Skeleton Loader Section
+=======================================================================
+*@
+
+                @* Logo Loader *@
+                <div id="loaderWrapper" style="display: none;">
+                    @* Don't delete this yet. Need to clean this up *@
+                    @* <div id="logoContainer">
+                        <img src="~/images/uxCheckmateLogo.png" alt="Loading" id="logo-img"/>
+                        <div id="logoText">Analyzing...</div> *@
+                </div>
+
+               @* Scanning website Loader *@
+                <div id="scanningWrapper" style="display: none;">
+                    <div id="scanningContainer">
+
+                    <div id="skeletonLoader" class="container">    
+                        <div class="container">
+                            <div class="row headerRow mb-5">
+                                <div class="col-md-6">
+                                    <!-- Skeleton for Screenshot -->
+                                    <div class="placeholder-glow">
+                                        <img class="placeholder w-100" id="screenshotPreview" src="~/images/animation-loading-scan.svg" alt="Placeholder for website screenshot" style="height: 300px; border-radius: 8px;">
+                                    </div>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <div class="placeholder-glow">
+                                        <h2><div class="scan-status"></div> </h2>
+                                        <span class="placeholder col-8"></span>
+                                    </div>
+                                    <div class="placeholder-glow">
+                                        <span class="placeholder col-6"></span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div id="reportContainer">
+                                <div class="row sortSelectRow mb-5">
+                                    <div class="col-md-8"></div>
+                                    <div class="col-md-4 sortSelectCol">
+                                        <!-- Skeleton for Sort Dropdown -->
+                                        <div class="placeholder-glow">
+                                            <span class="placeholder col-12" style="height: 38px; border-radius: 5px; display: flex; align-items: center; justify-content: center;">
+                                                <p class="scan-status">Categories...</p>
+                                            </span>                                        
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Skeleton for Design Issues Section -->
+                                <div class="row designRow mb-5">
+                                    <div class="report-section">
+                                        <div class="placeholder-glow mb-4">
+                                            <span class="placeholder col-4" style="height: 38px; border-radius: 5px; display: flex; align-items: center; justify-content: left;">
+                                                <h2 class="skeleton-text-color"></h2>
+                                            </span> <!-- Skeleton for 'Design Issues' header -->
+                                        </div>
+                                        <div class="placeholder-glow">
+                                            <span class="placeholder col-12 mb-2" style="height: 50px;"></span>
+                                            <span class="placeholder col-12 mb-2" style="height: 50px;"></span>
+                                            <span class="placeholder col-12 mb-2" style="height: 50px;"></span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Skeleton for Accessibility Issues Section -->
+                                <div class="row accessiblityRow mb-5">
+                                    <div class="report-section">
+                                        <div class="placeholder-glow mb-4">
+                                            <span class="placeholder col-5" style="height: 38px; border-radius: 5px; display: flex; align-items: center; justify-content: left;">
+                                                <h2 class="skeleton-text-color"></h2>
+                                            </span> <!-- Skeleton for 'Accessibility Issues' header -->
+                                        </div>
+                                        <div class="placeholder-glow">
+                                            <span class="placeholder col-12 mb-2" style="height: 50px;"></span>
+                                            <span class="placeholder col-12 mb-2" style="height: 50px;"></span>
+                                            <span class="placeholder col-12 mb-2" style="height: 50px;"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
 
 @section Scripts {
     <script>
@@ -49,4 +220,6 @@
         const reportsByDomain = @Html.Raw(Json.Serialize(Model ?? new List<Uxcheckmate_Main.DTO.ReportDTO>()));
     </script>
     <script src="~/js/userDashboardReports.js"></script>
+    <script src="~/js/loader.js"></script>
+    <script src="~/js/handleUserUrl.js"></script>
 }

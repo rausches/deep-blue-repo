@@ -43,14 +43,11 @@ namespace Uxcheckmate_Main.Services
                 .ToList();
 
             // Check for broken links.
-            //var sw = Stopwatch.StartNew();
             var brokenLinks = await CheckBrokenLinksAsync(links);
-            //sw.Stop();
-            //_logger.LogInformation("Broken link analysis took {Time}ms", sw.ElapsedMilliseconds);
 
             if (brokenLinks.Any())
             {
-                var message = $"The following broken links were found on this page: {string.Join(", ", brokenLinks)}";
+                var message = $"Found {brokenLinks.Count()} broken links. Links: {string.Join(", ", brokenLinks)}";
                 _logger.LogInformation("Broken link analysis completed. {BrokenLinkCount} broken links found.", brokenLinks.Count);
                 return message;
             }
@@ -76,7 +73,8 @@ namespace Uxcheckmate_Main.Services
         public async Task<List<string>> CheckBrokenLinksAsync(List<string> links)
         {
             var brokenLinks = new ConcurrentBag<string>();
-            
+            var cancelledLinks = new ConcurrentBag<string>();
+
             // Process links concurrently with a limit of 20 parallel tasks
             await Parallel.ForEachAsync(links, new ParallelOptions { MaxDegreeOfParallelism = 20 }, async (link, ct) =>
             {
@@ -100,12 +98,9 @@ namespace Uxcheckmate_Main.Services
                     if (response.StatusCode == HttpStatusCode.MethodNotAllowed)
                     {
                         _logger.LogDebug("HEAD not allowed for {Link}, falling back to GET", link);
-
-                        // Send a GET request to the link, using the cancellation token for safety
                         response = await _httpClient.GetAsync(link, ct);
                     }
 
-                    // If the status code is not 200 OK, consider it broken and record it
                     if (response.StatusCode != HttpStatusCode.OK)
                     {
                         _logger.LogInformation(
@@ -115,15 +110,19 @@ namespace Uxcheckmate_Main.Services
                         brokenLinks.Add($"{link} (Status: {response.StatusCode})");
                     }
                 }
+                catch (OperationCanceledException)
+                {
+                    _logger.LogWarning("Link check for {Link} was cancelled.", link);
+                    cancelledLinks.Add(link);
+                }
                 catch (Exception ex)
                 {
-                    // Catch network or timeout exceptions and mark the link as broken
                     _logger.LogInformation(ex, "Exception occurred while checking link: {Link}", link);
                     brokenLinks.Add($"{link} (Exception: {ex.Message})");
                 }
             });
-            
-            // Convert the thread-safe ConcurrentBag to a List and return it
+
+            _logger.LogInformation("Skipped {Count} links due to cancellation.", cancelledLinks.Count);
             return brokenLinks.ToList();
         }
     }

@@ -4,25 +4,32 @@
     ViewData["Title"] = "Feedback";
 }
 
-<div class="container mt-4">
-    <h1 class="text-center mb-4">Feedback</h1>
-    <div class="mx-auto" style="max-width: 800px;">
-        <form asp-action="SubmitFeedback" method="post">
+<div class="container feedbackContainer">
+    <div class="row feedbackRow">
+        <div class="col-md-6 feedbackCol" id="feedbackLeft">
+            <h2 class="feedbackHeader">We'd love to hear your thoughts!</h2>
+            <br>
+            <p class="feedbackText">Tell us what worked, what didn't, if you're having issues, etc. We're happy to help.</p>
+        </div>
+        <div class="col-md-6 feedbackCol" id="feedbackRight">
+            <form asp-action="SubmitFeedback" method="post">
             <div class="form-group">
-                <label asp-for="Message"></label>
-                <textarea asp-for="Message" class="form-control" rows="4" maxlength="255" oninput="updateCharCount()" aria-describedby="charCount"></textarea>
-                <small id="charCount" class="form-text text-muted">0 / 255 characters used</small>
+                <label asp-for="Message" class="feedbackText"></label>
+                <textarea asp-for="Message" class="form-control Message" rows="4" maxlength="255" oninput="updateCharCount()" aria-describedby="charCount" id="feedbackInput"></textarea>
+                <small id="charCount" class="form-text text-muted feedbackText">0 / 255 characters used</small>
             </div>
-            <button type="submit" id="submitFeedback" class="btn btn-primary">Submit</button>
-        </form>
-        @if (!ViewData.ModelState.IsValid){
-            <div class="alert alert-danger">
-                @Html.ValidationSummary()
-            </div>
-        }
-        @if (TempData["Success"] != null){
-            <div class="alert alert-success mt-3">@TempData["Success"]</div>
-        }
+            <button type="submit" id="submitFeedback" class="btn btn-primary btn-global feedbackText">Send &#10140;</button>
+            </form>
+            <br><br>
+            @if (!ViewData.ModelState.IsValid){
+                <div class="alert alert-danger">
+                    @Html.ValidationSummary()
+                </div>
+            }
+            @if (TempData["Success"] != null){
+                <div class="alert alert-success mt-3">@TempData["Success"]</div>
+            }
+        </div>
     </div>
 </div>
 

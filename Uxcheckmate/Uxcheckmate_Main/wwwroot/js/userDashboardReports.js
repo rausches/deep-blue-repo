@@ -161,9 +161,12 @@ function deleteReport(reportId) {
 
 // Function to format date
 function formattedDate(dateString) {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', { 
-         year: 'numeric', month: 'short', day: 'numeric' });
+    const [year, month, day] = dateString.split('T')[0].split('-');
+    return new Date(year, month - 1, day).toLocaleDateString('en-US', { 
+        year: 'numeric', 
+        month: 'short', 
+        day: 'numeric' 
+    });
 }
 
 // Function to download a report as a PDF
@@ -279,7 +282,7 @@ document.addEventListener('DOMContentLoaded', () => {
     
     for (const domain in groupedReports) {
         const folderDiv = document.createElement('div');
-        folderDiv.classList.add('folder-card', 'mb-3', 'p-3', 'glass-card');
+        folderDiv.classList.add('folder-card', 'glass-card', 'mb-3');
     
         const safeDomain = domain.replace(/\W/g, '');
         const accordionId = `websiteAccordion-${safeDomain}`;
@@ -294,7 +297,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             <div class="col-md-8 d-flex justify-content-between align-items-left">
                                 ${domain}
                             </div>
-                            <div class="col-md-4 d-flex justify-content-center align-items-center">
+                            <div class="col-md-3 d-flex justify-content-center align-items-center">
                                 <span class="badge bg-primary">${groupedReports[domain].length} reports</span>
                             </div>
                         </button>
@@ -303,29 +306,32 @@ document.addEventListener('DOMContentLoaded', () => {
                     <div id="${collapseId}" class="accordion-collapse collapse" aria-labelledby="${headingId}" data-bs-parent="#${accordionId}">
                         <div class="accordion-body">
                             <div class="row fw-bold mb-2">
-                                <div class="col-sm">Webpage</div>
-                                <div class="col-sm">Report ID</div>
-                                <div class="col-sm">Date</div>
-                                <div class="col-sm">Actions</div>
-                                <div class="col-sm">Export</div>
-                                <div class="col-sm">Delete</div>
+                                <div class="col-sm-5 groupedReportHeader">Webpage</div>
+                                <div class="col-sm-3 groupedReportHeader">Date</div>
+                                <div class="col-sm-3 groupedReportHeader">Actions</div>
                             </div>
     
                             ${groupedReports[domain].map(r => `
                                 <div class="row mb-2" id="report-${r.id}">
-                                    <div class="col-sm text-break">${r.url}</div> 
-                                    <div class="col-sm">${r.id}</div>
-                                    <div class="col-sm">${formattedDate(r.date)}</div>
-                                    <div class="col-sm">
-                                        <button class="btn btn-secondary btn-sm" onclick="viewReportDetails(${r.id})">View Report</button>
+                                    <div class="col-sm-5 text-break groupedReportHeader">${r.url}</div> 
+                                    <div class="col-sm-3 groupedReportHeader">${formattedDate(r.date)}</div>
+                                    <div class="col-sm-1">
+                                        <button class="reportBtns" onclick="viewReportDetails(${r.id})">
+                                            <img src="/images/eye.png" alt="eye icon">
+                                        </button>
                                     </div>
-                                    <div class="col-sm">
-                                        <button class="btn btn-primary btn-sm exportJiraBtn" onclick="sendToJira(${r.id})">Export to Jira</button>    
+                                    <div class="col-sm-1">
+                                        <button class="reportBtns exportJiraBtn" onclick="sendToJira(${r.id})">
+                                            <img src="/images/file-export.png" alt="export icon">
+                                        </button>    
                                     </div>
-                                    <div class="col-sm">
-                                        <button class="btn btn-danger btn-sm deleteReportbtn" onclick="deleteReport(${r.id})">Delete</button>
+                                    <div class="col-sm-1">
+                                        <button class="reportBtns deleteReportbtn" onclick="deleteReport(${r.id})">
+                                            <img src="/images/trash.png" alt="trash icon">
+                                        </button>
                                     </div>
                                 </div>
+                                <hr>
                             `).join('')}
                         </div>
                     </div>
