@@ -1,0 +1,81 @@
+name: Publish
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - deployment
+
+env:
+  AZURE_WEBAPP_PACKAGE_PATH: './publish'
+  DB_STRING_SECRET: ${{ secrets.DB_STRING_SECRET }}
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: '9.0.x'
+
+      - name: Restore
+        run: dotnet restore ./Uxcheckmate/Uxcheckmate.sln
+
+      - name: Install Playwright
+        run: |
+          cd ./Uxcheckmate/Moq_Tests
+          npm install playwright
+
+      - name: Install Playwright Browsers
+        run: |
+          cd ./Uxcheckmate/Moq_Tests
+          npx playwright install --with-deps
+        
+      - name: Build
+        run: dotnet build ./Uxcheckmate/Uxcheckmate_Main/Uxcheckmate_Main.sln --configuration Release --no-restore
+
+      - name: Build Moq Tests
+        run: dotnet build ./Uxcheckmate/Moq_Tests/Moq_Tests.csproj --configuration Release
+
+      - name: Create appsettings.json
+        run: |
+          cat <<EOF > ./Uxcheckmate/Moq_Tests/bin/Release/net9.0/appsettings.json
+          {
+            "ConnectionStrings": {
+              "DBConnection": "${{ secrets.DBCONNECTION }}"
+            },
+            "Logging": {
+              "LogLevel": {
+                "Default": "Information",
+                "Microsoft.AspNetCore": "Warning"
+              }
+            }
+          }
+          EOF
+          
+      - name: Run Moq Tests
+        run: dotnet test ./Uxcheckmate/Moq_Tests/Moq_Tests.csproj --configuration Release
+
+      - name: Clear Previous Publish Output
+        run: rm -rf ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}
+
+      - name: Publish App
+        run: dotnet publish ./Uxcheckmate/Uxcheckmate_Main/Uxcheckmate_Main.csproj --configuration Release --output '${{ env.AZURE_WEBAPP_PACKAGE_PATH }}'
+
+      - name: Create Deployment Marker File
+        run: |
+          echo "Deployment built on $(date)" > ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}/deployment-test.txt
+
+      - name: Deploy to Azure Web App
+        uses: azure/webapps-deploy@v2
+        with:
+          app-name: ${{ secrets.AZURE_WEBAPP_NAME }}
+          publish-profile: ${{ secrets.AZURE_PUBLISH_PROFILE }}
+          package: ${{ env.AZURE_WEBAPP_PACKAGE_PATH }}
