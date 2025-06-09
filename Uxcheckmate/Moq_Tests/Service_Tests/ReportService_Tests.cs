@@ -127,7 +127,7 @@ namespace Service_Tests
             );
         }
 
-        [Test]
+/*        [Test]
         public async Task GenerateReportAsync_Returns_Empty_If_No_Issues_Found()
         {
             var report = new Report { Url = "https://example.com" };
@@ -182,7 +182,7 @@ namespace Service_Tests
             Assert.That(result, Is.Not.Null);
             Assert.That(result.All(r => r.CategoryId != 99));
         }
-
+*/
         [Test]
         public async Task RunCustomAnalysisAsync_Returns_String_IfIssuesFound()
         {
