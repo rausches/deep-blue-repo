@@ -9,6 +9,8 @@
 
 Our vision is to create an inclusive digital culture where everyone—whether a developer, business owner, or designer—can contribute to making websites accessible, inclusive, and equitable. With 'UX Checkmate,' we make it easy for anyone to improve their websites by simply inserting a web link. Our tool helps identify areas for accessibility enhancement, offering actionable suggestions and visual mockups to guide improvements. As technology continues to advance, we aim to bridge the gap for those without technical experience, ensuring that every user, regardless of their abilities, can navigate and engage with the web seamlessly. By fostering collaboration and inclusion, we strive to make the digital world accessible to all, building a future where no one is left behind.
 
+<a href="doc\assets\documentation\architecture.png">System Architecture</a>
+
 ## Features
 
 Our focal feature is report generation. We've created over a dozen scans to detect and flag common design issues that can negatively impact your user's experience. The report also includes an accessibility audit per WCAG 2.2 guidelines. 
