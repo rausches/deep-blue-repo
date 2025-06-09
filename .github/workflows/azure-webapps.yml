@@ -27,11 +27,14 @@ jobs:
         with:
           dotnet-version: '9.0.x'
 
-      - name: Restore
-        run: dotnet restore ./Uxcheckmate/Uxcheckmate_Main/Uxcheckmate_Main.sln
-
+      - name: Install Playwright Browsers
+        run: pwsh ./Uxcheckmate_Main/bin/Release/net9.0/playwright.ps1 install
+        
       - name: Build
-        run: dotnet build ./Uxcheckmate/Uxcheckmate_Main/Uxcheckmate_Main.sln --configuration Release --no-restore
+        run: dotnet build ./Uxcheckmate/Uxcheckmate.sln --configuration Release --no-restore
+
+      - name: Test Moq Tests
+        run: dotnet test ./Uxcheckmate/Moq_Tests/Moq_Tests.csproj --configuration Release
 
       - name: Run Tests
         run: dotnet test ./Uxcheckmate/Uxcheckmate_Tests/Uxcheckmate_Tests.csproj --configuration Release
