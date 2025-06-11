@@ -34,8 +34,9 @@ namespace Uxcheckmate_Main.Services
         private readonly ISymmetryService _symmetryService;
         private readonly IServiceScopeFactory _scopeFactory;
         private readonly IMemoryCache _cache;
+        private readonly IPlaywrightApiService _playwrightApiService;
 
-        public ReportService(HttpClient httpClient, ILogger<ReportService> logger, UxCheckmateDbContext context, IOpenAiService openAiService, IBrokenLinksService brokenLinksService, IHeadingHierarchyService headingHierarchyService, IColorSchemeService colorSchemeService, IMobileResponsivenessService mobileResponsivenessService, IScreenshotService screenshotService, IPlaywrightScraperService playwrightScraperService, IPopUpsService popUpsService, IAnimationService animationService, IAudioService audioService, IScrollService scrollService, IFPatternService fPatternService, IZPatternService zPatternService, ISymmetryService symmetryService, IServiceScopeFactory scopeFactory, IMemoryCache cache)
+        public ReportService(HttpClient httpClient, ILogger<ReportService> logger, UxCheckmateDbContext context, IOpenAiService openAiService, IBrokenLinksService brokenLinksService, IHeadingHierarchyService headingHierarchyService, IColorSchemeService colorSchemeService, IMobileResponsivenessService mobileResponsivenessService, IScreenshotService screenshotService, IPlaywrightScraperService playwrightScraperService, IPopUpsService popUpsService, IAnimationService animationService, IAudioService audioService, IScrollService scrollService, IFPatternService fPatternService, IZPatternService zPatternService, ISymmetryService symmetryService, IServiceScopeFactory scopeFactory, IMemoryCache cache, IPlaywrightApiService playwrightApiService)
         {
             _httpClient = httpClient;
             _dbContext = context;
@@ -56,6 +57,7 @@ namespace Uxcheckmate_Main.Services
             _symmetryService = symmetryService;
             _scopeFactory = scopeFactory;
             _cache = cache;
+            _playwrightApiService = playwrightApiService;
         }
 
         public async Task<ICollection<DesignIssue>> GenerateReportAsync(Report report, CancellationToken cancellationToken)
@@ -76,8 +78,6 @@ namespace Uxcheckmate_Main.Services
 
             // Scrape site with caching
             var (scrapedData, fullScraped) = await GetScrapedContentAsync(url, cancellationToken);
-            if (scrapedData == null)
-                return scanResults.ToList();
 
             // Screenshot with caching
             var screenshotTask = GetOrCaptureScreenshot(url);

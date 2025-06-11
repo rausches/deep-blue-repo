@@ -90,7 +90,7 @@ namespace Controller_Tests
         }
     }
 
-    // Simple mock ISession implementation for testing
+    // mock ISession implementation for testing
     public class TestSession : ISession
     {
         private readonly Dictionary<string, byte[]> _store = new Dictionary<string, byte[]>();

@@ -134,6 +134,7 @@ public class Program
         // Register and Config Jira
         builder.Services.Configure<JiraSettings>(builder.Configuration.GetSection("Jira"));
         builder.Services.AddHttpClient<IJiraService, JiraService>();
+        builder.Services.AddHttpClient<IPlaywrightApiService, PlaywrightApiService>();
 
         var app = builder.Build();
 

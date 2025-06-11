@@ -49,7 +49,8 @@ public static class TestBuilder
                 new Mock<IZPatternService>().Object,
                 new Mock<ISymmetryService>().Object,
                 new Mock<IServiceScopeFactory>().Object,
-                new Mock<IMemoryCache>().Object
+                new Mock<IMemoryCache>().Object,
+                new MockPlaywrightApiService()
             ),
             new Mock<PdfExportService>().Object,
             new Mock<IScreenshotService>().Object,

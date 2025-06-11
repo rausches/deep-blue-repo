@@ -231,8 +231,6 @@ namespace Uxcheckmate_Main.Services
                 ScrollWidth = scrollWidth,
                 ViewportWidth = viewportWidth,
                 ViewportLabel = $"{viewportWidth}x{viewportHeight}"
-
-
             };
         }
 

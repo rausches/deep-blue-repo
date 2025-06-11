@@ -9,7 +9,7 @@
 ============================================================================================
 *@
 <!-- Auto-launch Modal -->
-<div class="modal fade" id="onLoadModal" tabindex="-1" aria-labelledby="onLoadModalLabel" aria-hidden="true">
+@*<div class="modal fade" id="onLoadModal" tabindex="-1" aria-labelledby="onLoadModalLabel" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content shadow-lg rounded-4">
       <div class="modal-header">
@@ -27,11 +27,13 @@
     </div>
   </div>
 </div>
-
+*@
 <div class="container">
     <div class="row headerRow">
         <div class="col-md-6">
-            <img id="screenshotImage" src="@websiteScreenshot " alt="Website Screenshot" class="img-fluid" />
+           @* <img id="screenshotImage" src="@websiteScreenshot " alt="Website Screenshot" class="img-fluid" />*@
+            <img src="data:image/png;base64,@TempData["WebsiteScreenshot"]"id="screenshotImage" class="img-fluid" alt="Website Screenshot">
+
         </div>
         <div class="col-md-6 reportHeaderRight">
             @* Display the URL associated with the report *@

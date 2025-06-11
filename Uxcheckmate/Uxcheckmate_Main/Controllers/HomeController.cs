@@ -568,7 +568,7 @@ public class HomeController : Controller
             }
 
             // Not cached → capture screenshot
-            var screenshotOptions = new PageScreenshotOptions { FullPage = true };
+            var screenshotOptions = new PageScreenshotOptions { FullPage = false };
             var screenshot = await _screenshotService.CaptureScreenshot(screenshotOptions, url);
 
             if (string.IsNullOrEmpty(screenshot))

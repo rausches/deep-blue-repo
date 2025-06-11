@@ -177,7 +177,7 @@ document.addEventListener("DOMContentLoaded", function () {
             // Find the image element inside the loader and inject the screenshot
             const previewImage = document.getElementById('screenshotPreview');
             if (previewImage) {
-                previewImage.src = base64Screenshot; 
+                previewImage.src = `data:image/png;base64,${base64Screenshot}`;
                 previewImage.alt = `Screenshot of ${urlInput}`; 
                 // Set CSS transition class
                 previewImage.classList.add('loaded');

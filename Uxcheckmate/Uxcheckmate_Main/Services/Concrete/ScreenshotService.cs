@@ -12,19 +12,19 @@ namespace Uxcheckmate_Main.Services
         private readonly ILogger<ScreenshotService> _logger;
 
         // Calling the PlaywrightService to get the browser context
-        private readonly IPlaywrightService _playwrightService;
+        private readonly IPlaywrightApiService _playwrightApiService;
 
-        public ScreenshotService(ILogger<ScreenshotService> logger, IPlaywrightService playwrightService)
+        public ScreenshotService(ILogger<ScreenshotService> logger,
+            IPlaywrightApiService playwrightApiService)
         {
             _logger = logger;
-            _playwrightService = playwrightService;
+            _playwrightApiService = playwrightApiService;
         }
 
         // PageScreenshotOptions is a class in Playwright that allows you to specify options for taking a screenshot of a page.
         // The options include the full page, the quality of the image, the type of image, and the path to save the image.
-        public async Task<string> CaptureScreenshot(PageScreenshotOptions screenshotOptions, string url, CancellationToken cancellationToken = default)
+        public async Task<string> CaptureScreenshot(PageScreenshotOptions options, string url, CancellationToken cancellationToken = default)
         {
-            // Check if the URL is empty or null
             if (string.IsNullOrWhiteSpace(url))
             {
                 _logger.LogError("URL cannot be empty.");
@@ -33,56 +33,52 @@ namespace Uxcheckmate_Main.Services
 
             try
             {
-                // Get the browser context from the PlaywrightService
-                // This ensures that a new browser context is created for its own session
-                var context = await _playwrightService.GetBrowserContextAsync();
-                
-                // Create a new page in the browser context
-                var page = await context.NewPageAsync();
+                _logger.LogInformation("Capturing standard viewport screenshot of {Url}", url);
+                var result = await _playwrightApiService.AnalyzeWebsiteAsync(url, fullPage: false);
 
-                // Navigate to the specified URL
-                await page.GotoAsync(url);
+                if (string.IsNullOrEmpty(result?.ScreenshotBase64))
+                {
+                    _logger.LogWarning("ScreenshotBase64 was null or empty for {Url}", url);
+                    return string.Empty;
+                }
 
-                // Ensure FullPage option is set to False to capture only the viewport of the page
-                screenshotOptions.FullPage = false;
-
-                // Take a screenshot of the page with the specified options
-                var screenshotBytes = await page.ScreenshotAsync(screenshotOptions);
-                
-
-                // Convert the screenshot bytes to a base64 string
-                // This allows the image to be displayed in the browser without saving it to disk
-                // The base64 string is prefixed with the data:image/png;base64, so the browser knows it is an image
-                // This uses the MIME type for PNG images image/png
-                return $"data:image/png;base64,{Convert.ToBase64String(screenshotBytes)}";
+                return result.ScreenshotBase64;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to capture screenshot.");
+                _logger.LogError(ex, "Failed to capture viewport screenshot of {Url}", url);
                 return string.Empty;
             }
         }
+
         public async Task<byte[]> CaptureFullPageScreenshot(string url)
         {
-            if (string.IsNullOrWhiteSpace(url)){
+            if (string.IsNullOrWhiteSpace(url))
+            {
                 _logger.LogError("URL cannot be empty.");
                 return Array.Empty<byte>();
             }
-            try{
-                var context = await _playwrightService.GetBrowserContextAsync();
-                var page = await context.NewPageAsync();
-                await page.GotoAsync(url, new PageGotoOptions { WaitUntil = WaitUntilState.Load });
+
+            try
+            {
                 _logger.LogInformation("Capturing full-page screenshot of {Url}", url);
-                var screenshotBytes = await page.ScreenshotAsync(new PageScreenshotOptions
+                var result = await _playwrightApiService.AnalyzeWebsiteAsync(url, fullPage: true);
+
+                if (result?.ScreenshotBase64 == null)
                 {
-                    FullPage = true
-                });
-                await page.CloseAsync();
-                return screenshotBytes;
-            }catch (Exception ex){
+                    _logger.LogWarning("ScreenshotBase64 is null or empty for URL: {Url}", url);
+                    return Array.Empty<byte>();
+                }
+
+                // Decode the base64 string to byte[]
+                return Convert.FromBase64String(result.ScreenshotBase64);
+            }
+            catch (Exception ex)
+            {
                 _logger.LogError(ex, "Failed to capture full-page screenshot.");
                 return Array.Empty<byte>();
             }
         }
+
     }
 }
